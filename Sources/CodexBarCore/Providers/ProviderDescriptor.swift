@@ -99,6 +99,7 @@ public enum ProviderDescriptorRegistry {
         .venice: VeniceProviderDescriptor.descriptor,
         .commandcode: CommandCodeProviderDescriptor.descriptor,
         .qoder: QoderProviderDescriptor.descriptor,
+        .mycoder: MyCoderProviderDescriptor.descriptor,
         .stepfun: StepFunProviderDescriptor.descriptor,
         .bedrock: BedrockProviderDescriptor.descriptor,
         .grok: GrokProviderDescriptor.descriptor,

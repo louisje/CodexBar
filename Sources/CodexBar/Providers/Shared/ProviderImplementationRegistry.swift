@@ -59,6 +59,7 @@ enum ProviderImplementationRegistry {
         case .venice: VeniceProviderImplementation()
         case .commandcode: CommandCodeProviderImplementation()
         case .qoder: QoderProviderImplementation()
+        case .mycoder: MyCoderProviderImplementation()
         case .stepfun: StepFunProviderImplementation()
         case .bedrock: BedrockProviderImplementation()
         case .grok: GrokProviderImplementation()

@@ -49,6 +49,7 @@ public enum UsageProvider: String, CaseIterable, Sendable, Codable {
     case venice
     case commandcode
     case qoder
+    case mycoder
     case stepfun
     case bedrock
     case grok
@@ -109,6 +110,7 @@ public enum IconStyle: String, Sendable, CaseIterable {
     case venice
     case commandcode
     case qoder
+    case mycoder
     case stepfun
     case bedrock
     case grok
@@ -282,6 +284,15 @@ public enum ProviderBrowserCookieDefaults {
     /// Qoder sessions are documented through Chrome cookie import. Keep automatic import narrow
     /// so enabling this provider does not probe unrelated browser keychains.
     public static var qoderCookieImportOrder: BrowserCookieImportOrder? {
+        #if os(macOS)
+        [.chrome]
+        #else
+        nil
+        #endif
+    }
+
+    /// MyCoder sessions are accessed via Chrome on the internal ASUS network.
+    public static var mycoderCookieImportOrder: BrowserCookieImportOrder? {
         #if os(macOS)
         [.chrome]
         #else
