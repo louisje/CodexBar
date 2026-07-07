@@ -350,12 +350,17 @@ strip_release_binary() {
 ensure_widget_extension_project() {
   local spec="$ROOT/WidgetExtension/project.yml"
   local project_dir="$ROOT/WidgetExtension/CodexBarWidgetExtension.xcodeproj"
-  if command -v xcodegen >/dev/null 2>&1; then
-    xcodegen generate --spec "$spec" --project "$ROOT/WidgetExtension" --quiet
-  elif [[ ! -f "$project_dir/project.pbxproj" ]]; then
+  if [[ -f "$project_dir/project.pbxproj" ]]; then
+    return
+  fi
+  if ! command -v xcodegen >/dev/null 2>&1; then
     echo "ERROR: Missing ${project_dir}; install xcodegen or restore the generated project." >&2
     exit 1
   fi
+
+  # The tracked project is authoritative. Regenerating it during packaging records the checkout
+  # directory's spelling in a package file reference and leaves release worktrees dirty.
+  xcodegen generate --spec "$spec" --project "$ROOT/WidgetExtension" --quiet
 }
 
 build_widget_extension() {
@@ -372,18 +377,45 @@ build_widget_extension() {
   local timeout_seconds="${CODEXBAR_WIDGET_EXTENSION_TIMEOUT_SECONDS:-900}"
   local archs="${ARCH_LIST[*]}"
 
+  # Build static archives of all SPM dependencies so xcodebuild can link them
+  # without needing to resolve the Swift package graph (requires Swift 6.2+).
+  local build_triple
+  build_triple=$(ls "$ROOT/.build" | grep -E '^[a-z0-9_]+-apple-macosx$' | head -1)
+  local obj_base="$ROOT/.build/${build_triple:-x86_64-apple-macosx}/$LOWER_CONF"
+
+  for pkg_build_dir in "$obj_base"/*.build; do
+    local pkg_name
+    pkg_name=$(basename "$pkg_build_dir" .build)
+    local lib="$ROOT/.build/$LOWER_CONF/lib${pkg_name}.a"
+    local objs=("$pkg_build_dir"/*.o)
+    if [[ ! -f "$lib" && ${#objs[@]} -gt 0 && -f "${objs[0]}" ]]; then
+      echo "Creating lib${pkg_name}.a from object files..." >&2
+      ar rcs "$lib" "${objs[@]}"
+    fi
+  done
+
   mkdir -p "$derived_dir"
   echo "Building CodexBarWidget Xcode extension (${xcode_conf}, ${archs})." >&2
-  xcodebuild \
+
+  # Xcode 16's built-in Swift compiler is 6.1.2, which cannot import swiftmodules
+  # compiled with Swift 6.3.3. Override the toolchain used by xcodebuild so the
+  # widget extension is compiled with the same Swift version as CodexBarCore.
+  local swift633_toolchain_id="org.swift.633202606251a"
+  local toolchain_dir="$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain"
+  local xcodebuild_env=()
+  if [[ -d "$toolchain_dir" ]]; then
+    xcodebuild_env=(env TOOLCHAINS="$swift633_toolchain_id")
+  fi
+
+  "${xcodebuild_env[@]}" xcodebuild \
     -project "$project_dir" \
     -scheme CodexBarWidgetExtension \
     -configuration "$xcode_conf" \
     -destination "generic/platform=macOS" \
     -derivedDataPath "$derived_dir" \
-    -skipPackageUpdates \
-    -disableAutomaticPackageResolution \
     -skipMacroValidation \
     -skipPackagePluginValidation \
+    CODEXBAR_BUILD_DIR="$ROOT/.build" \
     CODEXBAR_WIDGET_BUNDLE_ID="$WIDGET_BUNDLE_ID" \
     CODEXBAR_TEAM_ID="$APP_TEAM_ID" \
     MARKETING_VERSION="$MARKETING_VERSION" \

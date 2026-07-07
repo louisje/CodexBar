@@ -120,6 +120,7 @@ enum ProviderChoice: String, AppEnum {
         case .poe: return nil // Poe not yet supported in widgets
         case .chutes: return nil // Chutes not yet supported in widgets
         case .zed: return nil // Zed not yet supported in widgets
+        case .mycoder: return nil // MyCoder not yet supported in widgets
         }
     }
 }
