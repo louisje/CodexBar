@@ -275,6 +275,17 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CodexBuildTimestamp</key><string>${BUILD_TIMESTAMP}</string>
     <key>CodexGitCommit</key><string>${GIT_COMMIT}</string>
     <key>CodexBarTeamID</key><string>${APP_TEAM_ID}</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>afs-mycoder.asus.com</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key><true/>
+                <key>NSTemporaryExceptionMinimumTLSVersion</key><string>TLSv1.0</string>
+            </dict>
+        </dict>
+    </dict>
 </dict>
 </plist>
 PLIST
@@ -536,7 +547,7 @@ fi
 chmod -R u+w "$APP"
 
 # Strip extended attributes to prevent AppleDouble (._*) files that break code sealing
-xattr -cr "$APP"
+/usr/bin/xattr -cr "$APP"
 find "$APP" -name '._*' -delete
 
 # Sign helper binaries if present

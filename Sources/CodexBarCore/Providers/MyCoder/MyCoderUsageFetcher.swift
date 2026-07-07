@@ -10,9 +10,19 @@ public enum MyCoderUsageFetcher {
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
 
+    /// A transport that trusts `afs-mycoder.asus.com` regardless of certificate validity.
+    /// Uses the completion-handler based dataTask to ensure the delegate's auth challenge is invoked.
+    public static let trustingTransport: any ProviderHTTPTransport = {
+        #if os(macOS)
+        return MyCoderTrustingTransport()
+        #else
+        return ProviderHTTPClient.shared
+        #endif
+    }()
+
     public static func fetchUsage(
         cookieHeader: String,
-        transport: any ProviderHTTPTransport = ProviderHTTPClient.shared,
+        transport: any ProviderHTTPTransport = MyCoderUsageFetcher.trustingTransport,
         now: Date = Date(),
         timeout: TimeInterval = 15) async throws -> MyCoderUsageSnapshot
     {
@@ -62,38 +72,155 @@ public enum MyCoderUsageFetcher {
     }
 
     static func parseQuota(data: Data, now: Date = Date()) throws -> MyCoderUsageSnapshot {
-        let response: MyCoderQuotaResponse
-        do {
-            response = try JSONDecoder().decode(MyCoderQuotaResponse.self, from: data)
-        } catch {
-            throw MyCoderUsageError.parseFailed("invalid JSON: \(error.localizedDescription)")
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw MyCoderUsageError.parseFailed("invalid JSON")
         }
-        guard response.success, let quota = response.data else {
+        if let success = root["success"] as? Bool, !success {
+            throw MyCoderUsageError.parseFailed("unsuccessful response")
+        }
+
+        let quota = self.quotaObject(from: root) ?? root
+        guard self.payloadContainsQuotaField(quota) else {
             throw MyCoderUsageError.parseFailed("missing quota data")
         }
-        let used = quota.totalQuota - quota.availableQuota
+
+        let totalQuota = self.double(from: quota["totalQuota"])
+            ?? self.double(from: quota["quota"])
+            ?? self.double(from: quota["limit"])
+            ?? self.double(from: quota["total"])
+            ?? self.double(from: quota["totalBudget"])
+            ?? self.double(from: quota["budget"])
+        let availableQuota = self.double(from: quota["availableQuota"])
+            ?? self.double(from: quota["remainingQuota"])
+            ?? self.double(from: quota["balance"])
+            ?? self.double(from: quota["remaining"])
+            ?? self.double(from: quota["available"])
+            ?? self.double(from: quota["remainingBudget"])
+            ?? self.double(from: quota["availableBudget"])
+        guard let totalQuota, let availableQuota else {
+            throw MyCoderUsageError.parseFailed("missing total/available quota values")
+        }
+        let used = totalQuota - availableQuota
         return MyCoderUsageSnapshot(
             usedBudget: max(0, used),
-            totalBudget: quota.totalQuota,
-            availableBudget: quota.availableQuota,
-            account: quota.account,
+            totalBudget: totalQuota,
+            availableBudget: availableQuota,
+            account: self.string(from: quota["account"]),
             updatedAt: now)
     }
-}
 
-private struct MyCoderQuotaResponse: Decodable {
-    let success: Bool
-    let data: MyCoderQuotaData?
-}
+    private static let expectedQuotaKeys: Set<String> = [
+        "account", "totalQuota", "availableQuota", "quota", "limit", "remainingQuota",
+        "balance", "total", "remaining", "available", "totalBudget", "availableBudget",
+        "remainingBudget", "budget",
+    ]
 
-private struct MyCoderQuotaData: Decodable {
-    let account: String?
-    let totalQuota: Double
-    let availableQuota: Double
+    private static func quotaObject(from root: [String: Any]) -> [String: Any]? {
+        for key in ["data", "quota", "result"] {
+            if let nested = root[key] as? [String: Any] {
+                return nested
+            }
+        }
+        return nil
+    }
 
-    private enum CodingKeys: String, CodingKey {
-        case account
-        case totalQuota
-        case availableQuota
+    private static func payloadContainsQuotaField(_ payload: [String: Any]) -> Bool {
+        !Self.expectedQuotaKeys.isDisjoint(with: payload.keys)
+    }
+
+    private static func double(from value: Any?) -> Double? {
+        switch value {
+        case let number as NSNumber:
+            let result = number.doubleValue
+            return result.isFinite ? result : nil
+        case let string as String:
+            let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+            return Double(trimmed)
+        default:
+            return nil
+        }
+    }
+
+    private static func string(from value: Any?) -> String? {
+        guard let string = value as? String else { return nil }
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
+
+// MARK: - TLS Trust Bypass
+
+#if os(macOS)
+/// A custom transport that bypasses TLS certificate validation for `afs-mycoder.asus.com`.
+/// Uses completion-handler based `dataTask` (like Antigravity's LocalhostSessionDelegate)
+/// to guarantee the URLSessionDelegate auth challenge callback is invoked.
+private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked Sendable {
+    private static let trustedHost = "afs-mycoder.asus.com"
+
+    private let session: URLSession
+    private let delegate: MyCoderTrustDelegate
+
+    init() {
+        let delegate = MyCoderTrustDelegate()
+        self.delegate = delegate
+        self.session = URLSession(
+            configuration: ProviderHTTPClient.defaultConfiguration(),
+            delegate: delegate,
+            delegateQueue: nil)
+    }
+
+    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        try await withCheckedThrowingContinuation { continuation in
+            let task = self.session.dataTask(with: request) { data, response, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                guard let data, let response else {
+                    continuation.resume(throwing: URLError(.badServerResponse))
+                    return
+                }
+                continuation.resume(returning: (data, response))
+            }
+            task.resume()
+        }
+    }
+}
+
+private final class MyCoderTrustDelegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, @unchecked Sendable {
+    private static let trustedHost = "afs-mycoder.asus.com"
+
+    func urlSession(
+        _: URLSession,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
+    {
+        let (disposition, credential) = self.evaluate(challenge)
+        completionHandler(disposition, credential)
+    }
+
+    func urlSession(
+        _: URLSession,
+        task _: URLSessionTask,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
+    {
+        let (disposition, credential) = self.evaluate(challenge)
+        completionHandler(disposition, credential)
+    }
+
+    private func evaluate(_ challenge: URLAuthenticationChallenge) -> (
+        URLSession.AuthChallengeDisposition, URLCredential?)
+    {
+        let space = challenge.protectionSpace
+        guard space.authenticationMethod == NSURLAuthenticationMethodServerTrust,
+              space.host.lowercased() == Self.trustedHost,
+              let trust = space.serverTrust
+        else {
+            return (.performDefaultHandling, nil)
+        }
+        return (.useCredential, URLCredential(trust: trust))
+    }
+}
+#endif

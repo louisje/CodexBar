@@ -83,7 +83,7 @@ echo "Stapling ticket"
 xcrun stapler staple "$APP_BUNDLE"
 
 # Strip any extended attributes that would create AppleDouble files when zipping
-xattr -cr "$APP_BUNDLE"
+/usr/bin/xattr -cr "$APP_BUNDLE"
 find "$APP_BUNDLE" -name '._*' -delete
 
 "$DITTO_BIN" --norsrc -c -k --keepParent "$APP_BUNDLE" "$ZIP_NAME"
