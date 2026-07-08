@@ -59,16 +59,32 @@ struct MyCoderWebFetchStrategy: ProviderFetchStrategy {
     }
 
     func fetch(_ context: ProviderFetchContext) async throws -> ProviderFetchResult {
-        let cookieHeader = try Self.resolveCookieHeader(context: context)
-        let snapshot = try await MyCoderUsageFetcher.fetchUsage(
-            cookieHeader: cookieHeader,
-            timeout: context.webTimeout)
-        return self.makeResult(
-            usage: snapshot.toUsageSnapshot(),
-            sourceLabel: "mycoder")
+        let cookieSource = context.settings?.mycoder?.cookieSource ?? .auto
+        do {
+            let cookieHeader = try Self.resolveCookieHeader(context: context, allowCached: true)
+            let snapshot = try await MyCoderUsageFetcher.fetchUsage(
+                cookieHeader: cookieHeader,
+                timeout: context.webTimeout)
+            return self.makeResult(
+                usage: snapshot.toUsageSnapshot(),
+                sourceLabel: "mycoder")
+        } catch MyCoderUsageError.invalidCredentials where cookieSource != .manual {
+            #if os(macOS)
+            CookieHeaderCache.clear(provider: .mycoder)
+            let cookieHeader = try Self.resolveCookieHeader(context: context, allowCached: false)
+            let snapshot = try await MyCoderUsageFetcher.fetchUsage(
+                cookieHeader: cookieHeader,
+                timeout: context.webTimeout)
+            return self.makeResult(
+                usage: snapshot.toUsageSnapshot(),
+                sourceLabel: "mycoder")
+            #else
+            throw MyCoderUsageError.invalidCredentials
+            #endif
+        }
     }
 
-    private static func resolveCookieHeader(context: ProviderFetchContext) throws -> String {
+    private static func resolveCookieHeader(context: ProviderFetchContext, allowCached: Bool) throws -> String {
         let cookieSource = context.settings?.mycoder?.cookieSource ?? .auto
         if cookieSource == .manual {
             guard let header = CookieHeaderNormalizer.normalize(context.settings?.mycoder?.manualCookieHeader) else {
@@ -77,7 +93,8 @@ struct MyCoderWebFetchStrategy: ProviderFetchStrategy {
             return header
         }
         #if os(macOS)
-        if let cached = CookieHeaderCache.load(provider: .mycoder),
+        if allowCached,
+           let cached = CookieHeaderCache.load(provider: .mycoder),
            !cached.cookieHeader.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         {
             return cached.cookieHeader
