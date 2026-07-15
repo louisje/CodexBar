@@ -61,6 +61,8 @@ public enum UsageProvider: String, CaseIterable, Sendable, Codable {
     case chutes
     case crossmodel
     case clawrouter
+    case sub2api
+    case wayfinder
 }
 
 // swiftformat:enable sortDeclarations
@@ -122,6 +124,8 @@ public enum IconStyle: String, Sendable, CaseIterable {
     case chutes
     case crossmodel
     case clawrouter
+    case sub2api
+    case wayfinder
     case combined
 }
 

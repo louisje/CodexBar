@@ -180,9 +180,15 @@ final class SettingsStore {
     static let productionCodexAccountReconciliationSnapshotCacheInterval: TimeInterval = 2
     static let isRunningTests: Bool = {
         let env = ProcessInfo.processInfo.environment
-        if env["XCTestConfigurationFilePath"] != nil { return true }
-        if env["TESTING_LIBRARY_VERSION"] != nil { return true }
-        if env["SWIFT_TESTING"] != nil { return true }
+        if env["XCTestConfigurationFilePath"] != nil {
+            return true
+        }
+        if env["TESTING_LIBRARY_VERSION"] != nil {
+            return true
+        }
+        if env["SWIFT_TESTING"] != nil {
+            return true
+        }
         return NSClassFromString("XCTestCase") != nil
     }()
 
@@ -209,13 +215,23 @@ final class SettingsStore {
     @ObservationIgnored var selectedMenuProviderRawStorage: String?
     var defaultsState: SettingsDefaultsState
     var configRevision: Int = 0
+    var backgroundWorkSettingsRevision: Int = 0
     var providerOrder: [UsageProvider] = []
     var providerEnablement: [UsageProvider: Bool] = [:]
+    @ObservationIgnored var providerEnablementRevisions: [UsageProvider: UInt64] = [:]
+    @ObservationIgnored var providerConfigRevisions: [UsageProvider: UInt64] = [:]
+    @ObservationIgnored var providerConfigFingerprints: [UsageProvider: Data] = [:]
 
     static func shouldBridgeSharedDefaults(for userDefaults: UserDefaults) -> Bool {
-        if !self.isRunningTests { return true }
-        if userDefaults === UserDefaults.standard { return true }
-        if let shared = sharedDefaults, userDefaults === shared { return true }
+        if !self.isRunningTests {
+            return true
+        }
+        if userDefaults === UserDefaults.standard {
+            return true
+        }
+        if let shared = sharedDefaults, userDefaults === shared {
+            return true
+        }
         return false
     }
 
@@ -346,6 +362,12 @@ final class SettingsStore {
 }
 
 extension SettingsStore {
+    private struct NotificationDefaults {
+        let statusChecksEnabled: Bool
+        let sessionQuotaNotificationsEnabled: Bool
+        let predictivePaceWarningNotificationsEnabled: Bool
+    }
+
     private static func scheduleAppGroupMigration() {
         Task.detached(priority: .utility) {
             let result = AppGroupSupport.migrateLegacyDataIfNeeded()
@@ -364,8 +386,12 @@ extension SettingsStore {
         hadExistingConfig: Bool) -> Bool
     {
         guard let codex = config.providerConfig(for: .codex) else { return false }
-        if let cookieSource = codex.cookieSource { return cookieSource.isEnabled }
-        if codex.sanitizedCookieHeader != nil { return true }
+        if let cookieSource = codex.cookieSource {
+            return cookieSource.isEnabled
+        }
+        if codex.sanitizedCookieHeader != nil {
+            return true
+        }
         return hadExistingConfig
     }
 
@@ -389,8 +415,7 @@ extension SettingsStore {
         }
         let debugLoadingPatternRaw = userDefaults.string(forKey: "debugLoadingPattern")
         let debugKeepCLISessionsAlive = userDefaults.object(forKey: "debugKeepCLISessionsAlive") as? Bool ?? false
-        let statusChecksEnabled = userDefaults.object(forKey: "statusChecksEnabled") as? Bool ?? true
-        let sessionQuotaNotificationsEnabled = Self.loadSessionQuotaNotificationsDefault(userDefaults: userDefaults)
+        let notificationDefaults = Self.loadNotificationDefaults(userDefaults: userDefaults)
         let quotaWarnings = Self.loadQuotaWarningDefaults(userDefaults: userDefaults)
         let quotaWarningMarkersVisibleDefault = userDefaults.object(forKey: "quotaWarningMarkersVisible") as? Bool
         let quotaWarningMarkersVisible = quotaWarningMarkersVisibleDefault ?? true
@@ -407,6 +432,8 @@ extension SettingsStore {
         let menuBarHidesCritters = userDefaults.object(forKey: "menuBarHidesCritters") as? Bool ?? false
         let menuBarDisplayModeRaw = userDefaults.string(forKey: "menuBarDisplayMode")
             ?? MenuBarDisplayMode.percent.rawValue
+        let menuBarShowsResetTimeWhenExhausted = userDefaults.object(
+            forKey: "menuBarShowsResetTimeWhenExhausted") as? Bool ?? false
         let kiroMenuBarDisplayModeRaw = userDefaults.string(forKey: "kiroMenuBarDisplayMode")
             ?? KiroMenuBarDisplayMode.automatic.rawValue
         let historicalTrackingEnabled = userDefaults.object(forKey: "historicalTrackingEnabled") as? Bool ?? false
@@ -433,6 +460,11 @@ extension SettingsStore {
         let showOptionalCreditsAndExtraUsage = creditsExtrasDefault ?? true
         if Self.isRunningTests, creditsExtrasDefault == nil {
             userDefaults.set(true, forKey: "showOptionalCreditsAndExtraUsage")
+        }
+        let codexSparkUsageVisibleDefault = userDefaults.object(forKey: "codexSparkUsageVisible") as? Bool
+        let codexSparkUsageVisible = codexSparkUsageVisibleDefault ?? true
+        if Self.isRunningTests, codexSparkUsageVisibleDefault == nil {
+            userDefaults.set(true, forKey: "codexSparkUsageVisible")
         }
         let openAIWebAccessDefault = userDefaults.object(forKey: "openAIWebAccessEnabled") as? Bool
         let openAIWebAccessEnabled = openAIWebAccessDefault ?? false
@@ -461,7 +493,7 @@ extension SettingsStore {
         let providersSortedAlphabetically = userDefaults.object(
             forKey: "providersSortedAlphabetically") as? Bool ?? false
         let appLanguageRaw = userDefaults.string(forKey: "appLanguage")
-        let agentSessionsEnabled = userDefaults.object(forKey: "agentSessionsEnabled") as? Bool ?? true
+        let agentSessionsEnabled = userDefaults.object(forKey: "agentSessionsEnabled") as? Bool ?? false
         let agentSessionsManualHosts = userDefaults.string(forKey: "agentSessionsManualHosts") ?? ""
         return SettingsDefaultsState(
             refreshFrequency: refreshFrequency,
@@ -473,9 +505,10 @@ extension SettingsStore {
             debugLogLevelRaw: debugLogLevelRaw,
             debugLoadingPatternRaw: debugLoadingPatternRaw,
             debugKeepCLISessionsAlive: debugKeepCLISessionsAlive,
-            statusChecksEnabled: statusChecksEnabled,
-            sessionQuotaNotificationsEnabled: sessionQuotaNotificationsEnabled,
+            statusChecksEnabled: notificationDefaults.statusChecksEnabled,
+            sessionQuotaNotificationsEnabled: notificationDefaults.sessionQuotaNotificationsEnabled,
             quotaWarningNotificationsEnabled: quotaWarnings.notificationsEnabled,
+            predictivePaceWarningNotificationsEnabled: notificationDefaults.predictivePaceWarningNotificationsEnabled,
             quotaWarningThresholdsRaw: quotaWarnings.thresholdsRaw,
             quotaWarningSessionThresholdsRaw: quotaWarnings.sessionThresholdsRaw,
             quotaWarningWeeklyThresholdsRaw: quotaWarnings.weeklyThresholdsRaw,
@@ -491,6 +524,7 @@ extension SettingsStore {
             menuBarShowsBrandIconWithPercent: menuBarShowsBrandIconWithPercent,
             menuBarHidesCritters: menuBarHidesCritters,
             menuBarDisplayModeRaw: menuBarDisplayModeRaw,
+            menuBarShowsResetTimeWhenExhausted: menuBarShowsResetTimeWhenExhausted,
             kiroMenuBarDisplayModeRaw: kiroMenuBarDisplayModeRaw,
             historicalTrackingEnabled: historicalTrackingEnabled,
             multiAccountMenuLayoutRaw: multiAccountMenuLayoutRaw,
@@ -510,6 +544,7 @@ extension SettingsStore {
             claudeOAuthKeychainReadStrategyRaw: claudeOAuthKeychainReadStrategyRaw,
             claudeWebExtrasEnabledRaw: claudeWebExtrasEnabledRaw,
             showOptionalCreditsAndExtraUsage: showOptionalCreditsAndExtraUsage,
+            codexSparkUsageVisible: codexSparkUsageVisible,
             openAIWebAccessEnabled: openAIWebAccessEnabled,
             openAIWebBatterySaverEnabled: openAIWebBatterySaverEnabled,
             providerStorageFootprintsEnabled: providerStorageFootprintsEnabled,
@@ -525,6 +560,14 @@ extension SettingsStore {
             terminalAppRaw: userDefaults.string(forKey: "terminalApp"),
             agentSessionsEnabled: agentSessionsEnabled,
             agentSessionsManualHosts: agentSessionsManualHosts)
+    }
+
+    private static func loadNotificationDefaults(userDefaults: UserDefaults) -> NotificationDefaults {
+        NotificationDefaults(
+            statusChecksEnabled: userDefaults.object(forKey: "statusChecksEnabled") as? Bool ?? true,
+            sessionQuotaNotificationsEnabled: self.loadSessionQuotaNotificationsDefault(userDefaults: userDefaults),
+            predictivePaceWarningNotificationsEnabled: userDefaults.object(
+                forKey: "predictivePaceWarningNotificationsEnabled") as? Bool ?? false)
     }
 
     private static func loadCostSummaryDisplayStyleRaw(
@@ -712,9 +755,33 @@ extension SettingsStore {
         enablement.reserveCapacity(metadata.count)
         for provider in UsageProvider.allCases {
             let defaultEnabled = metadata[provider]?.defaultEnabled ?? false
-            enablement[provider] = config.providerConfig(for: provider)?.enabled ?? defaultEnabled
+            let providerConfig = config.providerConfig(for: provider) ?? ProviderConfig(id: provider)
+            let isEnabled = providerConfig.enabled ?? defaultEnabled
+            if let previous = self.providerEnablement[provider], previous != isEnabled {
+                self.providerEnablementRevisions[provider, default: 0] &+= 1
+            }
+            let fingerprint = Self.providerConfigFingerprint(providerConfig)
+            if let previous = self.providerConfigFingerprints[provider], previous != fingerprint {
+                self.providerConfigRevisions[provider, default: 0] &+= 1
+            }
+            self.providerConfigFingerprints[provider] = fingerprint
+            enablement[provider] = isEnabled
         }
         self.providerEnablement = enablement
+    }
+
+    private static func providerConfigFingerprint(_ config: ProviderConfig) -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        return (try? encoder.encode(config)) ?? Data()
+    }
+
+    func providerEnablementRevision(for provider: UsageProvider) -> UInt64 {
+        self.providerEnablementRevisions[provider, default: 0]
+    }
+
+    func providerConfigRevision(for provider: UsageProvider) -> UInt64 {
+        self.providerConfigRevisions[provider, default: 0]
     }
 
     func orderedProviders() -> [UsageProvider] {

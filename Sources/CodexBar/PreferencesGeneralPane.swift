@@ -116,7 +116,7 @@ struct GeneralPane: View {
                 SettingsMenuPicker(
                     selection: self.$settings.refreshFrequency,
                     options: GeneralSettingsMenuOptions.refreshFrequencies,
-                    label: { Text(L("refresh_cadence_title")) },
+                    label: { Text(L("refresh_interval_title")) },
                     optionLabel: { option in Text(option.label) })
 
                 Toggle(L("refresh_on_open_title"), isOn: self.$settings.refreshAllProvidersOnMenuOpen)
@@ -127,44 +127,11 @@ struct GeneralPane: View {
                         subtitle: L("check_provider_status_subtitle"))
                 }
             } header: {
-                Text(L("section_automation"))
+                Text(L("section_refreshing"))
             } footer: {
                 if self.settings.refreshFrequency == .manual {
-                    Text(L("manual_refresh_hint"))
+                    SettingsSectionFooter(L("manual_refresh_hint"))
                 }
-            }
-
-            Section {
-                Toggle(isOn: self.$settings.sessionQuotaNotificationsEnabled) {
-                    SettingsRowLabel(
-                        L("session_quota_notifications_title"),
-                        subtitle: L("session_quota_notifications_subtitle"))
-                }
-
-                Toggle(isOn: self.$settings.quotaWarningNotificationsEnabled) {
-                    SettingsRowLabel(
-                        L("quota_warning_notifications_title"),
-                        subtitle: L("quota_warning_notifications_subtitle"))
-                }
-
-                if self.settings.quotaWarningNotificationsEnabled {
-                    GlobalQuotaWarningSettingsView(settings: self.settings)
-                }
-            } header: {
-                Text(L("section_notifications"))
-            }
-
-            Section {
-                Toggle("Enable Agent Sessions", isOn: self.$settings.agentSessionsEnabled)
-
-                TextField("Manual SSH hosts", text: self.$settings.agentSessionsManualHosts)
-                    .disabled(!self.settings.agentSessionsEnabled)
-            } header: {
-                Text("Sessions")
-            } footer: {
-                Text(
-                    "Macs on your tailnet are discovered automatically. Local sessions refresh every " +
-                        "30 seconds; remote hosts every 60 seconds and when the menu opens.")
             }
 
             Section {
@@ -185,5 +152,6 @@ struct GeneralPane: View {
         .formStyle(.grouped)
         .toggleStyle(.switch)
         .scrollContentBackground(.hidden)
+        .background(FocusResigningBackground())
     }
 }

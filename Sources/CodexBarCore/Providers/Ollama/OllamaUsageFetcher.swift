@@ -250,20 +250,24 @@ public struct OllamaUsageFetcher: Sendable {
 
     public let browserDetection: BrowserDetection
     private let makeURLSession: @Sendable (URLSessionTaskDelegate?) -> URLSession
+    private let finishURLSession: @Sendable (URLSession) -> Void
 
     public init(browserDetection: BrowserDetection) {
         self.browserDetection = browserDetection
         self.makeURLSession = { delegate in
             URLSession(configuration: .ephemeral, delegate: delegate, delegateQueue: nil)
         }
+        self.finishURLSession = { $0.finishTasksAndInvalidate() }
     }
 
     init(
         browserDetection: BrowserDetection,
-        makeURLSession: @escaping @Sendable (URLSessionTaskDelegate?) -> URLSession)
+        makeURLSession: @escaping @Sendable (URLSessionTaskDelegate?) -> URLSession,
+        finishURLSession: @escaping @Sendable (URLSession) -> Void = { $0.finishTasksAndInvalidate() })
     {
         self.browserDetection = browserDetection
         self.makeURLSession = makeURLSession
+        self.finishURLSession = finishURLSession
     }
 
     public func fetch(
@@ -527,6 +531,7 @@ public struct OllamaUsageFetcher: Sendable {
         request.setValue(Self.settingsURL.absoluteString, forHTTPHeaderField: "referer")
 
         let session = self.makeURLSession(diagnostics)
+        defer { self.finishURLSession(session) }
         let httpResponse = try await session.response(for: request)
         let responseInfo = ResponseInfo(
             statusCode: httpResponse.statusCode,
@@ -710,11 +715,13 @@ public struct OllamaAPIUsageSnapshot: Sendable {
 
 public enum OllamaAPIUsageFetcher {
     public static let tagsURL = URL(string: "https://ollama.com/api/tags")!
+    public static let validationURL = URL(string: "https://ollama.com/api/web_search")!
     private static let timeoutSeconds: TimeInterval = 20
 
     public static func fetchUsage(
         apiKey: String,
         tagsURL: URL = Self.tagsURL,
+        validationURL: URL? = nil,
         transport: any ProviderHTTPTransport = ProviderHTTPClient.shared,
         now: Date = Date()) async throws -> OllamaAPIUsageSnapshot
     {
@@ -722,6 +729,9 @@ public enum OllamaAPIUsageFetcher {
         guard !trimmed.isEmpty else {
             throw OllamaUsageError.missingAPIKey
         }
+
+        let resolvedValidationURL = try self.resolveValidationURL(tagsURL: tagsURL, override: validationURL)
+        try await self.validateAPIKey(trimmed, validationURL: resolvedValidationURL, transport: transport)
 
         var request = URLRequest(url: tagsURL)
         request.httpMethod = "GET"
@@ -734,6 +744,9 @@ public enum OllamaAPIUsageFetcher {
         do {
             response = try await transport.response(for: request)
         } catch {
+            if error is CancellationError || (error as? URLError)?.code == .cancelled || Task.isCancelled {
+                throw CancellationError()
+            }
             throw OllamaUsageError.networkError(error.localizedDescription)
         }
 
@@ -744,6 +757,74 @@ public enum OllamaAPIUsageFetcher {
             throw OllamaUsageError.apiUnauthorized
         default:
             throw OllamaUsageError.networkError("HTTP \(response.statusCode)")
+        }
+    }
+
+    private static func validateAPIKey(
+        _ apiKey: String,
+        validationURL: URL,
+        transport: any ProviderHTTPTransport) async throws
+    {
+        var request = URLRequest(url: validationURL)
+        request.httpMethod = "POST"
+        request.timeoutInterval = Self.timeoutSeconds
+        request.httpBody = Data(#"{"query":""}"#.utf8)
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("CodexBar/1.0", forHTTPHeaderField: "User-Agent")
+
+        let response: ProviderHTTPResponse
+        do {
+            response = try await transport.response(for: request)
+        } catch {
+            if error is CancellationError || (error as? URLError)?.code == .cancelled || Task.isCancelled {
+                throw CancellationError()
+            }
+            throw OllamaUsageError.networkError(error.localizedDescription)
+        }
+
+        switch response.statusCode {
+        case 200, 400:
+            return
+        case 401, 403:
+            throw OllamaUsageError.apiUnauthorized
+        default:
+            throw OllamaUsageError.networkError("HTTP \(response.statusCode)")
+        }
+    }
+
+    private static func resolveValidationURL(tagsURL: URL, override: URL?) throws -> URL {
+        let validationURL = override
+            ?? (tagsURL == Self.tagsURL
+                ? Self.validationURL
+                : tagsURL.deletingLastPathComponent().appendingPathComponent("web_search"))
+        let endpointValidator = ProviderEndpointOverrideValidator()
+        guard endpointValidator.validatedURLAllowingLoopbackHTTP(tagsURL.absoluteString) != nil,
+              endpointValidator.validatedURLAllowingLoopbackHTTP(validationURL.absoluteString) != nil
+        else {
+            throw OllamaUsageError.networkError(
+                "Ollama API endpoints must use HTTPS or loopback HTTP.")
+        }
+        guard self.sameOrigin(tagsURL, validationURL) else {
+            throw OllamaUsageError.networkError(
+                "Ollama key validation and model catalog endpoints must share an origin.")
+        }
+        return validationURL
+    }
+
+    private static func sameOrigin(_ lhs: URL, _ rhs: URL) -> Bool {
+        lhs.scheme?.lowercased() == rhs.scheme?.lowercased()
+            && lhs.host?.lowercased() == rhs.host?.lowercased()
+            && self.effectivePort(lhs) == self.effectivePort(rhs)
+    }
+
+    private static func effectivePort(_ url: URL) -> Int? {
+        if let port = url.port { return port }
+        switch url.scheme?.lowercased() {
+        case "https": return 443
+        case "http": return 80
+        default: return nil
         }
     }
 
