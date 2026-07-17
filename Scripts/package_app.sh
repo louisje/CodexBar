@@ -399,8 +399,9 @@ build_widget_extension() {
     pkg_name=$(basename "$pkg_build_dir" .build)
     local lib="$ROOT/.build/$LOWER_CONF/lib${pkg_name}.a"
     local objs=("$pkg_build_dir"/*.o)
-    if [[ ! -f "$lib" && ${#objs[@]} -gt 0 && -f "${objs[0]}" ]]; then
+    if [[ ${#objs[@]} -gt 0 && -f "${objs[0]}" ]]; then
       echo "Creating lib${pkg_name}.a from object files..." >&2
+      rm -f "$lib"
       ar rcs "$lib" "${objs[@]}"
     fi
   done
