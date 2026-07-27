@@ -45,10 +45,16 @@ public enum AlibabaTokenPlanProviderDescriptor {
             branding: ProviderBranding(
                 iconStyle: .alibaba,
                 iconResourceName: "ProviderIcon-alibaba",
-                color: ProviderColor(red: 1.0, green: 106 / 255, blue: 0)),
+                color: ProviderColor(red: 1.0, green: 106 / 255, blue: 0),
+                confettiPalette: [
+                    ProviderColor(hex: 0xFF6A00),
+                    ProviderColor(hex: 0x0064C8),
+                    ProviderColor(hex: 0xFFFFFF),
+                ]),
             tokenCost: ProviderTokenCostConfig(
                 supportsTokenCost: false,
                 noDataMessage: { "Alibaba Token Plan cost summary is not supported." }),
+            pace: .calendarMonthResetWindow,
             fetchPlan: ProviderFetchPlan(
                 sourceModes: [.auto, .web],
                 pipeline: ProviderFetchPipeline(resolveStrategies: self.resolveStrategies)),
