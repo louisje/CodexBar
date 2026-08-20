@@ -67,8 +67,10 @@ Admin API key setup:
   - Claude CLI Keychain bootstrap/repair fallback: `Claude Code-credentials`.
 - On Claude Code 2.1.x, `Claude Code-credentials` may contain only MCP server OAuth state (`mcpOAuth`) with no `claudeAiOauth`. CodexBar treats that as an OAuth configuration error, does not run background delegated `claude /status` refresh, and surfaces re-auth guidance. Use Web or CLI usage source, or restore a valid Claude OAuth keychain entry. See #1844.
 - Requires `user:profile` scope (CLI tokens with only `user:inference` cannot call usage).
-- Endpoint:
+- Endpoints:
   - `GET https://api.anthropic.com/api/oauth/usage`
+  - `GET https://api.anthropic.com/api/oauth/profile` → account identity used to verify that optional Web enrichment
+    belongs to the same Claude account.
 - Headers:
   - `Authorization: Bearer <access_token>`
   - `anthropic-beta: oauth-2025-04-20`
@@ -80,8 +82,21 @@ Admin API key setup:
   - `seven_day_routines` / `seven_day_cowork` → Daily Routines extra window.
   - Claude Design/Omelette keys are ignored because Claude Design shares the main Claude usage limit.
   - `extra_usage` → Extra usage cost (monthly spend/limit).
+- Preferences → Providers → Claude → Show Daily Routines usage hides only the Daily Routines row in menus and the
+  provider preview. The global optional credits and extra usage setting is its master switch. The Claude-specific
+  setting does not change fetching, history, notifications, widgets, model-scoped weekly limits, hooks, or CLI output.
+- Preferences → Providers → Claude → Show model-specific weekly usage in widgets controls model-scoped weekly quota
+  rows in desktop widgets. It is off by default; turning it on displays every known Claude window with a
+  `claude-weekly-scoped-` identifier (for example, Fable). Turning it back off also drops scoped rows that a previous
+  snapshot persisted. It does not change fetching, the menu, history, notifications, hooks, or CLI output.
 - Successful OAuth login enables Claude and preserves the selected usage source. With the default Auto source, OAuth
   remains preferred when readable, while CLI/Web fallback stays available when OAuth credentials are not usable.
+- Claude Code periodically rotates its `Claude Code-credentials` Keychain item and can replace the ACL grant that
+  allowed CodexBar to read it. Auto treats that as a failed OAuth source, reuses a recent successful CLI result or
+  continues to CLI/Web, and does not misreport the existing credentials as missing. A manual Refresh can re-grant
+  Keychain access; selecting CLI or Web avoids the foreign-Keychain dependency.
+- When every live Auto source fails, CodexBar keeps the last captured session/weekly percentages from
+  `history/claude.json` visible as stale data and shows their capture age instead of blanking the quota bars.
 - Plan inference: `subscriptionType` is preferred when present; `rate_limit_tier` falls back to
   Max/Pro/Team/Enterprise. When a Max `rate_limit_tier` carries a usage multiplier
   (`default_claude_max_5x` / `default_claude_max_20x`), it is surfaced in the label as "Max 5x" / "Max 20x".
@@ -108,11 +123,13 @@ Admin API key setup:
   - `GET https://claude.ai/api/organizations` → org UUID.
   - `GET https://claude.ai/api/organizations/{orgId}/usage` → session/weekly/opus.
   - `GET https://claude.ai/api/organizations/{orgId}/overage_spend_limit` → Extra usage spend/limit.
+  - `GET https://claude.ai/api/organizations/{orgId}/prepaid/credits` → remaining Usage credits balance.
   - `GET https://claude.ai/api/account` → email + plan hints.
 - Outputs:
   - Session + weekly + model-specific percent used.
   - Daily Routines extra window when returned by the usage API.
   - Extra usage spend/limit (if enabled).
+  - Remaining Usage credits balance (if enabled).
   - Account email + inferred plan.
 
 ## claude-swap accounts (opt-in)
@@ -127,7 +144,14 @@ The accepted multi-account design in
   active state, usage status, email (display only), the 5-hour/7-day windows, and optional display-only model-scoped
   weekly windows from `usage.scoped`.
 - Display: when claude-swap reports more than one account, the Claude menu and `codexbar cards` show one card per
-  account (active account first, then numeric slot) instead of ambient/token-account Claude cards. To use this
+  account (active account first, then numeric slot) instead of ambient/token-account Claude cards. With four or more
+  accounts the app menu switches to a compact layout (`AccountMenuLayoutPlanner`): the active account keeps its full
+  card, inactive accounts become one-line rows sorted by remaining headroom (most constrained first, red/amber below
+  50%/10% left, a star on the healthiest activatable account), and healthy rows fold behind a "N more accounts ready"
+  summary row. Clicking a compact row expands that account's full card for the current menu session; the summary row
+  reveals the hidden rows. `codexbar cards` keeps the full per-account output. The same compact layout applies to
+  every stacked multi-account list (token accounts on any provider, and flat Codex account lists; workspace-grouped
+  Codex lists keep their sectioned stacked layout). To use this
   presentation with one account, enable “Show account card when only one account is available” or set
   `claudeSwapShowSingleAccount: true` on the Claude provider in the resolved config file (normally
   `~/.config/codexbar/config.json`; legacy installs may use `~/.codexbar/config.json`). The option defaults off,
@@ -135,18 +159,26 @@ The accepted multi-account design in
   email.
 - Terminal scope: this automatic precedence is cards-only and works on every supported CLI platform. An explicit
   Claude provider or `--source auto` remains eligible, while `--account`, `--account-index`, `--all-accounts`, and
-  explicit non-auto source flags bypass the adapter. `codexbar usage` and `codexbar serve` are unchanged.
+  explicit non-auto source flags bypass the adapter. `codexbar usage` and serve `/usage`/`/cost` remain unchanged,
+  while `codexbar dashboard` and `GET /dashboard/v1/snapshot` additionally nest one entry per swap account in the
+  Claude provider row, with full identity by default or redacted email local parts when `--identity redacted` is set.
 - Isolation: CodexBar never reads claude-swap or Claude Code credential storage for this feature; the
   subprocess handles its own credential access. In the app, adapter failures keep the last successful accounts as
   stale data, surface the error in provider settings, and never affect the ambient Claude usage card. In terminal
   cards, a list failure retains the current ambient output, adds a distinct `Claude (claude-swap)` footer entry, and
   exits non-zero.
 - Sentinel statuses (`token_expired`, `api_key`, `keychain_unavailable`, `no_credentials`,
-  `unavailable`, and unknown future values) render as per-account notes instead of usage bars in both full and brief
-  cards. Active rows are marked `[active]`; no claude-swap row infers a plan badge.
+  and unknown future values) render as per-account notes instead of usage bars in both full and brief cards. When
+  `unavailable` means claude-swap deferred polling because a window is at 100%, CodexBar keeps that slot's last
+  projected usage bars and names the exhausted window (5-hour session, 7-day weekly, and/or a scoped model such as
+  Fable) plus its reset time — not "Usage fetch failed." A first refresh that is already `unavailable` with no
+  retained windows still notes that polling is deferred. Active rows are marked `[active]`; no claude-swap row infers
+  a plan badge.
 - Switching: an inactive account with usable source credentials shows “Switch Account…”. Clicking it runs exactly
   `cswap --switch-to <slot> --json`, validates the versioned result and requested slot, then refreshes both ambient
-  Claude usage and every claude-swap account card. Switches are serialized; no automatic switching occurs.
+  Claude usage and every claude-swap account card. Switches are serialized; no automatic switching occurs. While
+  claude-swap owns account presentation, the separate ambient OAuth action reads “Sign in with Claude Code…” and does
+  not add or switch a claude-swap account.
 - Expired, missing, unknown, or Keychain-inaccessible credentials stay non-actionable. A failed switch remains visible
   on that account without discarding its last successful usage. A running Claude Code process can take up to the
   claude-swap Keychain cache interval to observe the new account.

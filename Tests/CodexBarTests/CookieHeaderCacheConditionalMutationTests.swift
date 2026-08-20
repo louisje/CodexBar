@@ -246,6 +246,98 @@ struct CookieHeaderCacheConditionalMutationTests {
         }
     }
 
+    @Test
+    func `independent coordinators do not invalidate each others observations`() {
+        self.withIsolatedCookieCache {
+            let scope = CookieHeaderCache.Scope.providerVariant(UUID().uuidString)
+            let refreshCoordinator = CookieHeaderCache.ConditionalMutationCoordinator()
+            let loginCoordinator = CookieHeaderCache.ConditionalMutationCoordinator()
+            CookieHeaderCache.store(
+                provider: .cursor,
+                scope: scope,
+                cookieHeader: "fixtureSession=original",
+                sourceLabel: "Original")
+            let observation = CookieHeaderCache.observeForConditionalMutation(
+                provider: .cursor,
+                scope: scope,
+                coordinator: refreshCoordinator)
+            let loginGate = CookieHeaderCache.beginConditionalMutationGate(
+                provider: .cursor,
+                scope: scope,
+                coordinator: loginCoordinator)
+            defer { CookieHeaderCache.endConditionalMutationGate(loginGate) }
+
+            #expect(CookieHeaderCache.storeIfObservationCurrent(
+                provider: .cursor,
+                scope: scope,
+                expected: observation,
+                cookieHeader: "fixtureSession=refreshed",
+                sourceLabel: "Background"))
+            #expect(CookieHeaderCache.load(provider: .cursor, scope: scope)?.cookieHeader ==
+                "fixtureSession=refreshed")
+        }
+    }
+
+    @Test
+    func `cookie cache persists while Keychain access is disabled`() {
+        KeychainCacheStore.resetDisabledAccessMemoryStoreForTesting()
+        defer {
+            KeychainCacheStore.resetDisabledAccessMemoryStoreForTesting()
+            KeychainAccessGate.resetOverrideForTesting()
+        }
+
+        KeychainAccessGate.withTaskOverrideForTesting(true) {
+            KeychainCacheStore.withDisabledAccessMemoryStoreForTesting(true) {
+                KeychainCacheStore.withServiceOverrideForTesting("cookie-disabled-\(UUID().uuidString)") {
+                    let observation = CookieHeaderCache.observeForConditionalMutation(provider: .cursor)
+                    #expect(CookieHeaderCache.storeIfObservationCurrent(
+                        provider: .cursor,
+                        expected: observation,
+                        cookieHeader: "WorkosCursorSessionToken=disabled-keychain",
+                        sourceLabel: "Safari"))
+                    #expect(CookieHeaderCache.load(provider: .cursor)?.cookieHeader ==
+                        "WorkosCursorSessionToken=disabled-keychain")
+                }
+            }
+        }
+    }
+
+    @Test
+    func `interactive mutation gate still blocks stores while Keychain access is disabled`() {
+        KeychainCacheStore.resetDisabledAccessMemoryStoreForTesting()
+        defer {
+            KeychainCacheStore.resetDisabledAccessMemoryStoreForTesting()
+            KeychainAccessGate.resetOverrideForTesting()
+        }
+
+        KeychainAccessGate.withTaskOverrideForTesting(true) {
+            KeychainCacheStore.withDisabledAccessMemoryStoreForTesting(true) {
+                KeychainCacheStore.withServiceOverrideForTesting("cookie-disabled-gate-\(UUID().uuidString)") {
+                    let scope = CookieHeaderCache.Scope.providerVariant(UUID().uuidString)
+                    CookieHeaderCache.store(
+                        provider: .cursor,
+                        scope: scope,
+                        cookieHeader: "fixtureSession=original",
+                        sourceLabel: "Original")
+                    let observation = CookieHeaderCache.observeForConditionalMutation(
+                        provider: .cursor,
+                        scope: scope)
+                    let gate = CookieHeaderCache.beginConditionalMutationGate(provider: .cursor, scope: scope)
+
+                    #expect(!CookieHeaderCache.storeIfObservationCurrent(
+                        provider: .cursor,
+                        scope: scope,
+                        expected: observation,
+                        cookieHeader: "fixtureSession=background-during-login",
+                        sourceLabel: "Background"))
+                    #expect(CookieHeaderCache.load(provider: .cursor, scope: scope)?.cookieHeader ==
+                        "fixtureSession=original")
+                    CookieHeaderCache.endConditionalMutationGate(gate)
+                }
+            }
+        }
+    }
+
     private func withIsolatedCookieCache<T>(_ operation: () -> T) -> T {
         KeychainCacheStore.withServiceOverrideForTesting("cookie-conditional-\(UUID().uuidString)") {
             let legacyBase = FileManager.default.temporaryDirectory

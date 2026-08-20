@@ -3,9 +3,19 @@ import Foundation
 public enum MyCoderProviderDescriptor {
     public static let descriptor: ProviderDescriptor = Self.makeDescriptor()
 
+    /// MyCoder sessions are accessed via Chrome on the internal ASUS network.
+    private static var browserCookieOrder: BrowserCookieImportOrder? {
+        #if os(macOS)
+        [.chrome]
+        #else
+        nil
+        #endif
+    }
+
     static func makeDescriptor() -> ProviderDescriptor {
         ProviderDescriptor(
             id: .mycoder,
+            settingsSection: .init(MyCoderProviderSettingsKey.self, cookieSettings: MyCoderProviderSettings.self),
             metadata: ProviderMetadata(
                 id: .mycoder,
                 displayName: "MyCoder",
@@ -18,14 +28,15 @@ public enum MyCoderProviderDescriptor {
                 toggleTitle: "Show MyCoder usage",
                 cliName: "mycoder",
                 defaultEnabled: false,
+                widgetSelectable: false,
                 isPrimaryProvider: false,
                 usesAccountFallback: false,
-                browserCookieOrder: ProviderBrowserCookieDefaults.mycoderCookieImportOrder,
+                browserCookieOrder: self.browserCookieOrder,
                 dashboardURL: "https://afs-mycoder.asus.com/billing",
                 statusPageURL: nil,
                 statusLinkURL: nil),
             branding: ProviderBranding(
-                iconStyle: .mycoder,
+                iconStyle: .init(provider: .mycoder),
                 iconResourceName: "ProviderIcon-mycoder",
                 color: ProviderColor(red: 0 / 255, green: 113 / 255, blue: 197 / 255)),
             tokenCost: ProviderTokenCostConfig(

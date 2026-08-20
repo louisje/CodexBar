@@ -1,5 +1,36 @@
 /* Ukrainian localization for CodexBar */
 
+/* iCloud Sync */
+"+ %d more" = "Ще %d";
+"Conversations (%@)" = "Розмови (%@)";
+"Fast" = "Швидко";
+"iCloud Sync" = "iCloud Sync";
+"Projects" = "Проєкти";
+"Session %@" = "Сесія %@";
+"Std" = "Стандарт";
+"Show all (%d)" = "Показати всі (%d)";
+"Show less" = "Показати менше";
+"Sync settings and providers across your Macs via iCloud" = "Sync settings and providers across your Macs via iCloud";
+"Include API keys, cookies, and tokens" = "Include API keys, cookies, and tokens";
+"Sync usage snapshots" = "Sync usage snapshots";
+"Show accounts from other Macs" = "Show accounts from other Macs";
+"Requires a signed release build of CodexBar." = "Requires a signed release build of CodexBar.";
+"Sign in to iCloud in System Settings to enable sync." = "Sign in to iCloud in System Settings to enable sync.";
+"iCloud access is restricted on this Mac." = "iCloud access is restricted on this Mac.";
+"Sync is paused: another Mac uses a newer version of CodexBar. Update to resume." = "Sync is paused: another Mac uses a newer version of CodexBar. Update to resume.";
+"Last successful fetch" = "Last successful fetch";
+"Last successful push" = "Last successful push";
+"Never" = "Never";
+"Macs" = "Macs";
+"No synced Macs yet." = "No synced Macs yet.";
+"Secrets use iCloud end-to-end encryption via encryptedValues. Hooks and machine-local paths never sync." = "Secrets use iCloud end-to-end encryption via encryptedValues. Hooks and machine-local paths never sync.";
+"Last seen %@" = "Last seen %@";
+"This Mac" = "This Mac";
+"another Mac" = "another Mac";
+"%dm ago" = "%dm ago";
+"%dh ago" = "%dh ago";
+"%dd ago" = "%dd ago";
+
 "tab_hooks" = "Хуки";
 "hooks_enable_title" = "Увімкнути хуки";
 "hooks_enable_subtitle" = "Запускати зовнішні команди під час подій квоти або провайдера.";
@@ -21,7 +52,7 @@
 "hooks_delete_argument" = "Видалити аргумент";
 
 "ollama_safari_cookie_access_hint" = "Для файлів cookie Safari програмі CodexBar потрібен повний доступ до диска (Системні параметри > Конфіденційність і безпека).";
-"ollama_browser_cookie_decryption_denied" = "Розшифрування файлів cookie %@ було відхилено у В’язці ключів; повторіть спробу за допомогою ручного оновлення.";
+"ollama_browser_cookie_decryption_denied" = "Розшифрування файлів cookie %@ було відхилено у В’язці ключів. Відкрийте картку провайдера й натисніть «Оновити» (⌘R), щоб знову запитати доступ до В’язки ключів.";
 "ollama_browser_cookie_decryption_disabled" = "Розшифрування файлів cookie %@ вимкнено в CodexBar; увімкніть доступ до В’язки ключів і оновіть.";
 
 " providers" = "провайдерів";
@@ -428,6 +459,9 @@
 "section_agent_sessions" = "Сеанси агентів";
 "language_title" = "Мова";
 "language_subtitle" = "Змінює мову інтерфейсу. Для повного застосування потрібно перезапустити застосунок.";
+"currency_title" = "Бажана валюта";
+"currency_subtitle" = "Валюта для оцінки вартості та витрат. Використовує курси, що оновлюються щодня.";
+"currency_auto" = "Автоматично (валюта постачальника / USD)";
 "language_system" = "Система";
 "language_english" = "English";
 "language_spanish" = "Español";
@@ -474,6 +508,10 @@
 "quota_depleted_title" = "Вичерпання та відновлення квоти";
 "quota_warning_notifications_subtitle" = "Попереджає, коли залишок сеансу або тижневої квоти перевищує налаштовані порогові значення.";
 "threshold_warnings_title" = "Попередження про порогові значення";
+"provider_accent_color_title" = "Акцентний колір";
+"provider_accent_color_footer" = "Задає колір смуг використання, графіків і вкладки перемикача цього провайдера.";
+"provider_accent_color_hex_label" = "Шістнадцяткове значення кольору";
+"provider_accent_color_reset" = "Використовувати типовий";
 "quota_warnings_title" = "Попередження про квоту";
 "quota_warning_session" = "сесії";
 "quota_warning_session_capitalized" = "Сесія";
@@ -579,12 +617,19 @@
 "display_mode_subtitle" = "Виберіть, що відображати на панелі меню (Pace показує використання порівняно з очікуваним).";
 "show_quota_warning_markers_title" = "Показати маркери попередження про квоти";
 "show_quota_warning_markers_subtitle" = "Малюйте порогові позначки на панелях використання, коли налаштовано попередження про квоту.";
+"show_pace_title" = "Показувати темп";
+"show_pace_subtitle" = "Показує смугу випередження або відставання та текст прогнозу на смугах використання.";
 "weekly_progress_work_days_title" = "Щотижневі робочі дні";
 "weekly_progress_work_days_subtitle" = "Задайте робочі дні для позначок на смугах тижневого використання та розрахунків темпу.";
+"workday_tick_appearance_title" = "Вигляд позначок робочих днів";
+"workday_tick_appearance_subtitle" = "Виберіть, як відображати межі робочих днів на смугах тижневого використання.";
+"workday_tick_appearance_hidden" = "Приховані";
+"workday_tick_appearance_subtle" = "Ненав’язливі";
+"workday_tick_appearance_high_contrast" = "Високий контраст";
 "show_provider_changelog_links_title" = "Показати посилання журналу змін провайдера";
 "show_provider_changelog_links_subtitle" = "Додає в меню посилання на примітки до випуску для підтримуваних постачальників, що підтримують CLI.";
 "show_credits_extra_usage_title" = "Показати кредити + додаткове використання";
-"show_credits_extra_usage_subtitle" = "Показати в меню розділи використання кредитів Codex і Claude Extra.";
+"show_credits_extra_usage_subtitle" = "Показувати кредити та додаткове використання для підтримуваних постачальників.";
 "multi_account_layout_title" = "Макет кількох облікових записів";
 "multi_account_layout_subtitle" = "Виберіть сегментоване перемикання облікових записів або складені картки облікових записів.";
 "multi_account_layout_segmented" = "Сегментований";
@@ -626,6 +671,15 @@
 "keychain_access_caption" = "Вимкніть усі функції читання та запису Keychain. Використовуйте це, якщо macOS постійно запитує «Chrome/Brave/Edge Safe Storage» навіть після натискання «Завжди дозволяти». Імпорт файлів cookie браузера недоступний, якщо ввімкнено; вставте заголовки файлів cookie вручну в Провайдери. Claude/Codex OAuth через CLI все ще працює.";
 "disable_keychain_access_title" = "Вимкнути доступ Keychain";
 "disable_keychain_access_subtitle" = "Запобігає будь-якому доступу Keychain, коли ввімкнено.";
+"Re-authenticate" = "Повторно автентифікуватися";
+"kiro_reauthenticate_title" = "Вхід у Kiro CLI";
+"kiro_reauthenticate_subtitle" = "Запускає «kiro-cli login», щоб оновити сеанс після завершення терміну дії.";
+"Kiro CLI not found" = "Kiro CLI не знайдено";
+"Install kiro-cli and try again." = "Установіть kiro-cli та повторіть спробу.";
+"Could not start kiro-cli login" = "Не вдалося запустити kiro-cli login";
+"Kiro login timed out" = "Час очікування входу в Kiro вичерпано";
+"kiro-cli login exited with status %d." = "kiro-cli login завершився зі статусом %d.";
+"Kiro login failed" = "Не вдалося ввійти в Kiro";
 
 /* About Pane */
 "about_tagline" = "Нехай ваші токени ніколи не закінчаться — пам’ятайте про ліміти агентів.";
@@ -640,6 +694,8 @@
 "copyright" = "© 2026 Пітер Штайнбергер. Ліцензія MIT.";
 
 /* Debug Pane */
+"use_javascriptcore_plugin_engine" = "Використовувати JavaScriptCore для плагінів постачальників";
+"use_javascriptcore_plugin_engine_subtitle" = "Лише для відкату сумісності. Перезапустіть CodexBar; CODEXBAR_PLUGIN_ENGINE перевизначає це налаштування.";
 "section_logging" = "Лісозаготівля";
 "enable_file_logging" = "Увімкнути журналювання файлів";
 "enable_file_logging_subtitle" = "Записати журнали до %@ для налагодження.";
@@ -813,7 +869,7 @@
 "Pace: %@" = "Темп: %@";
 "Pace: %@ · %@" = "Темп: %@ · %@";
 "%@ · %@" = "%@ · %@";
-"≈ %d%% run-out risk" = "≈ %d%% ризик вичерпання";
+"(%d%% risk)" = "(%d%% ризик вичерпання)";
 "%d%% in deficit" = "%d%% в дефіциті";
 "%d%% in reserve" = "%d%% в резерві";
 "usage_percent_suffix_left" = "зліва";
@@ -1215,6 +1271,8 @@
 "section_links" = "Посилання";
 "Show Codex Spark usage" = "Показати використання Codex Spark";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Показує рядки квоти Codex Spark у меню та попередньому перегляді провайдера. Потрібно ввімкнути «Показати кредити + додаткове використання» в налаштуваннях «Відображення».";
+"Show Daily Routines usage" = "Показати використання щоденних завдань";
+"Shows the Daily Routines quota row in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Показує рядок квоти щоденних завдань у меню та попередньому перегляді провайдера. Потрібно ввімкнути «Показати кредити + додаткове використання» в налаштуваннях «Відображення».";
 "Scroll to see more models" = "Прокрутіть, щоб побачити більше моделей";
 "Copy Image" = "Копіювати зображення";
 "Copy Stats" = "Копіювати статистику";
@@ -1260,6 +1318,9 @@
 "Native currencies stay separate; Codex account rows exclude Pi session history." = "Вихідні валюти залишаються розділеними; рядки облікових записів Codex не включають історію сеансів Pi.";
 "Spend unavailable" = "Витрати недоступні";
 "Model breakdown unavailable" = "Розподіл за моделями недоступний";
+"Partial estimate" = "Часткова оцінка";
+"Partial model breakdown" = "Часткова розбивка за моделями";
+"%d of %d subscriptions have spend" = "У %d з %d підписок є дані про витрати";
 "Local estimated history" = "Локальна історія оцінок";
 "Coverage" = "Охоплення";
 "Estimated spend" = "Орієнтовні витрати";
@@ -1268,10 +1329,19 @@
 "By subscription" = "За підписками";
 "No model-level history" = "Немає історії за моделями";
 "Daily estimated spend" = "Орієнтовні щоденні витрати";
+"Hourly estimated spend" = "Орієнтовні погодинні витрати";
+"Hour" = "Година";
+"%d hours of usage data across %d services" = "%d годин даних використання для %d служб";
+"1 hour of usage data across 1 service" = "1 година даних використання для 1 служби";
+"%d hours of usage data across 1 service" = "%d годин даних використання для 1 служби";
+"1 hour of usage data across %d services" = "1 година даних використання для %d служб";
 "≈%d full 5h windows of weekly left · %d windows until reset" = "≈%d повних 5-годинних вікон тижневого ліміту · %d вікон до скидання";
 "Weekly cannot run out before reset at this pace" = "За такого темпу тижневий ліміт не може вичерпатися до скидання";
 "Weekly can run out ≈%d windows early" = "Тижневий ліміт може вичерпатися на ≈%d вікон раніше";
 "Estimated: %@" = "Оцінка: %@";
+"session_quota_estimate_value_format" = "%1$@ %2$@";
+"session quota" = "ліміт сесії";
+"session quotas" = "ліміти сесій";
 "Coding Plan" = "План кодування";
 "Agent Plan" = "План агента";
 "Team" = "Команда";
@@ -1307,6 +1377,7 @@
 "menu_bar_layout_gap" = "Інтервал";
 "menu_bar_layout_gap_tight" = "Вузький";
 "menu_bar_layout_gap_regular" = "Звичайний";
+"menu_bar_layout_vertical_adjustment" = "Вертикальне налаштування";
 "menu_bar_layout_keyboard_hint" = "Delete видаляє вибраний елемент";
 "menu_bar_layout_sample_account" = "обліковий запис";
 "menu_bar_layout_sample_runs_out" = "закінчиться пт.";
@@ -1315,7 +1386,11 @@
 "menu_bar_layout_token_account" = "Обліковий запис";
 "menu_bar_layout_token_session" = "Сесія %";
 "menu_bar_layout_token_weekly" = "Щотижня %";
+"menu_bar_layout_token_scoped_weekly" = "Тижневий за областю %";
 "menu_bar_layout_token_auto" = "Авто %";
+"menu_bar_layout_token_session_pace" = "Темп сесії";
+"menu_bar_layout_token_weekly_pace" = "Щотижневий темп";
+"menu_bar_layout_token_auto_pace" = "Авто темп";
 "menu_bar_layout_token_bar" = "Індикатор використання";
 "menu_bar_layout_token_resets_in" = "Скидання через";
 "menu_bar_layout_token_reset_at" = "Скидання о";
@@ -1341,3 +1416,109 @@
 "Cost today unavailable" = "Вартість сьогодні: Недоступний";
 "30-day cost unavailable" = "Вартість за 30 днів: Недоступний";
 "Resets" = "Скидання";
+"Finish now" = "Завершити зараз";
+"Continue in background" = "Продовжити у фоновому режимі";
+
+"Cumulative" = "Наростаючим підсумком";
+"Token activity" = "Активність токенів";
+"View" = "Вигляд";
+"in the last year" = "за останній рік";
+"No activity in the last 12 months" = "Немає активності за останні 12 місяців";
+"Each column = 1 week" = "Кожен стовпець = 1 тиждень";
+"Running total" = "Накопичений підсумок";
+"Less" = "Менше";
+"More" = "Більше";
+
+/* Provider Plugins */
+"Install…" = "Встановити…";
+"Install plugin" = "Встановити плагін";
+"Copies a JavaScript or TypeScript file into the plugins directory." = "Копіює файл JavaScript або TypeScript до каталогу плагінів.";
+"Show in Finder" = "Показати у Finder";
+"Plugins directory" = "Каталог плагінів";
+"Provider Plugins" = "Плагіни провайдерів";
+"Plugins are local JavaScript or TypeScript files. Network and cookie access require approval." = "Плагіни — це локальні файли JavaScript або TypeScript. Для доступу до мережі та файлів cookie потрібне схвалення.";
+"No Plugins Installed" = "Плагіни не встановлено";
+"Drop a .js or .ts file into the plugins directory, or choose Install…" = "Перетягніть файл .js або .ts до каталогу плагінів або виберіть «Встановити…».";
+"Delete Plugin?" = "Видалити плагін?";
+"Delete" = "Видалити";
+"This removes the plugin file, transpile cache, approval, saved settings and secrets, and history." = "Це видалить файл плагіна, кеш транспіляції, схвалення, збережені налаштування й секрети, а також історію.";
+"Plugin Error" = "Помилка плагіна";
+"Needs approval" = "Потрібне схвалення";
+"File" = "Файл";
+"Origins" = "Джерела";
+"Configure endpoint settings" = "Налаштуйте параметри кінцевої точки";
+"Capabilities" = "Можливості";
+"Network" = "Мережа";
+"Cookie domains" = "Домени файлів cookie";
+"Approve…" = "Схвалити…";
+"Delete…" = "Видалити…";
+"Unknown validation error" = "Невідома помилка перевірки";
+"Approve Plugin" = "Схвалити плагін";
+"Install and Approve Plugin" = "Встановити й схвалити плагін";
+"Network authority" = "Мережевий доступ";
+"Auth: %@" = "Автентифікація: %@";
+"Capabilities: %@" = "Можливості: %@";
+"network" = "мережа";
+"Secrets: %@" = "Секрети: %@";
+"none" = "немає";
+"Cookie domains: %@" = "Домени файлів cookie: %@";
+"Type %@ to confirm" = "Введіть %@ для підтвердження";
+"Enter every endpoint setting to review the exact network origins." = "Введіть усі параметри кінцевих точок, щоб переглянути точні джерела мережевих запитів.";
+"Approve" = "Схвалити";
+"Install" = "Встановити";
+"5-hour usage" = "Використання за 5 годин";
+"7-day usage" = "Використання за 7 днів";
+"Total usage" = "Загальне використання";
+"claude_oauth_keychain_access_revoked" = "Доступ до В’язки ключів Claude було відкликано через ротацію токена в Claude Code. Натисніть «Оновити», щоб повторно надати доступ, або перемкніть джерело використання Claude на CLI/Web.";
+"claude_showing_last_known_usage" = "Показано останні відомі дані про використання (отримано %@).";
+/* Spend dashboard cost analysis */
+"90d" = "90d";
+"Input" = "Input";
+"Output" = "Output";
+"Cache write" = "Cache write";
+"Reasoning" = "Reasoning";
+"Sessions" = "Sessions";
+"Projects" = "Projects";
+"Plan metered" = "Plan metered";
+"List-price equivalent" = "List-price equivalent";
+"Metered and list-price" = "Metered and list-price";
+"List-price equivalent — not a billing receipt." = "List-price equivalent — not a billing receipt.";
+"Priced" = "Priced";
+"Unpriced" = "Unpriced";
+"Unmetered" = "Unmetered";
+"Estimated" = "Estimated";
+"Other models" = "Other models";
+"Include OpenCodex usage logs" = "Include OpenCodex usage logs";
+"Hide native Codex when OpenCodex is present" = "Hide native Codex when OpenCodex is present";
+"Export JSON" = "Export JSON";
+"Copy JSON" = "Копіювати JSON";
+"Sources" = "Sources";
+"OpenCodex" = "OpenCodex";
+
+"menu_bar_layout_token_conditional" = "Умовний";
+"menu_bar_layout_group_conditionals" = "Умовні";
+"menu_bar_layout_conditional_add" = "Нова умова";
+"menu_bar_layout_conditional_edit" = "Редагувати умову";
+"menu_bar_layout_conditional_remove" = "Видалити з бібліотеки";
+"menu_bar_layout_conditional_save" = "Зберегти";
+"menu_bar_layout_conditional_if" = "Якщо";
+"menu_bar_layout_conditional_then" = "Тоді показати";
+"menu_bar_layout_conditional_else" = "Інакше показати";
+"menu_bar_layout_conditional_and" = "і";
+"menu_bar_layout_conditional_or" = "або";
+"menu_bar_layout_conditional_add_condition" = "Додати умову";
+"menu_bar_layout_conditional_none" = "Умов поки немає";
+"menu_bar_layout_conditional_hide" = "Приховати";
+"menu_bar_layout_conditional_name" = "Назва";
+"menu_bar_layout_conditional_name_placeholder" = "напр., Перевірка сеансу";
+"menu_bar_layout_conditional_name_error" = "Введіть унікальну назву";
+"menu_bar_layout_conditional_duplicate" = "Дублювати";
+"menu_bar_layout_conditional_summary" = "Якщо %1$@ тоді %2$@ інакше %3$@";
+"menu_bar_layout_conditional_copy_name" = "%@ (копія)";
+"menu_bar_layout_conditional_copy_name_numbered" = "%1$@ (копія %2$d)";
+"menu_bar_layout_conditional_unavailable" = "Умова недоступна";
+"menu_bar_layout_conditional_default_session_busy" = "Сесію використано понад 50 %";
+"menu_bar_layout_conditional_default_weekly_high" = "Тиждень використано понад 90 %";
+"menu_bar_layout_conditional_default_session_spent" = "Сесія майже вичерпана";
+"menu_bar_layout_conditional_default_either_high" = "Сесія або тиждень на високому рівні";
+"menu_bar_layout_conditional_default_scoped_weekly" = "Тижневе вікно моделі понад 60 %";

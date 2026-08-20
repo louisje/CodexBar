@@ -26,9 +26,9 @@ struct MenuBarMetricWindowResolverTests {
     @Test
     func `automatic metric uses zai 5-hour token lane when it is most constrained`() {
         let snapshot = UsageSnapshot(
-            primary: RateWindow(usedPercent: 12, windowMinutes: 10080, resetsAt: nil, resetDescription: nil),
-            secondary: RateWindow(usedPercent: 10, windowMinutes: nil, resetsAt: nil, resetDescription: nil),
-            tertiary: RateWindow(usedPercent: 92, windowMinutes: 300, resetsAt: nil, resetDescription: nil),
+            primary: RateWindow(usedPercent: 92, windowMinutes: 300, resetsAt: nil, resetDescription: nil),
+            secondary: RateWindow(usedPercent: 12, windowMinutes: 10080, resetsAt: nil, resetDescription: nil),
+            tertiary: nil,
             updatedAt: Date())
 
         let window = MenuBarMetricWindowResolver.rateWindow(
@@ -208,6 +208,92 @@ struct MenuBarMetricWindowResolverTests {
 
         #expect(window?.usedPercent == 80)
         #expect(window?.resetDescription == "Team")
+    }
+
+    @Test
+    func `automatic metric prioritizes exhausted litellm personal budget over active team budget`() {
+        let snapshot = UsageSnapshot(
+            primary: RateWindow(usedPercent: 100, windowMinutes: nil, resetsAt: nil, resetDescription: "Personal"),
+            secondary: RateWindow(usedPercent: 10, windowMinutes: nil, resetsAt: nil, resetDescription: "Team"),
+            updatedAt: Date())
+
+        let window = MenuBarMetricWindowResolver.rateWindow(
+            preference: .automatic,
+            provider: .litellm,
+            snapshot: snapshot,
+            supportsAverage: false)
+
+        #expect(window?.resetDescription == "Personal")
+        #expect(window?.usedPercent == 100)
+    }
+
+    @Test
+    func `automatic metric prioritizes exhausted litellm team budget over active personal budget`() {
+        let snapshot = UsageSnapshot(
+            primary: RateWindow(usedPercent: 10, windowMinutes: nil, resetsAt: nil, resetDescription: "Personal"),
+            secondary: RateWindow(usedPercent: 100, windowMinutes: nil, resetsAt: nil, resetDescription: "Team"),
+            updatedAt: Date())
+
+        let window = MenuBarMetricWindowResolver.rateWindow(
+            preference: .automatic,
+            provider: .litellm,
+            snapshot: snapshot,
+            supportsAverage: false)
+
+        #expect(window?.resetDescription == "Team")
+        #expect(window?.usedPercent == 100)
+    }
+
+    @Test
+    func `automatic metric prioritizes exhausted default secondary window`() {
+        let snapshot = UsageSnapshot(
+            primary: RateWindow(usedPercent: 42, windowMinutes: 300, resetsAt: nil, resetDescription: "Primary"),
+            secondary: RateWindow(usedPercent: 100, windowMinutes: 10080, resetsAt: nil, resetDescription: "Secondary"),
+            updatedAt: Date())
+
+        let window = MenuBarMetricWindowResolver.rateWindow(
+            preference: .automatic,
+            provider: .opencode,
+            snapshot: snapshot,
+            supportsAverage: false)
+
+        #expect(window?.resetDescription == "Secondary")
+        #expect(window?.usedPercent == 100)
+    }
+
+    @Test
+    func `automatic metric prioritizes exhausted default tertiary window`() {
+        let snapshot = UsageSnapshot(
+            primary: RateWindow(usedPercent: 42, windowMinutes: 300, resetsAt: nil, resetDescription: "Primary"),
+            secondary: RateWindow(usedPercent: 55, windowMinutes: 10080, resetsAt: nil, resetDescription: "Secondary"),
+            tertiary: RateWindow(usedPercent: 100, windowMinutes: 43200, resetsAt: nil, resetDescription: "Tertiary"),
+            updatedAt: Date())
+
+        let window = MenuBarMetricWindowResolver.rateWindow(
+            preference: .automatic,
+            provider: .opencode,
+            snapshot: snapshot,
+            supportsAverage: false)
+
+        #expect(window?.resetDescription == "Tertiary")
+        #expect(window?.usedPercent == 100)
+    }
+
+    @Test
+    func `automatic metric keeps default primary order when no window is exhausted`() {
+        let snapshot = UsageSnapshot(
+            primary: RateWindow(usedPercent: 42, windowMinutes: 300, resetsAt: nil, resetDescription: "Primary"),
+            secondary: RateWindow(usedPercent: 99, windowMinutes: 10080, resetsAt: nil, resetDescription: "Secondary"),
+            updatedAt: Date())
+
+        let window = MenuBarMetricWindowResolver.rateWindow(
+            preference: .automatic,
+            provider: .opencode,
+            snapshot: snapshot,
+            supportsAverage: false)
+
+        #expect(window?.resetDescription == "Primary")
+        #expect(window?.usedPercent == 42)
     }
 
     @Test

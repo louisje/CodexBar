@@ -10,10 +10,9 @@ enum UsagePaceText {
     }
 
     struct SessionEquivalentDetail: Equatable {
-        let verdictText: String
-        let numberText: String
-        let verdictAccessibilityLabel: String
-        let numberAccessibilityLabel: String
+        let leftText: String
+        let rightText: String
+        let accessibilityLabel: String
     }
 
     private enum DetailContext {
@@ -38,36 +37,40 @@ enum UsagePaceText {
     }
 
     static func sessionEquivalentDetail(forecast: SessionEquivalentForecast) -> SessionEquivalentDetail {
-        let displayedEstimate = Self.boundedFullWindowCount(forecast.estimatedWindowsToExhaustWeekly)
-        let numberText = String.localizedStringWithFormat(
-            L("≈%d full 5h windows of weekly left · %d windows until reset"),
-            displayedEstimate,
-            forecast.windowsUntilReset)
-        let verdictText: String
-        if forecast.estimatedWindowsToExhaustWeekly >= forecast.availableWindowsUntilReset {
-            verdictText = L("Weekly cannot run out before reset at this pace")
-        } else {
-            let windowsEarly = Self.boundedWindowCount(
-                forecast.availableWindowsUntilReset - forecast.estimatedWindowsToExhaustWeekly)
-            verdictText = String.localizedStringWithFormat(
-                L("Weekly can run out ≈%d windows early"),
-                max(1, windowsEarly))
-        }
+        let leftText = Self.sessionQuotaEstimateText(forecast.estimatedWindowsToExhaustWeekly)
+        let rightText = Self.windowsUntilResetText(forecast.windowsUntilReset)
         return SessionEquivalentDetail(
-            verdictText: verdictText,
-            numberText: numberText,
-            verdictAccessibilityLabel: L("Estimated: %@", verdictText),
-            numberAccessibilityLabel: L("Estimated: %@", numberText))
+            leftText: leftText,
+            rightText: rightText,
+            accessibilityLabel: L("%@ · %@", leftText, rightText))
     }
 
-    private static func boundedWindowCount(_ value: Double) -> Int {
-        guard value.isFinite, value > 0 else { return 0 }
-        return Int(min(value, 1_000_000).rounded())
+    private static func sessionQuotaEstimateText(_ value: Double) -> String {
+        let displayedEstimate: String
+        let unit: String
+        if value.isFinite, value > 0 {
+            let boundedValue = min(value, 1_000_000)
+            let roundedValue = (boundedValue * 10).rounded() / 10
+            displayedEstimate = roundedValue.formatted(
+                .number
+                    .precision(.fractionLength(0...1))
+                    .locale(codexBarLocalizedLocale()))
+            unit = roundedValue > 0 && roundedValue <= 1 ? L("session quota") : L("session quotas")
+        } else {
+            displayedEstimate = codexBarLocalizedInteger(0)
+            unit = L("session quotas")
+        }
+        let estimateValue = L("session_quota_estimate_value_format", displayedEstimate, unit)
+        return L("Estimated: %@", L("%@ left", estimateValue))
     }
 
-    private static func boundedFullWindowCount(_ value: Double) -> Int {
-        guard value.isFinite, value > 0 else { return 0 }
-        return Int(floor(min(value, 1_000_000)))
+    private static func windowsUntilResetText(_ count: Int) -> String {
+        let combinedText = String(
+            format: L("≈%d full 5h windows of weekly left · %d windows until reset"),
+            locale: codexBarLocalizedResourceLocale(),
+            arguments: [0, count])
+        guard let separatorRange = combinedText.range(of: " · ") else { return combinedText }
+        return String(combinedText[separatorRange.upperBound...])
     }
 
     private static func detailLeftLabel(for pace: UsagePace) -> String {
@@ -107,18 +110,16 @@ enum UsagePaceText {
 
         guard let runOutProbability = pace.runOutProbability else { return etaLabel }
         let roundedRisk = self.roundedRiskPercent(runOutProbability)
-        let riskLabel = L("≈ %d%% run-out risk", roundedRisk)
-        if pace.willLastToReset, roundedRisk > 0 {
-            return riskLabel
-        }
+        let riskLabel = L("(%d%% risk)", roundedRisk)
         if let etaLabel {
-            return L("%@ · %@", etaLabel, riskLabel)
+            return L("%@ %@", etaLabel, riskLabel)
         }
         return riskLabel
     }
 
     private static func combinedLastsLabel(for pace: UsagePace, provider: UsageProvider) -> String {
-        guard provider == .codex else { return L("Lasts until reset") }
+        let paceCapability = ProviderDescriptorRegistry.descriptor(for: provider).pace
+        guard paceCapability.showsHeadroomHint else { return L("Lasts until reset") }
         guard let speedLabel = self.speedHintLabel(for: pace) else {
             return L("Lasts until reset")
         }
@@ -152,14 +153,8 @@ enum UsagePaceText {
     }
 
     static func sessionPace(provider: UsageProvider, window: RateWindow, now: Date) -> UsagePace? {
-        guard provider == .codex || provider == .claude || provider == .ollama || provider == .antigravity
-        else { return nil }
-        if provider == .ollama, window.windowMinutes == nil {
-            return nil
-        }
-        if provider == .antigravity, let windowMinutes = window.windowMinutes, windowMinutes != 300 {
-            return nil
-        }
+        let paceCapability = ProviderDescriptorRegistry.descriptor(for: provider).pace
+        guard paceCapability.supportsSessionPace(window: window, now: now) else { return nil }
         guard window.remainingPercent > 0 else { return nil }
         guard let pace = UsagePace.weekly(window: window, now: now, defaultWindowMinutes: 300) else { return nil }
         guard pace.expectedUsedPercent >= 3 else { return nil }

@@ -87,10 +87,7 @@ public enum BrowserCookieAccessGate {
         guard browser.usesKeychainForCookieDecryption else { return true }
         guard !KeychainAccessGate.isDisabled else { return false }
         guard ProviderInteractionContext.current == .userInitiated else {
-            self.log.info(
-                "Skipping background Chromium cookie import to avoid a Keychain prompt",
-                metadata: ["browser": browser.displayName])
-            return false
+            return self.shouldAttemptInBackground(browser, now: now)
         }
         if self.deniedBrowsersForTesting?.contains(browser) == true {
             return self.isExplicitRetryAllowed(for: browser)
@@ -182,6 +179,13 @@ public enum BrowserCookieAccessGate {
                 }
             }
         }
+    }
+
+    static func withRecordReadInteractionPolicy<T>(_ operation: () throws -> T) rethrows -> T {
+        guard ProviderInteractionContext.current == .background else {
+            return try operation()
+        }
+        return try BrowserCookieKeychainAccessGate.withUserInteractionDisallowed(operation)
     }
 
     public static func recordIfNeeded(_ error: Error, now: Date = Date()) {
@@ -284,6 +288,69 @@ public enum BrowserCookieAccessGate {
         return false
     }
 
+    /// Background (non-user-initiated) refreshes must never surface a Keychain prompt. Rather than
+    /// skipping unconditionally, reuse the strictly no-UI Safe Storage preflight: when the ACL already
+    /// grants access (an explicit `.allowed`), a scheduled refresh can read cookies without any prompt,
+    /// so background usage stays in sync instead of only updating when the menu is opened. Anything else
+    /// — interaction required, not found, or a query failure — keeps the no-surprise boundary and skips.
+    /// An active per-browser or Chromium-family denial cooldown is still honored.
+    private static func shouldAttemptInBackground(_ browser: Browser, now: Date) -> Bool {
+        if self.deniedBrowsersForTesting?.contains(browser) == true {
+            return false
+        }
+        if self.hasActiveDenialCooldown(for: browser, now: now) {
+            self.log.debug(
+                "Skipping background Chromium cookie import; denial cooldown active",
+                metadata: ["browser": browser.displayName])
+            return false
+        }
+        guard self.chromiumKeychainAccessIsAllowed(for: browser) else {
+            self.log.info(
+                "Skipping background Chromium cookie import to avoid a Keychain prompt",
+                metadata: ["browser": browser.displayName])
+            return false
+        }
+        self.log.debug(
+            "Background Chromium cookie import allowed by no-UI Keychain preflight",
+            metadata: ["browser": browser.displayName])
+        return true
+    }
+
+    /// Read-only check for an active per-browser or Chromium-family denial cooldown. Mirrors the
+    /// suppression window enforced on the user-initiated path without mutating persisted state, so a
+    /// scheduled refresh stays side-effect free.
+    private static func hasActiveDenialCooldown(for browser: Browser, now: Date) -> Bool {
+        self.lock.withLock { state in
+            self.loadIfNeeded(&state)
+            if let blockedUntil = state.deniedUntilByBrowser[browser.rawValue], blockedUntil > now {
+                return true
+            }
+            if let familyBlockedUntil = state.chromiumFamilyDeniedUntil, familyBlockedUntil > now {
+                return true
+            }
+            return false
+        }
+    }
+
+    /// Returns true only when the no-UI Safe Storage preflight explicitly reports `.allowed` for one of
+    /// the browser's labels before any label requires interaction. Symmetric with
+    /// `chromiumKeychainRequiresInteraction`; `.notFound`/`.failure` are skipped and never treated as a
+    /// grant, so only an already-authorized ACL enables a background read.
+    private static func chromiumKeychainAccessIsAllowed(for browser: Browser) -> Bool {
+        let labels = browser.safeStorageLabels.isEmpty ? self.safeStorageLabels : browser.safeStorageLabels
+        for label in labels {
+            switch KeychainAccessPreflight.checkGenericPassword(service: label.service, account: label.account) {
+            case .allowed:
+                return true
+            case .interactionRequired:
+                return false
+            case .notFound, .failure:
+                continue
+            }
+        }
+        return false
+    }
+
     private static let safeStorageLabels: [(service: String, account: String)] = Browser.safeStorageLabels
 
     private static func normalizedPath(_ url: URL) -> String {
@@ -337,7 +404,9 @@ extension BrowserCookieClient {
         guard BrowserCookieAccessGate.shouldAttempt(browser) else { return [] }
         guard BrowserCookieAccessGate.claimExplicitRetryCookieReadIfNeeded(for: browser) else { return [] }
         do {
-            let records = try self.records(matching: query, in: browser, logger: logger)
+            let records = try BrowserCookieAccessGate.withRecordReadInteractionPolicy {
+                try self.records(matching: query, in: browser, logger: logger)
+            }
             BrowserCookieAccessGate.recordAllowed(for: browser)
             return records
         } catch {

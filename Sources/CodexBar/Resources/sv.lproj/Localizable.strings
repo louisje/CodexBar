@@ -1,5 +1,36 @@
 /* Swedish localization for CodexBar */
 
+/* iCloud Sync */
+"+ %d more" = "+ %d till";
+"Conversations (%@)" = "Konversationer (%@)";
+"Fast" = "Snabbt";
+"iCloud Sync" = "iCloud Sync";
+"Projects" = "Projekt";
+"Session %@" = "Session %@";
+"Std" = "Std";
+"Show all (%d)" = "Visa alla (%d)";
+"Show less" = "Visa färre";
+"Sync settings and providers across your Macs via iCloud" = "Sync settings and providers across your Macs via iCloud";
+"Include API keys, cookies, and tokens" = "Include API keys, cookies, and tokens";
+"Sync usage snapshots" = "Sync usage snapshots";
+"Show accounts from other Macs" = "Show accounts from other Macs";
+"Requires a signed release build of CodexBar." = "Requires a signed release build of CodexBar.";
+"Sign in to iCloud in System Settings to enable sync." = "Sign in to iCloud in System Settings to enable sync.";
+"iCloud access is restricted on this Mac." = "iCloud access is restricted on this Mac.";
+"Sync is paused: another Mac uses a newer version of CodexBar. Update to resume." = "Sync is paused: another Mac uses a newer version of CodexBar. Update to resume.";
+"Last successful fetch" = "Last successful fetch";
+"Last successful push" = "Last successful push";
+"Never" = "Never";
+"Macs" = "Macs";
+"No synced Macs yet." = "No synced Macs yet.";
+"Secrets use iCloud end-to-end encryption via encryptedValues. Hooks and machine-local paths never sync." = "Secrets use iCloud end-to-end encryption via encryptedValues. Hooks and machine-local paths never sync.";
+"Last seen %@" = "Last seen %@";
+"This Mac" = "This Mac";
+"another Mac" = "another Mac";
+"%dm ago" = "%dm ago";
+"%dh ago" = "%dh ago";
+"%dd ago" = "%dd ago";
+
 "tab_hooks" = "Hooks";
 "hooks_enable_title" = "Aktivera hooks";
 "hooks_enable_subtitle" = "Kör externa kommandon vid kvot- eller leverantörshändelser.";
@@ -21,7 +52,7 @@
 "hooks_delete_argument" = "Ta bort argument";
 
 "ollama_safari_cookie_access_hint" = "Safari-cookies kräver full skivåtkomst för CodexBar (Systeminställningar > Integritet och säkerhet).";
-"ollama_browser_cookie_decryption_denied" = "Dekryptering av %@-cookies nekades i Nyckelhanteraren; försök igen med en manuell uppdatering.";
+"ollama_browser_cookie_decryption_denied" = "Dekryptering av %@-cookies nekades i Nyckelhanteraren. Öppna leverantörskortet och klicka på Uppdatera (⌘R) för att begära åtkomst till Nyckelhanteraren igen.";
 "ollama_browser_cookie_decryption_disabled" = "Dekryptering av %@-cookies är inaktiverad i CodexBar; aktivera åtkomst till Nyckelhanteraren och uppdatera.";
 
 " providers" = " leverantörer";
@@ -429,6 +460,9 @@
 "section_agent_sessions" = "Agentsessioner";
 "language_title" = "Språk";
 "language_subtitle" = "Byt visningsspråk. Appen behöver startas om för att ändringen ska slå igenom helt.";
+"currency_title" = "Önskad valuta";
+"currency_subtitle" = "Valuta för kostnadsuppskattningar och utgifter. Använder växelkurser som uppdateras dagligen.";
+"currency_auto" = "Automatiskt (följ leverantör / USD)";
 "language_system" = "System";
 "language_english" = "English";
 "language_spanish" = "Español";
@@ -474,6 +508,10 @@
 "quota_depleted_title" = "Kvoten tar slut och återställs";
 "quota_warning_notifications_subtitle" = "Varnar när återstående sessions- eller veckokvot passerar inställda trösklar.";
 "threshold_warnings_title" = "Tröskelvarningar";
+"provider_accent_color_title" = "Accentfärg";
+"provider_accent_color_footer" = "Anger färgen på användningsstaplarna, diagrammen och växlarfliken för den här leverantören.";
+"provider_accent_color_hex_label" = "Hexadecimalt färgvärde";
+"provider_accent_color_reset" = "Använd standard";
 "quota_warnings_title" = "Kvotvarningar";
 "quota_warning_session" = "session";
 "quota_warning_session_capitalized" = "Session";
@@ -578,12 +616,19 @@
 "display_mode_subtitle" = "Välj vad som ska visas i menyraden (takt visar användning mot förväntat).";
 "show_quota_warning_markers_title" = "Visa kvotvarningsmarkörer";
 "show_quota_warning_markers_subtitle" = "Rita tröskelmarkeringar på användningsstaplar när kvotvarningar är konfigurerade.";
+"show_pace_title" = "Visa takt";
+"show_pace_subtitle" = "Visar remsan för försprång eller eftersläpning och prognostexten på användningsstaplarna.";
 "weekly_progress_work_days_title" = "Arbetsdagar i veckoförlopp";
 "weekly_progress_work_days_subtitle" = "Ställ in arbetsdagar för markeringar i veckostaplar och tempoberäkningar.";
+"workday_tick_appearance_title" = "Utseende för arbetsdagsmarkeringar";
+"workday_tick_appearance_subtitle" = "Välj hur arbetsdagsgränser visas i veckans användningsstaplar.";
+"workday_tick_appearance_hidden" = "Dolda";
+"workday_tick_appearance_subtle" = "Diskreta";
+"workday_tick_appearance_high_contrast" = "Hög kontrast";
 "show_provider_changelog_links_title" = "Visa länkar till leverantörers ändringsloggar";
 "show_provider_changelog_links_subtitle" = "Lägger till länkar till utgåvekommentarer för stödda CLI-baserade leverantörer i menyn.";
 "show_credits_extra_usage_title" = "Visa krediter och extra användning";
-"show_credits_extra_usage_subtitle" = "Visa avsnitt för Codex-krediter och Claude Extra-användning i menyn.";
+"show_credits_extra_usage_subtitle" = "Visa krediter och extra användning för leverantörer som stöds.";
 "multi_account_layout_title" = "Layout för flera konton";
 "multi_account_layout_subtitle" = "Välj segmenterad kontoväxling eller staplade kontokort.";
 "multi_account_layout_segmented" = "Segmenterad";
@@ -625,6 +670,15 @@
 "keychain_access_caption" = "Inaktivera all läsning och skrivning i Nyckelring. Använd detta om macOS fortsätter fråga om 'Chrome/Brave/Edge Safe Storage' även efter att du klickat på Tillåt alltid. Import av webbläsarcookies är inte tillgänglig när detta är aktiverat. Klistra in Cookie-headers manuellt under Leverantörer. Claude/Codex OAuth via CLI fungerar fortfarande.";
 "disable_keychain_access_title" = "Inaktivera åtkomst till Nyckelring";
 "disable_keychain_access_subtitle" = "Förhindrar all åtkomst till Nyckelring när det är aktiverat.";
+"Re-authenticate" = "Autentisera igen";
+"kiro_reauthenticate_title" = "Kiro CLI-inloggning";
+"kiro_reauthenticate_subtitle" = "Kör ”kiro-cli login” för att förnya sessionen när den har löpt ut.";
+"Kiro CLI not found" = "Kiro CLI hittades inte";
+"Install kiro-cli and try again." = "Installera kiro-cli och försök igen.";
+"Could not start kiro-cli login" = "Det gick inte att starta kiro-cli login";
+"Kiro login timed out" = "Tidsgränsen för Kiro-inloggningen överskreds";
+"kiro-cli login exited with status %d." = "kiro-cli login avslutades med status %d.";
+"Kiro login failed" = "Kiro-inloggningen misslyckades";
 
 /* About Pane */
 "about_tagline" = "Må dina token aldrig ta slut – håll agentgränserna synliga.";
@@ -639,6 +693,8 @@
 "copyright" = "© 2026 Peter Steinberger. MIT-licens.";
 
 /* Debug Pane */
+"use_javascriptcore_plugin_engine" = "Använd JavaScriptCore för leverantörsinsticksfiler";
+"use_javascriptcore_plugin_engine_subtitle" = "Endast kompatibilitetsåterställning. Starta om CodexBar för att tillämpa; CODEXBAR_PLUGIN_ENGINE åsidosätter inställningen.";
 "section_logging" = "Loggning";
 "enable_file_logging" = "Aktivera filloggning";
 "enable_file_logging_subtitle" = "Skriv loggar till %@ för felsökning.";
@@ -812,7 +868,7 @@
 "Pace: %@" = "Takt: %@";
 "Pace: %@ · %@" = "Takt: %@ · %@";
 "%@ · %@" = "%@ · %@";
-"≈ %d%% run-out risk" = "≈ %d %% risk att ta slut";
+"(%d%% risk)" = "(%d %% risk att ta slut)";
 "%d%% in deficit" = "%d %% underskott";
 "%d%% in reserve" = "%d %% reserv";
 "usage_percent_suffix_left" = "kvar";
@@ -1214,6 +1270,8 @@
 "section_links" = "Länkar";
 "Show Codex Spark usage" = "Visa Codex Spark-användning";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Visar kvotrader för Codex Spark i menyn och i förhandsvisningen för leverantören. Kräver att ”Visa krediter och extra användning” är aktiverat under Visning i Inställningar.";
+"Show Daily Routines usage" = "Visa användning för Dagliga rutiner";
+"Shows the Daily Routines quota row in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Visar kvotraden för Dagliga rutiner i menyn och i förhandsvisningen för leverantören. Kräver att ”Visa krediter och extra användning” är aktiverat under Visning i Inställningar.";
 "Scroll to see more models" = "Rulla för att se fler modeller";
 "Copy Image" = "Kopiera bild";
 "Copy Stats" = "Kopiera statistik";
@@ -1259,6 +1317,9 @@
 "Native currencies stay separate; Codex account rows exclude Pi session history." = "Ursprungliga valutor hålls åtskilda; rader för Codex-konton utesluter Pi-sessionshistorik.";
 "Spend unavailable" = "Utgifter ej tillgängliga";
 "Model breakdown unavailable" = "Modellfördelning ej tillgänglig";
+"Partial estimate" = "Delvis uppskattning";
+"Partial model breakdown" = "Delvis modellfördelning";
+"%d of %d subscriptions have spend" = "%d av %d prenumerationer har utgifter";
 "Local estimated history" = "Lokal uppskattad historik";
 "Coverage" = "Täckning";
 "Estimated spend" = "Uppskattade utgifter";
@@ -1267,10 +1328,19 @@
 "By subscription" = "Per abonnemang";
 "No model-level history" = "Ingen historik på modellnivå";
 "Daily estimated spend" = "Uppskattade dagliga utgifter";
+"Hourly estimated spend" = "Uppskattade utgifter per timme";
+"Hour" = "Timme";
+"%d hours of usage data across %d services" = "%d timmar användningsdata över %d tjänster";
+"1 hour of usage data across 1 service" = "1 timme användningsdata över 1 tjänst";
+"%d hours of usage data across 1 service" = "%d timmar användningsdata över 1 tjänst";
+"1 hour of usage data across %d services" = "1 timme användningsdata över %d tjänster";
 "≈%d full 5h windows of weekly left · %d windows until reset" = "≈%d fulla 5-timmarsfönster av veckokvoten kvar · %d fönster till återställning";
 "Weekly cannot run out before reset at this pace" = "Veckokvoten kan inte ta slut före återställningen i den här takten";
 "Weekly can run out ≈%d windows early" = "Veckokvoten kan ta slut ≈%d fönster tidigare";
 "Estimated: %@" = "Uppskattning: %@";
+"session_quota_estimate_value_format" = "%1$@ %2$@";
+"session quota" = "sessionskvot";
+"session quotas" = "sessionskvoter";
 "Coding Plan" = "Kodningsplan";
 "Agent Plan" = "Agentplan";
 "Team" = "Team";
@@ -1306,6 +1376,7 @@
 "menu_bar_layout_gap" = "Mellanrum";
 "menu_bar_layout_gap_tight" = "Tätt";
 "menu_bar_layout_gap_regular" = "Normal";
+"menu_bar_layout_vertical_adjustment" = "Vertikal justering";
 "menu_bar_layout_keyboard_hint" = "Delete tar bort den markerade brickan";
 "menu_bar_layout_sample_account" = "konto";
 "menu_bar_layout_sample_runs_out" = "tar slut fre.";
@@ -1314,7 +1385,11 @@
 "menu_bar_layout_token_account" = "Konto";
 "menu_bar_layout_token_session" = "Session %";
 "menu_bar_layout_token_weekly" = "Vecka %";
+"menu_bar_layout_token_scoped_weekly" = "Avgränsad vecka %";
 "menu_bar_layout_token_auto" = "Automatiskt %";
+"menu_bar_layout_token_session_pace" = "Sessionstakt";
+"menu_bar_layout_token_weekly_pace" = "Veckotakt";
+"menu_bar_layout_token_auto_pace" = "Automatisk takt";
 "menu_bar_layout_token_bar" = "Användningsstapel";
 "menu_bar_layout_token_resets_in" = "Återställs om";
 "menu_bar_layout_token_reset_at" = "Återställs kl.";
@@ -1340,3 +1415,109 @@
 "Cost today unavailable" = "Kostnad idag: Inte tillgänglig";
 "30-day cost unavailable" = "Kostnad 30 dagar: Inte tillgänglig";
 "Resets" = "Återställningar";
+"Finish now" = "Slutför nu";
+"Continue in background" = "Fortsätt i bakgrunden";
+
+"Cumulative" = "Kumulativt";
+"Token activity" = "Token-aktivitet";
+"View" = "Vy";
+"in the last year" = "det senaste året";
+"No activity in the last 12 months" = "Ingen aktivitet de senaste 12 månaderna";
+"Each column = 1 week" = "Varje kolumn = 1 vecka";
+"Running total" = "Löpande summa";
+"Less" = "Mindre";
+"More" = "Mer";
+
+/* Provider Plugins */
+"Install…" = "Installera…";
+"Install plugin" = "Installera plugin";
+"Copies a JavaScript or TypeScript file into the plugins directory." = "Kopierar en JavaScript- eller TypeScript-fil till pluginmappen.";
+"Show in Finder" = "Visa i Finder";
+"Plugins directory" = "Pluginmapp";
+"Provider Plugins" = "Leverantörsplugin";
+"Plugins are local JavaScript or TypeScript files. Network and cookie access require approval." = "Plugin är lokala JavaScript- eller TypeScript-filer. Åtkomst till nätverk och cookies kräver godkännande.";
+"No Plugins Installed" = "Inga plugin installerade";
+"Drop a .js or .ts file into the plugins directory, or choose Install…" = "Släpp en .js- eller .ts-fil i pluginmappen eller välj Installera…";
+"Delete Plugin?" = "Ta bort plugin?";
+"Delete" = "Ta bort";
+"This removes the plugin file, transpile cache, approval, saved settings and secrets, and history." = "Detta tar bort pluginfilen, transpileringscachen, godkännandet, sparade inställningar och hemligheter samt historiken.";
+"Plugin Error" = "Pluginfel";
+"Needs approval" = "Kräver godkännande";
+"File" = "Fil";
+"Origins" = "Ursprungsadresser";
+"Configure endpoint settings" = "Konfigurera slutpunktsinställningar";
+"Capabilities" = "Behörigheter";
+"Network" = "Nätverk";
+"Cookie domains" = "Cookie-domäner";
+"Approve…" = "Godkänn…";
+"Delete…" = "Ta bort…";
+"Unknown validation error" = "Okänt valideringsfel";
+"Approve Plugin" = "Godkänn plugin";
+"Install and Approve Plugin" = "Installera och godkänn plugin";
+"Network authority" = "Omfattning av nätverksåtkomst";
+"Auth: %@" = "Autentisering: %@";
+"Capabilities: %@" = "Behörigheter: %@";
+"network" = "nätverk";
+"Secrets: %@" = "Hemligheter: %@";
+"none" = "inga";
+"Cookie domains: %@" = "Cookie-domäner: %@";
+"Type %@ to confirm" = "Skriv %@ för att bekräfta";
+"Enter every endpoint setting to review the exact network origins." = "Ange alla slutpunktsinställningar för att granska de exakta ursprungsadresserna.";
+"Approve" = "Godkänn";
+"Install" = "Installera";
+"5-hour usage" = "5-timmarsanvändning";
+"7-day usage" = "7-dagarsanvändning";
+"Total usage" = "Total användning";
+"claude_oauth_keychain_access_revoked" = "Åtkomsten till Claudes nyckelring återkallades när Claude Code roterade token. Klicka på Uppdatera för att ge åtkomst igen, eller byt Claudes användningskälla till CLI/Web.";
+"claude_showing_last_known_usage" = "Visar senast kända användning, registrerad %@.";
+/* Spend dashboard cost analysis */
+"90d" = "90d";
+"Input" = "Input";
+"Output" = "Output";
+"Cache write" = "Cache write";
+"Reasoning" = "Reasoning";
+"Sessions" = "Sessions";
+"Projects" = "Projects";
+"Plan metered" = "Plan metered";
+"List-price equivalent" = "List-price equivalent";
+"Metered and list-price" = "Metered and list-price";
+"List-price equivalent — not a billing receipt." = "List-price equivalent — not a billing receipt.";
+"Priced" = "Priced";
+"Unpriced" = "Unpriced";
+"Unmetered" = "Unmetered";
+"Estimated" = "Estimated";
+"Other models" = "Other models";
+"Include OpenCodex usage logs" = "Include OpenCodex usage logs";
+"Hide native Codex when OpenCodex is present" = "Hide native Codex when OpenCodex is present";
+"Export JSON" = "Export JSON";
+"Copy JSON" = "Kopiera JSON";
+"Sources" = "Sources";
+"OpenCodex" = "OpenCodex";
+
+"menu_bar_layout_token_conditional" = "Villkor";
+"menu_bar_layout_group_conditionals" = "Villkor";
+"menu_bar_layout_conditional_add" = "Nytt villkor";
+"menu_bar_layout_conditional_edit" = "Redigera villkor";
+"menu_bar_layout_conditional_remove" = "Ta bort från bibliotek";
+"menu_bar_layout_conditional_save" = "Spara";
+"menu_bar_layout_conditional_if" = "Om";
+"menu_bar_layout_conditional_then" = "Visa då";
+"menu_bar_layout_conditional_else" = "Visa annars";
+"menu_bar_layout_conditional_and" = "och";
+"menu_bar_layout_conditional_or" = "eller";
+"menu_bar_layout_conditional_add_condition" = "Lägg till villkor";
+"menu_bar_layout_conditional_none" = "Inga villkor ännu";
+"menu_bar_layout_conditional_hide" = "Dölj";
+"menu_bar_layout_conditional_name" = "Namn";
+"menu_bar_layout_conditional_name_placeholder" = "t.ex. Sessionskontroll";
+"menu_bar_layout_conditional_name_error" = "Ange ett unikt namn";
+"menu_bar_layout_conditional_duplicate" = "Duplicera";
+"menu_bar_layout_conditional_summary" = "Om %1$@ visa %2$@ annars %3$@";
+"menu_bar_layout_conditional_copy_name" = "%@ (kopia)";
+"menu_bar_layout_conditional_copy_name_numbered" = "%1$@ (kopia %2$d)";
+"menu_bar_layout_conditional_unavailable" = "Villkor otillgängligt";
+"menu_bar_layout_conditional_default_session_busy" = "Session över 50 % använt";
+"menu_bar_layout_conditional_default_weekly_high" = "Vecka över 90 % använt";
+"menu_bar_layout_conditional_default_session_spent" = "Sessionen nästan förbrukad";
+"menu_bar_layout_conditional_default_either_high" = "Session eller vecka ligger högt";
+"menu_bar_layout_conditional_default_scoped_weekly" = "Modellvecka över 60 % använt";

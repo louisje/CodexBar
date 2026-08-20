@@ -56,11 +56,12 @@ extension UsageStore {
             self.clearQuotaLowHookUsage(provider: provider)
         }
         guard notificationsEnabled || hooksActive else { return }
-        if provider == .commandcode, snapshot.commandCodeSubscriptionEnrichmentUnavailable { return }
 
         let accountContext = QuotaWarningAccountContext(
             discriminator: accountDiscriminator,
             displayName: self.quotaWarningAccountDisplayName(provider: provider, snapshot: snapshot))
+        // Provider-specific by design: warning lanes follow Antigravity families, balance-only suppression, and
+        // provider-authored dynamic labels rather than the generic primary/secondary pair.
         let source: SessionQuotaWindowSource? = if provider == .antigravity {
             Self.hasAntigravityQuotaSummaryWindows(snapshot: snapshot)
                 ? .antigravityQuotaSummary
@@ -74,22 +75,35 @@ extension UsageStore {
             primaryWindow = Self.antigravityWindow(snapshot: snapshot, windowMinutes: 5 * 60)
             secondaryWindow = Self.antigravityWindow(snapshot: snapshot, windowMinutes: 7 * 24 * 60)
         } else {
-            primaryWindow = provider == .mimo || provider == .qoder ? nil : snapshot.primary
-            secondaryWindow = provider == .mimo || provider == .qoder ? nil : snapshot.secondary
+            // Crof credits-only accounts publish a duration-less balance as `primary`; a drained
+            // prepaid balance is not a quota threshold crossing, so it must not raise warnings.
+            // Crof accounts that do expose request quotas (secondary present) keep normal warnings.
+            let isBalanceOnlyCrof = provider == .crof && snapshot.secondary == nil
+            let suppressWindows = provider == .mimo || provider == .qoder || isBalanceOnlyCrof
+            primaryWindow = suppressWindows ? nil : snapshot.primary
+            secondaryWindow = suppressWindows ? nil : snapshot.secondary
         }
+        let primaryWindowDisplayLabel = provider == .amp
+            ? AmpProviderDescriptor.primaryLabel(snapshot: snapshot)
+            : nil
+        let secondaryWindowDisplayLabel = provider == .amp
+            ? AmpProviderDescriptor.secondaryLabel(snapshot: snapshot)
+            : nil
         if notificationsEnabled {
             self.handleQuotaWarningTransition(
                 provider: provider,
                 window: .session,
                 rateWindow: primaryWindow,
                 source: source,
-                accountContext: accountContext)
+                accountContext: accountContext,
+                windowDisplayLabel: primaryWindowDisplayLabel)
             self.handleQuotaWarningTransition(
                 provider: provider,
                 window: .weekly,
                 rateWindow: secondaryWindow,
                 source: source,
-                accountContext: accountContext)
+                accountContext: accountContext,
+                windowDisplayLabel: secondaryWindowDisplayLabel)
             self.handleClaudeExtraWindowQuotaWarnings(
                 provider: provider,
                 snapshot: snapshot,
@@ -102,7 +116,7 @@ extension UsageStore {
                 lane: QuotaLowHookLane(
                     window: .session,
                     windowID: nil,
-                    label: QuotaWarningWindow.session.displayName),
+                    label: primaryWindowDisplayLabel ?? QuotaWarningWindow.session.displayName),
                 rateWindow: primaryWindow,
                 accountDiscriminator: accountContext.discriminator,
                 accountDisplayName: accountContext.displayName)
@@ -111,7 +125,7 @@ extension UsageStore {
                 lane: QuotaLowHookLane(
                     window: .weekly,
                     windowID: nil,
-                    label: QuotaWarningWindow.weekly.displayName),
+                    label: secondaryWindowDisplayLabel ?? QuotaWarningWindow.weekly.displayName),
                 rateWindow: secondaryWindow,
                 accountDiscriminator: accountContext.discriminator,
                 accountDisplayName: accountContext.displayName)

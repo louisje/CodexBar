@@ -1507,7 +1507,7 @@ struct SettingsStoreTests {
     }
 
     @Test
-    func `menu observation token updates on weekly progress work days changes`() async throws {
+    func `menu observation token updates on workday display changes`() async throws {
         let suite = "SettingsStoreTests-observation-weekly-progress-work-days"
         let defaults = try #require(UserDefaults(suiteName: suite))
         defaults.removePersistentDomain(forName: suite)
@@ -1519,18 +1519,20 @@ struct SettingsStoreTests {
             zaiTokenStore: NoopZaiTokenStore(),
             syntheticTokenStore: NoopSyntheticTokenStore())
 
-        let didChange = ObservationFlag()
-
-        withObservationTracking {
-            _ = store.menuObservationToken
-        } onChange: {
-            didChange.set()
+        func expectObservation(_ update: () -> Void) async {
+            let didChange = ObservationFlag()
+            withObservationTracking {
+                _ = store.menuObservationToken
+            } onChange: {
+                didChange.set()
+            }
+            update()
+            try? await Task.sleep(nanoseconds: 50_000_000)
+            #expect(didChange.get() == true)
         }
 
-        store.weeklyProgressWorkDays = 5
-        try? await Task.sleep(nanoseconds: 50_000_000)
-
-        #expect(didChange.get() == true)
+        await expectObservation { store.weeklyProgressWorkDays = 5 }
+        await expectObservation { store.workdayTickAppearance = .highContrast }
     }
 
     @Test
@@ -1600,7 +1602,7 @@ struct SettingsStoreTests {
             zaiTokenStore: NoopZaiTokenStore(),
             syntheticTokenStore: NoopSyntheticTokenStore())
 
-        #expect(store.orderedProviders() == UsageProvider.allCases)
+        #expect(store.orderedProviders() == UsageProvider.allCases.map(\.instanceID))
     }
 
     @Test
@@ -1625,7 +1627,7 @@ struct SettingsStoreTests {
 
         let legacyOrder: [UsageProvider] = [.gemini, .codex]
         let appendedProviders = UsageProvider.allCases.filter { !legacyOrder.contains($0) }
-        #expect(storeA.orderedProviders() == legacyOrder + appendedProviders)
+        #expect(storeA.orderedProviders() == (legacyOrder + appendedProviders).map(\.instanceID))
 
         // Move one provider; ensure it's persisted across instances.
         let antigravityIndex = try #require(storeA.orderedProviders().firstIndex(of: .antigravity))

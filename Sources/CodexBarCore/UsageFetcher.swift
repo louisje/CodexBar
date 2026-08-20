@@ -140,75 +140,21 @@ public struct NamedRateWindow: Codable, Equatable, Sendable {
     }
 }
 
-public struct ProviderIdentitySnapshot: Codable, Sendable {
-    public let providerID: UsageProvider?
-    public let accountEmail: String?
-    public let accountOrganization: String?
-    public let loginMethod: String?
-    public let accountID: String?
-
-    public init(
-        providerID: UsageProvider?,
-        accountEmail: String?,
-        accountOrganization: String?,
-        loginMethod: String?,
-        accountID: String? = nil)
-    {
-        self.providerID = providerID
-        self.accountEmail = accountEmail
-        self.accountOrganization = accountOrganization
-        self.loginMethod = loginMethod
-        self.accountID = accountID
-    }
-
-    public func scoped(to provider: UsageProvider) -> ProviderIdentitySnapshot {
-        if self.providerID == provider {
-            return self
-        }
-        return ProviderIdentitySnapshot(
-            providerID: provider,
-            accountEmail: self.accountEmail,
-            accountOrganization: self.accountOrganization,
-            loginMethod: self.loginMethod,
-            accountID: self.accountID)
-    }
-}
-
-public enum UsageDataConfidence: String, Codable, Equatable, Sendable {
-    case exact
-    case estimated
-    case percentOnly
-    case unknown
-}
-
 public struct UsageSnapshot: Codable, Sendable {
     public let primary: RateWindow?
     public let secondary: RateWindow?
     public let tertiary: RateWindow?
     public let extraRateWindows: [NamedRateWindow]?
     public let providerCost: ProviderCostSnapshot?
-    public let kiroUsage: KiroUsageDetails?
-    public let ampUsage: AmpUsageDetails?
-    public let zaiUsage: ZaiUsageSnapshot?
-    public let minimaxUsage: MiniMaxUsageSnapshot?
-    public let deepseekUsage: DeepSeekUsageSummary?
+    /// Live provider-reported cost history supplied through the generic plugin contract.
+    public let costUsage: CostUsageTokenSnapshot?
+    public let details: [ProviderDetailSection]
     public let deepseekDetailedUsageState: DeepSeekDetailedUsageState
     public let deepseekPlatformProfiles: [DeepSeekPlatformProfile]
     public let opencodegoUsage: OpenCodeGoUsageSnapshot?
-    public let mimoUsage: MiMoUsageSnapshot?
-    public let openRouterUsage: OpenRouterUsageSnapshot?
-    public let sakanaPayAsYouGo: SakanaPayAsYouGoSnapshot?
-    public let clawRouterUsage: ClawRouterUsageSnapshot?
-    public let sub2APIUsage: Sub2APIUsageDetails?
-    public let wayfinderUsage: WayfinderUsageSnapshot?
     public let openAIAPIUsage: OpenAIAPIUsageSnapshot?
-    public let groqConsoleUsage: GroqConsoleUsageSnapshot?
     public let codexResetCredits: CodexRateLimitResetCreditsSnapshot?
-    public let claudeAdminAPIUsage: ClaudeAdminAPIUsageSnapshot?
     public let mistralUsage: MistralUsageSnapshot?
-    public let deepgramUsage: DeepgramUsageSnapshot?
-    public let poeUsage: PoeUsageHistorySnapshot?
-    public let cursorRequests: CursorRequestUsage?
     /// Live-only marker for optional Command Code subscription lookup failure.
     public let commandCodeSubscriptionEnrichmentUnavailable: Bool
     /// Live-only marker that Command Code returned a recognized subscription plan.
@@ -227,21 +173,10 @@ public struct UsageSnapshot: Codable, Sendable {
         case tertiary
         case extraRateWindows
         case providerCost
-        case kiroUsage
-        case ampUsage
-        case mimoUsage
-        case openRouterUsage
-        case sakanaPayAsYouGo
-        case clawRouterUsage
-        case sub2APIUsage
-        case wayfinderUsage
+        case details
         case openAIAPIUsage
-        case groqConsoleUsage
         case codexResetCredits
-        case claudeAdminAPIUsage
         case mistralUsage
-        case deepgramUsage
-        case poeUsage
         case subscriptionExpiresAt
         case subscriptionRenewsAt
         case updatedAt
@@ -257,29 +192,15 @@ public struct UsageSnapshot: Codable, Sendable {
         secondary: RateWindow?,
         tertiary: RateWindow? = nil,
         extraRateWindows: [NamedRateWindow]? = nil,
-        kiroUsage: KiroUsageDetails? = nil,
-        ampUsage: AmpUsageDetails? = nil,
         providerCost: ProviderCostSnapshot? = nil,
-        zaiUsage: ZaiUsageSnapshot? = nil,
-        minimaxUsage: MiniMaxUsageSnapshot? = nil,
-        deepseekUsage: DeepSeekUsageSummary? = nil,
+        costUsage: CostUsageTokenSnapshot? = nil,
+        details: [ProviderDetailSection] = [],
         deepseekDetailedUsageState: DeepSeekDetailedUsageState = .notRequested,
         deepseekPlatformProfiles: [DeepSeekPlatformProfile] = [],
         opencodegoUsage: OpenCodeGoUsageSnapshot? = nil,
-        mimoUsage: MiMoUsageSnapshot? = nil,
-        openRouterUsage: OpenRouterUsageSnapshot? = nil,
-        sakanaPayAsYouGo: SakanaPayAsYouGoSnapshot? = nil,
-        clawRouterUsage: ClawRouterUsageSnapshot? = nil,
-        sub2APIUsage: Sub2APIUsageDetails? = nil,
-        wayfinderUsage: WayfinderUsageSnapshot? = nil,
         openAIAPIUsage: OpenAIAPIUsageSnapshot? = nil,
-        groqConsoleUsage: GroqConsoleUsageSnapshot? = nil,
         codexResetCredits: CodexRateLimitResetCreditsSnapshot? = nil,
-        claudeAdminAPIUsage: ClaudeAdminAPIUsageSnapshot? = nil,
         mistralUsage: MistralUsageSnapshot? = nil,
-        deepgramUsage: DeepgramUsageSnapshot? = nil,
-        poeUsage: PoeUsageHistorySnapshot? = nil,
-        cursorRequests: CursorRequestUsage? = nil,
         commandCodeSubscriptionEnrichmentUnavailable: Bool = false,
         commandCodeHasSubscriptionPlan: Bool = false,
         commandCodeMonthlyGrantDepleted: Bool = false,
@@ -289,33 +210,22 @@ public struct UsageSnapshot: Codable, Sendable {
         identity: ProviderIdentitySnapshot? = nil,
         dataConfidence: UsageDataConfidence = .unknown)
     {
+        precondition(
+            details.count <= ProviderDetailSection.maximumSectionsPerSnapshot,
+            "UsageSnapshot details exceeds \(ProviderDetailSection.maximumSectionsPerSnapshot) sections")
         self.primary = primary
         self.secondary = secondary
         self.tertiary = tertiary
         self.extraRateWindows = extraRateWindows
-        self.kiroUsage = kiroUsage
-        self.ampUsage = ampUsage
         self.providerCost = providerCost
-        self.zaiUsage = zaiUsage
-        self.minimaxUsage = minimaxUsage
-        self.deepseekUsage = deepseekUsage
+        self.costUsage = costUsage
+        self.details = details
         self.deepseekDetailedUsageState = deepseekDetailedUsageState
         self.deepseekPlatformProfiles = deepseekPlatformProfiles
         self.opencodegoUsage = opencodegoUsage
-        self.mimoUsage = mimoUsage
-        self.openRouterUsage = openRouterUsage
-        self.sakanaPayAsYouGo = sakanaPayAsYouGo
-        self.clawRouterUsage = clawRouterUsage
-        self.sub2APIUsage = sub2APIUsage
-        self.wayfinderUsage = wayfinderUsage
         self.openAIAPIUsage = openAIAPIUsage
-        self.groqConsoleUsage = groqConsoleUsage
         self.codexResetCredits = codexResetCredits
-        self.claudeAdminAPIUsage = claudeAdminAPIUsage
         self.mistralUsage = mistralUsage
-        self.deepgramUsage = deepgramUsage
-        self.poeUsage = poeUsage
-        self.cursorRequests = cursorRequests
         self.commandCodeSubscriptionEnrichmentUnavailable = commandCodeSubscriptionEnrichmentUnavailable
         self.commandCodeHasSubscriptionPlan = commandCodeHasSubscriptionPlan
         self.commandCodeMonthlyGrantDepleted = commandCodeMonthlyGrantDepleted
@@ -334,10 +244,20 @@ public struct UsageSnapshot: Codable, Sendable {
         self.replacing(codexResetCredits: .value(resetCredits))
     }
 
+    public func withSubscriptionMetadata(expiresAt: Date?, renewsAt: Date?) -> UsageSnapshot {
+        self.replacing(
+            subscriptionExpiresAt: .value(expiresAt),
+            subscriptionRenewsAt: .value(renewsAt))
+    }
+
     public func with(primary: RateWindow?, secondary: RateWindow?) -> UsageSnapshot {
         self.replacing(
             primary: .value(primary),
             secondary: .value(secondary))
+    }
+
+    public func with(tertiary: RateWindow?) -> UsageSnapshot {
+        self.replacing(tertiary: .value(tertiary))
     }
 
     public init(from decoder: Decoder) throws {
@@ -347,36 +267,17 @@ public struct UsageSnapshot: Codable, Sendable {
         self.tertiary = try container.decodeIfPresent(RateWindow.self, forKey: .tertiary)
         self.extraRateWindows = try container.decodeIfPresent([NamedRateWindow].self, forKey: .extraRateWindows)
         self.providerCost = try container.decodeIfPresent(ProviderCostSnapshot.self, forKey: .providerCost)
-        self.kiroUsage = try container.decodeIfPresent(KiroUsageDetails.self, forKey: .kiroUsage)
-        self.ampUsage = try container.decodeIfPresent(AmpUsageDetails.self, forKey: .ampUsage)
-        self.zaiUsage = nil // Not persisted, fetched fresh each time
-        self.minimaxUsage = nil // Not persisted, fetched fresh each time
-        self.deepseekUsage = nil // Not persisted, fetched fresh each time
+        self.costUsage = nil // Live-only provider history; refresh from the authoritative source.
+        self.details = try container.decodeIfPresent([ProviderDetailSection].self, forKey: .details) ?? []
+        try ProviderDetailSection.validateSections(self.details)
         self.deepseekDetailedUsageState = .notRequested // Live-only fetch state
         self.deepseekPlatformProfiles = [] // Live-only browser profile catalog
         self.opencodegoUsage = nil // Not persisted, fetched fresh each time
-        self.mimoUsage = try container.decodeIfPresent(MiMoUsageSnapshot.self, forKey: .mimoUsage)
-        self.openRouterUsage = try container.decodeIfPresent(OpenRouterUsageSnapshot.self, forKey: .openRouterUsage)
-        self.sakanaPayAsYouGo = try container.decodeIfPresent(
-            SakanaPayAsYouGoSnapshot.self,
-            forKey: .sakanaPayAsYouGo)
-        self.clawRouterUsage = try container.decodeIfPresent(ClawRouterUsageSnapshot.self, forKey: .clawRouterUsage)
-        self.sub2APIUsage = try container.decodeIfPresent(Sub2APIUsageDetails.self, forKey: .sub2APIUsage)
-        self.wayfinderUsage = try container.decodeIfPresent(WayfinderUsageSnapshot.self, forKey: .wayfinderUsage)
         self.openAIAPIUsage = try container.decodeIfPresent(OpenAIAPIUsageSnapshot.self, forKey: .openAIAPIUsage)
-        self.groqConsoleUsage = try container.decodeIfPresent(
-            GroqConsoleUsageSnapshot.self,
-            forKey: .groqConsoleUsage)
         self.codexResetCredits = try container.decodeIfPresent(
             CodexRateLimitResetCreditsSnapshot.self,
             forKey: .codexResetCredits)
-        self.claudeAdminAPIUsage = try container.decodeIfPresent(
-            ClaudeAdminAPIUsageSnapshot.self,
-            forKey: .claudeAdminAPIUsage)
         self.mistralUsage = try container.decodeIfPresent(MistralUsageSnapshot.self, forKey: .mistralUsage)
-        self.deepgramUsage = try container.decodeIfPresent(DeepgramUsageSnapshot.self, forKey: .deepgramUsage)
-        self.poeUsage = try container.decodeIfPresent(PoeUsageHistorySnapshot.self, forKey: .poeUsage)
-        self.cursorRequests = nil // Not persisted, fetched fresh each time
         self.commandCodeSubscriptionEnrichmentUnavailable = false // Live-only fetch state
         self.commandCodeHasSubscriptionPlan = false // Live-only fetch state
         self.commandCodeMonthlyGrantDepleted = false // Live-only fetch state
@@ -414,21 +315,12 @@ public struct UsageSnapshot: Codable, Sendable {
         try container.encode(self.tertiary, forKey: .tertiary)
         try container.encodeIfPresent(self.extraRateWindows, forKey: .extraRateWindows)
         try container.encodeIfPresent(self.providerCost, forKey: .providerCost)
-        try container.encodeIfPresent(self.kiroUsage, forKey: .kiroUsage)
-        try container.encodeIfPresent(self.ampUsage, forKey: .ampUsage)
-        try container.encodeIfPresent(self.mimoUsage, forKey: .mimoUsage)
-        try container.encodeIfPresent(self.openRouterUsage, forKey: .openRouterUsage)
-        try container.encodeIfPresent(self.sakanaPayAsYouGo, forKey: .sakanaPayAsYouGo)
-        try container.encodeIfPresent(self.clawRouterUsage, forKey: .clawRouterUsage)
-        try container.encodeIfPresent(self.sub2APIUsage, forKey: .sub2APIUsage)
-        try container.encodeIfPresent(self.wayfinderUsage, forKey: .wayfinderUsage)
+        if !self.details.isEmpty {
+            try container.encode(self.details, forKey: .details)
+        }
         try container.encodeIfPresent(self.openAIAPIUsage, forKey: .openAIAPIUsage)
-        try container.encodeIfPresent(self.groqConsoleUsage, forKey: .groqConsoleUsage)
         try container.encodeIfPresent(self.codexResetCredits, forKey: .codexResetCredits)
-        try container.encodeIfPresent(self.claudeAdminAPIUsage, forKey: .claudeAdminAPIUsage)
         try container.encodeIfPresent(self.mistralUsage, forKey: .mistralUsage)
-        try container.encodeIfPresent(self.deepgramUsage, forKey: .deepgramUsage)
-        try container.encodeIfPresent(self.poeUsage, forKey: .poeUsage)
         try container.encodeIfPresent(self.subscriptionExpiresAt, forKey: .subscriptionExpiresAt)
         try container.encodeIfPresent(self.subscriptionRenewsAt, forKey: .subscriptionRenewsAt)
         try container.encode(self.updatedAt, forKey: .updatedAt)
@@ -441,8 +333,8 @@ public struct UsageSnapshot: Codable, Sendable {
         try container.encodeIfPresent(self.identity?.loginMethod, forKey: .loginMethod)
     }
 
-    public func identity(for provider: UsageProvider) -> ProviderIdentitySnapshot? {
-        guard let identity, identity.providerID == provider else { return nil }
+    public func identity(for instanceID: ProviderInstanceID) -> ProviderIdentitySnapshot? {
+        guard let identity, identity.providerID == instanceID else { return nil }
         return identity
     }
 
@@ -468,68 +360,25 @@ public struct UsageSnapshot: Codable, Sendable {
         return fallbackWindows + [primary]
     }
 
-    public func switcherWeeklyWindow(for provider: UsageProvider, showUsed: Bool) -> RateWindow? {
-        // This surface is labelled "Weekly progress", so prefer a real 7-day lane when one is
-        // available. Some providers publish model-specific weekly lanes in extraRateWindows.
-        if let weekly = self.mostConstrainedSwitcherWeeklyWindow() {
-            return weekly
-        }
-
-        // Keep the existing provider-specific fallback for providers without a weekly allowance.
-        switch provider {
-        case .factory:
-            // Factory prefers secondary window
-            return self.secondary ?? self.primary
-        case .perplexity:
-            return self.automaticPerplexityWindow()
-        case .cursor:
-            // Cursor: fall back to on-demand budget when the included plan is exhausted (only in
-            // "show remaining" mode). The secondary/tertiary lanes are Total/Auto/API breakdowns,
-            // not extra capacity, so they should not replace the remaining paid quota indicator.
-            if !showUsed,
-               let primary = self.primary,
-               primary.remainingPercent <= 0,
-               let providerCost = self.providerCost,
-               providerCost.limit > 0
-            {
-                let usedPercent = max(0, min(100, (providerCost.used / providerCost.limit) * 100))
-                return RateWindow(
-                    usedPercent: usedPercent,
-                    windowMinutes: nil,
-                    resetsAt: providerCost.resetsAt,
-                    resetDescription: nil)
-            }
-            return self.primary ?? self.secondary
-        default:
-            return self.primary ?? self.secondary
-        }
-    }
-
-    private func mostConstrainedSwitcherWeeklyWindow() -> RateWindow? {
-        let standardWindows = [self.primary, self.secondary, self.tertiary].compactMap(\.self)
-        let namedWindows = self.extraRateWindows?
-            .filter(\.usageKnown)
-            .map(\.window) ?? []
-        return (standardWindows + namedWindows)
-            .filter { $0.windowMinutes == 7 * 24 * 60 }
-            .max { $0.usedPercent < $1.usedPercent }
-    }
-
     public func accountEmail(for provider: UsageProvider) -> String? {
-        self.identity(for: provider)?.accountEmail
+        self.identity(for: provider.instanceID)?.accountEmail
     }
 
     public func accountOrganization(for provider: UsageProvider) -> String? {
-        self.identity(for: provider)?.accountOrganization
+        self.identity(for: provider.instanceID)?.accountOrganization
     }
 
     public func loginMethod(for provider: UsageProvider) -> String? {
-        self.identity(for: provider)?.loginMethod
+        self.identity(for: provider.instanceID)?.loginMethod
     }
 
     public var hasRateLimitWindows: Bool {
         self.primary != nil || self.secondary != nil || self.tertiary != nil ||
             !(self.extraRateWindows?.isEmpty ?? true)
+    }
+
+    public func detailRow(label: String) -> ProviderDetailSection.Row? {
+        self.details.lazy.flatMap(\.rows).first { $0.label == label }
     }
 
     public func rateLimitsUnavailable(for provider: UsageProvider) -> Bool {
@@ -558,6 +407,7 @@ public struct UsageSnapshot: Codable, Sendable {
         guard Self.identitiesMatch(self.identity, cached.identity) else { return self }
         // Amp's percentage-based daily quota supersedes the legacy rolling-replenishment cadence. Do not attach
         // that older exact reset to the new daily window; other providers retain the shared backfill behavior.
+        // Provider-specific by design: Amp daily quotas must not inherit its obsolete rolling-reset cadence.
         let cachedPrimary: RateWindow? = if self.identity?.providerID == .amp,
                                             self.primary?.resetDescription == "resets daily"
         {
@@ -619,10 +469,12 @@ public struct UsageSnapshot: Codable, Sendable {
         secondary: Replacement<RateWindow?> = .unchanged,
         tertiary: Replacement<RateWindow?> = .unchanged,
         extraRateWindows: Replacement<[NamedRateWindow]?> = .unchanged,
-        deepseekUsage: Replacement<DeepSeekUsageSummary?> = .unchanged,
+        details: Replacement<[ProviderDetailSection]> = .unchanged,
         deepseekDetailedUsageState: Replacement<DeepSeekDetailedUsageState> = .unchanged,
         deepseekPlatformProfiles: Replacement<[DeepSeekPlatformProfile]> = .unchanged,
         codexResetCredits: Replacement<CodexRateLimitResetCreditsSnapshot?> = .unchanged,
+        subscriptionExpiresAt: Replacement<Date?> = .unchanged,
+        subscriptionRenewsAt: Replacement<Date?> = .unchanged,
         identity: Replacement<ProviderIdentitySnapshot?> = .unchanged,
         dataConfidence: Replacement<UsageDataConfidence> = .unchanged) -> UsageSnapshot
     {
@@ -631,34 +483,20 @@ public struct UsageSnapshot: Codable, Sendable {
             secondary: secondary.resolving(self.secondary),
             tertiary: tertiary.resolving(self.tertiary),
             extraRateWindows: extraRateWindows.resolving(self.extraRateWindows),
-            kiroUsage: self.kiroUsage,
-            ampUsage: self.ampUsage,
             providerCost: self.providerCost,
-            zaiUsage: self.zaiUsage,
-            minimaxUsage: self.minimaxUsage,
-            deepseekUsage: deepseekUsage.resolving(self.deepseekUsage),
+            costUsage: self.costUsage,
+            details: details.resolving(self.details),
             deepseekDetailedUsageState: deepseekDetailedUsageState.resolving(self.deepseekDetailedUsageState),
             deepseekPlatformProfiles: deepseekPlatformProfiles.resolving(self.deepseekPlatformProfiles),
             opencodegoUsage: self.opencodegoUsage,
-            mimoUsage: self.mimoUsage,
-            openRouterUsage: self.openRouterUsage,
-            sakanaPayAsYouGo: self.sakanaPayAsYouGo,
-            clawRouterUsage: self.clawRouterUsage,
-            sub2APIUsage: self.sub2APIUsage,
-            wayfinderUsage: self.wayfinderUsage,
             openAIAPIUsage: self.openAIAPIUsage,
-            groqConsoleUsage: self.groqConsoleUsage,
             codexResetCredits: codexResetCredits.resolving(self.codexResetCredits),
-            claudeAdminAPIUsage: self.claudeAdminAPIUsage,
             mistralUsage: self.mistralUsage,
-            deepgramUsage: self.deepgramUsage,
-            poeUsage: self.poeUsage,
-            cursorRequests: self.cursorRequests,
             commandCodeSubscriptionEnrichmentUnavailable: self.commandCodeSubscriptionEnrichmentUnavailable,
             commandCodeHasSubscriptionPlan: self.commandCodeHasSubscriptionPlan,
             commandCodeMonthlyGrantDepleted: self.commandCodeMonthlyGrantDepleted,
-            subscriptionExpiresAt: self.subscriptionExpiresAt,
-            subscriptionRenewsAt: self.subscriptionRenewsAt,
+            subscriptionExpiresAt: subscriptionExpiresAt.resolving(self.subscriptionExpiresAt),
+            subscriptionRenewsAt: subscriptionRenewsAt.resolving(self.subscriptionRenewsAt),
             updatedAt: self.updatedAt,
             identity: identity.resolving(self.identity),
             dataConfidence: dataConfidence.resolving(self.dataConfidence))
@@ -731,6 +569,8 @@ public enum UsageLimitsAvailability: Equatable, Sendable {
         account: AccountInfo? = nil,
         lastErrorDescription: String? = nil) -> Self
     {
+        // Provider-specific by design: Claude error text, Codex identity, and Doubao/Antigravity identities signal
+        // whether a successful payload actually contains subscription limits.
         if provider == .claude {
             guard snapshot == nil else { return .available }
             return ClaudeStatusProbe.isSubscriptionQuotaUnavailableDescription(lastErrorDescription)
@@ -740,7 +580,7 @@ public enum UsageLimitsAvailability: Equatable, Sendable {
 
         if provider == .doubao || provider == .antigravity {
             guard let snapshot,
-                  snapshot.identity(for: provider) != nil
+                  snapshot.identity(for: provider.instanceID) != nil
             else {
                 return .available
             }
@@ -750,7 +590,7 @@ public enum UsageLimitsAvailability: Equatable, Sendable {
         guard provider == .codex else { return .available }
 
         if let snapshot {
-            guard snapshot.identity(for: provider) != nil else { return .available }
+            guard snapshot.identity(for: provider.instanceID) != nil else { return .available }
             return snapshot.hasRateLimitWindows ? .available : .unavailable
         }
 
@@ -997,9 +837,15 @@ enum RPCWireError: Error, LocalizedError {
     }
 }
 
+private enum RPCRequestRaceResult<Value: Sendable>: Sendable {
+    case value(Value)
+    case timedOut
+}
+
 /// RPC helper used on background tasks; safe because we confine it to the owning task.
 private final class CodexRPCClient: @unchecked Sendable {
-    private static let log = CodexBarLog.logger(LogCategories.codexRPC)
+    // Provider-specific by design: Codex RPC owns its dedicated subprocess log category.
+    private static let log = CodexBarLog.logger(LogCategories.provider(.codex, scope: "rpc"))
     private let process = Process()
     private let stdinPipe = Pipe()
     private let stdoutPipe = Pipe()
@@ -1010,14 +856,8 @@ private final class CodexRPCClient: @unchecked Sendable {
     private let initializeTimeoutSeconds: TimeInterval
     private let requestTimeoutSeconds: TimeInterval
 
-    private static func debugWriteStderr(_ message: String) {
-        #if !os(Linux)
-        fputs(message, stderr)
-        #endif
-    }
-
     init(
-        executable: String = "codex",
+        executable: String = "codex", // Provider-specific by design: this RPC client launches Codex app-server.
         arguments: [String] = ["-s", "read-only", "-a", "untrusted", "app-server"],
         environment: [String: String] = ProcessInfo.processInfo.environment,
         initializeTimeoutSeconds: TimeInterval = 8.0,
@@ -1072,6 +912,7 @@ private final class CodexRPCClient: @unchecked Sendable {
         let stdoutLineContinuation = self.stdoutLineContinuation
         let stdoutBuffer = BoundedLineBuffer()
         let process = self.process
+        let stdinPipe = self.stdinPipe
         stdoutHandle.readabilityHandler = { handle in
             let data = handle.availableData
             if data.isEmpty {
@@ -1084,7 +925,9 @@ private final class CodexRPCClient: @unchecked Sendable {
             if result.didExceedLimit {
                 Self.log.warning("Codex RPC line exceeded memory limit; terminating process")
                 handle.readabilityHandler = nil
-                process.terminate()
+                DispatchQueue.global(qos: .userInitiated).async {
+                    RPCChildProcessTeardown.terminate(process: process, stdinPipe: stdinPipe)
+                }
                 stdoutLineContinuation.finish()
                 return
             }
@@ -1105,7 +948,7 @@ private final class CodexRPCClient: @unchecked Sendable {
             }
             guard let text = String(data: data, encoding: .utf8), !text.isEmpty else { return }
             for line in text.split(whereSeparator: \.isNewline) {
-                Self.debugWriteStderr("[codex stderr] \(line)\n")
+                Self.log.debug("[codex stderr] \(line)")
             }
         }
     }
@@ -1129,10 +972,8 @@ private final class CodexRPCClient: @unchecked Sendable {
     }
 
     func shutdown() {
-        if self.process.isRunning {
-            Self.log.debug("Codex RPC stopping")
-            self.process.terminate()
-        }
+        Self.log.debug("Codex RPC stopping")
+        RPCChildProcessTeardown.terminate(process: self.process, stdinPipe: self.stdinPipe)
     }
 
     // MARK: - JSON-RPC helpers
@@ -1156,7 +997,7 @@ private final class CodexRPCClient: @unchecked Sendable {
                 let message = try await self.readNextMessage()
 
                 if message["id"] == nil, let methodName = message["method"] as? String {
-                    Self.debugWriteStderr("[codex notify] \(methodName)\n")
+                    Self.log.debug("[codex notify] \(methodName)")
                     continue
                 }
 
@@ -1177,24 +1018,29 @@ private final class CodexRPCClient: @unchecked Sendable {
         method: String,
         body: @escaping @Sendable () async throws -> T) async throws -> T
     {
-        try await withThrowingTaskGroup(of: T.self) { group in
+        try await withThrowingTaskGroup(of: RPCRequestRaceResult<T>.self) { group in
             group.addTask {
-                try await body()
+                try await .value(body())
             }
-            group.addTask { [weak self] in
+            group.addTask {
                 try await Task.sleep(for: .seconds(seconds))
-                self?.terminateProcessForTimeout(method: method)
+                return .timedOut
+            }
+
+            guard let result = try await group.next() else {
+                group.cancelAll()
                 throw RPCWireError.timeout(method: method)
             }
-            do {
-                guard let result = try await group.next() else {
-                    throw RPCWireError.timeout(method: method)
-                }
-                group.cancelAll()
-                return result
-            } catch {
-                group.cancelAll()
-                throw error
+            group.cancelAll()
+
+            switch result {
+            case let .value(value):
+                return value
+            case .timedOut:
+                // Terminating the process closes stdout. Classify that expected EOF as a
+                // timeout by selecting the timer before requesting process termination.
+                self.terminateProcessForTimeout(method: method)
+                throw RPCWireError.timeout(method: method)
             }
         }
     }
@@ -1202,7 +1048,13 @@ private final class CodexRPCClient: @unchecked Sendable {
     private func terminateProcessForTimeout(method: String) {
         if self.process.isRunning {
             Self.log.warning("Codex RPC timed out on `\(method)`; terminating process")
-            self.process.terminate()
+        }
+        // Dispatch off the timeout task so the bounded TERM-to-KILL wait cannot delay the timeout
+        // error or let the stdout-EOF failure win the race; `shutdown()` remains the synchronous backstop.
+        let process = self.process
+        let stdinPipe = self.stdinPipe
+        DispatchQueue.global(qos: .userInitiated).async {
+            RPCChildProcessTeardown.terminate(process: process, stdinPipe: stdinPipe)
         }
     }
 
@@ -1312,6 +1164,7 @@ public struct UsageFetcher: Sendable {
             let limits = limitsResponse.rateLimits
             let account = try? await rpc.fetchAccount()
             let rateLimitsPlan = Self.normalizedCodexAccountField(limits.planType)
+            // Provider-specific by design: Codex app-server responses construct Codex reconciled identity.
             let identity = ProviderIdentitySnapshot(
                 providerID: .codex,
                 accountEmail: account?.account.flatMap { details in
@@ -1353,7 +1206,7 @@ public struct UsageFetcher: Sendable {
                     credits: credits,
                     identity: usage?.identity)
             }
-            throw error
+            throw CodexCLIBackendRateLimitError.classify(error, environment: self.environment) ?? error
         }
     }
 
@@ -1532,6 +1385,7 @@ public struct UsageFetcher: Sendable {
     }
 
     private static func recoverUsageFromRPCError(_ error: Error) -> UsageSnapshot? {
+        // Provider-specific by design: Codex RPC error bodies can still carry authoritative rate-limit payloads.
         guard let body = self.decodeRateLimitsErrorBody(from: error) else { return nil }
         let identity = ProviderIdentitySnapshot(
             providerID: .codex,

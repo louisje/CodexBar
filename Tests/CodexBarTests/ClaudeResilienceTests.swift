@@ -651,7 +651,7 @@ struct ClaudeResilienceTests {
     }
 
     @Test
-    func `keychain change clears prior Claude snapshot for transient failure`() async throws {
+    func `keychain change does not affect normal Claude refresh`() async throws {
         try await KeychainCacheStore.withServiceOverrideForTesting("com.steipete.codexbar.cache.tests.\(UUID())") {
             KeychainCacheStore.setTestStoreForTesting(true)
             defer { KeychainCacheStore.setTestStoreForTesting(false) }
@@ -749,11 +749,13 @@ struct ClaudeResilienceTests {
                                                     let result = await MainActor.run {
                                                         (
                                                             hasSnapshot: store.snapshot(for: .claude) != nil,
-                                                            hasError: store.error(for: .claude) != nil)
+                                                            hasError: store.error(for: .claude) != nil,
+                                                            storedFingerprint: fingerprintStore.fingerprint)
                                                     }
 
-                                                    #expect(!result.hasSnapshot)
-                                                    #expect(result.hasError)
+                                                    #expect(result.hasSnapshot)
+                                                    #expect(!result.hasError)
+                                                    #expect(result.storedFingerprint == storedFingerprint)
                                                 }
                                         }
                                 }
@@ -766,7 +768,7 @@ struct ClaudeResilienceTests {
     }
 
     @Test
-    func `keychain removal clears prior Claude snapshot for transient failure`() async throws {
+    func `keychain removal does not affect normal Claude refresh`() async throws {
         try await KeychainCacheStore.withServiceOverrideForTesting("com.steipete.codexbar.cache.tests.\(UUID())") {
             KeychainCacheStore.setTestStoreForTesting(true)
             defer { KeychainCacheStore.setTestStoreForTesting(false) }
@@ -864,9 +866,9 @@ struct ClaudeResilienceTests {
                                                             storedFingerprint: fingerprintStore.fingerprint)
                                                     }
 
-                                                    #expect(!result.hasSnapshot)
-                                                    #expect(result.hasError)
-                                                    #expect(result.storedFingerprint == nil)
+                                                    #expect(result.hasSnapshot)
+                                                    #expect(!result.hasError)
+                                                    #expect(result.storedFingerprint == storedFingerprint)
                                                 }
                                         }
                                 }
@@ -981,7 +983,7 @@ extension ClaudeResilienceTests {
     }
 
     @Test
-    func `keychain change clears once then preserves later reset backfill`() async throws {
+    func `keychain change does not affect reset backfill`() async throws {
         try await KeychainCacheStore.withServiceOverrideForTesting("com.steipete.codexbar.cache.tests.\(UUID())") {
             KeychainCacheStore.setTestStoreForTesting(true)
             defer { KeychainCacheStore.setTestStoreForTesting(false) }
@@ -1077,8 +1079,8 @@ extension ClaudeResilienceTests {
                                                     let firstReset = await MainActor.run {
                                                         store.snapshot(for: .claude)?.primary?.resetsAt
                                                     }
-                                                    #expect(firstReset == nil)
-                                                    #expect(fingerprintStore.fingerprint == currentFingerprint)
+                                                    #expect(firstReset == resetDate)
+                                                    #expect(fingerprintStore.fingerprint == storedFingerprint)
 
                                                     await MainActor.run {
                                                         let seed = UsageSnapshot(
@@ -1099,6 +1101,7 @@ extension ClaudeResilienceTests {
                                                     }
 
                                                     #expect(secondReset == resetDate)
+                                                    #expect(fingerprintStore.fingerprint == storedFingerprint)
                                                 }
                                         }
                                 }
@@ -1184,6 +1187,96 @@ extension ClaudeResilienceTests {
 
                     #expect(reset == nil)
                 }
+            }
+        }
+    }
+
+    @Test
+    func `Auto restores stale Claude quota bars for a configured account when every source fails`() async throws {
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("codexbar-claude-history-fallback-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        try Data(#"{"oauthAccount":{"accountUuid":"account-a"}}"#.utf8)
+            .write(to: tempDir.appendingPathComponent(".config.json"), options: .atomic)
+        let missingCredentialsURL = tempDir.appendingPathComponent("missing-credentials.json")
+        let sessionCapturedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let weeklyCapturedAt = sessionCapturedAt.addingTimeInterval(60)
+
+        try await ClaudeOAuthCredentialsStore.withIsolatedCredentialsFileTrackingForTesting {
+            try await ClaudeOAuthCredentialsStore.withCredentialsURLOverrideForTesting(missingCredentialsURL) {
+                let store = try await MainActor.run {
+                    let settings = Self.makeSettingsStore(suite: "ClaudeResilienceTests-history-fallback")
+                    settings.refreshFrequency = .manual
+                    settings.statusChecksEnabled = false
+                    settings.claudeUsageDataSource = .auto
+
+                    let metadata = ProviderRegistry.shared.metadata
+                    for provider in UsageProvider.allCases {
+                        try settings.setProviderEnabled(
+                            provider: provider,
+                            metadata: #require(metadata[provider]),
+                            enabled: provider == .claude)
+                    }
+
+                    let environment = ["CLAUDE_CONFIG_DIR": tempDir.path]
+                    let store = UsageStore(
+                        fetcher: UsageFetcher(environment: environment),
+                        browserDetection: BrowserDetection(cacheTTL: 0),
+                        settings: settings,
+                        startupBehavior: .testing,
+                        environmentBase: environment)
+                    store.planUtilizationHistoryLoaded = true
+                    store.planUtilizationHistory[.claude] = PlanUtilizationHistoryBuckets(unscoped: [
+                        PlanUtilizationSeriesHistory(
+                            name: .session,
+                            windowMinutes: 300,
+                            entries: [PlanUtilizationHistoryEntry(
+                                capturedAt: sessionCapturedAt,
+                                usedPercent: 21,
+                                resetsAt: nil)]),
+                        PlanUtilizationSeriesHistory(
+                            name: .weekly,
+                            windowMinutes: 10080,
+                            entries: [PlanUtilizationHistoryEntry(
+                                capturedAt: weeklyCapturedAt,
+                                usedPercent: 42,
+                                resetsAt: nil)]),
+                    ])
+
+                    let baseSpec = try #require(store.providerSpecs[.claude])
+                    let descriptor = ProviderDescriptor(
+                        id: .claude,
+                        metadata: baseSpec.descriptor.metadata,
+                        branding: baseSpec.descriptor.branding,
+                        tokenCost: baseSpec.descriptor.tokenCost,
+                        fetchPlan: ProviderFetchPlan(
+                            sourceModes: [.auto],
+                            pipeline: ProviderFetchPipeline { _ in [AllClaudeSourcesFailureStrategy()] }),
+                        cli: baseSpec.descriptor.cli)
+                    store.providerSpecs[.claude] = ProviderSpec(
+                        style: baseSpec.style,
+                        isEnabled: baseSpec.isEnabled,
+                        descriptor: descriptor,
+                        makeFetchContext: baseSpec.makeFetchContext)
+                    return store
+                }
+
+                await store.refreshProvider(.claude)
+                let result = await MainActor.run {
+                    (
+                        primary: store.snapshot(for: .claude)?.primary?.usedPercent,
+                        secondary: store.snapshot(for: .claude)?.secondary?.usedPercent,
+                        updatedAt: store.snapshot(for: .claude)?.updatedAt,
+                        rawError: store.error(for: .claude),
+                        userFacingError: store.userFacingError(for: .claude))
+                }
+
+                #expect(result.primary == 21)
+                #expect(result.secondary == 42)
+                #expect(result.updatedAt == weeklyCapturedAt)
+                #expect(result.rawError == ClaudeOAuthCredentialsError.keychainAccessRevoked.localizedDescription)
+                #expect(result.userFacingError?.contains("Showing last-known usage captured") == true)
             }
         }
     }
@@ -1312,6 +1405,23 @@ private struct TimeoutFetchStrategy: ProviderFetchStrategy {
 
     func fetch(_: ProviderFetchContext) async throws -> ProviderFetchResult {
         throw ClaudeStatusProbeError.timedOut
+    }
+
+    func shouldFallback(on _: Error, context _: ProviderFetchContext) -> Bool {
+        false
+    }
+}
+
+private struct AllClaudeSourcesFailureStrategy: ProviderFetchStrategy {
+    let id = "test.all-claude-sources-failed"
+    let kind = ProviderFetchKind.oauth
+
+    func isAvailable(_: ProviderFetchContext) async -> Bool {
+        true
+    }
+
+    func fetch(_: ProviderFetchContext) async throws -> ProviderFetchResult {
+        throw ClaudeOAuthCredentialsError.keychainAccessRevoked
     }
 
     func shouldFallback(on _: Error, context _: ProviderFetchContext) -> Bool {

@@ -24,7 +24,7 @@ struct GrokWebBillingFetcherTests {
 
     @Test
     func `provider exposes cli and web source modes`() {
-        #expect(GrokProviderDescriptor.descriptor.fetchPlan.sourceModes == [.auto, .cli, .web])
+        #expect(GrokProviderDescriptor.descriptor.fetchPlan.sourceModes == [.auto, .cli, .oauth, .web])
     }
 
     @Test
@@ -52,15 +52,6 @@ struct GrokWebBillingFetcherTests {
         #expect(GrokProviderDescriptor.primaryLabel(resetsAt: in90Days, now: now) == nil)
         #expect(GrokProviderDescriptor.primaryLabel(window: lateWeeklyWindow, now: now) == "Weekly")
         #expect(GrokProviderDescriptor.primaryLabel(resetsAt: nil) == nil)
-    }
-
-    @Test
-    func `cli runtime does not import browser cookies unless explicitly enabled`() {
-        #expect(GrokWebFetchStrategy.canImportBrowserCookies(runtime: .app, env: [:]))
-        #expect(!GrokWebFetchStrategy.canImportBrowserCookies(runtime: .cli, env: [:]))
-        #expect(GrokWebFetchStrategy.canImportBrowserCookies(
-            runtime: .cli,
-            env: ["CODEXBAR_ALLOW_BROWSER_COOKIE_IMPORT": "1"]))
     }
 
     @Test
@@ -223,7 +214,7 @@ struct GrokWebBillingFetcherTests {
     }
 
     @Test
-    func `web strategy preserves malformed auth file error`() async throws {
+    func `oauth strategy preserves malformed auth file error`() async throws {
         let grokHome = FileManager.default.temporaryDirectory
             .appendingPathComponent("CodexBar-GrokWebBilling-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: grokHome, withIntermediateDirectories: true)
@@ -233,7 +224,7 @@ struct GrokWebBillingFetcherTests {
         let browserDetection = BrowserDetection(cacheTTL: 0)
         let context = ProviderFetchContext(
             runtime: .cli,
-            sourceMode: .web,
+            sourceMode: .oauth,
             includeCredits: true,
             webTimeout: 1,
             webDebugDumpHTML: false,
@@ -245,7 +236,7 @@ struct GrokWebBillingFetcherTests {
             browserDetection: browserDetection)
 
         await #expect {
-            _ = try await GrokWebFetchStrategy().fetch(context)
+            _ = try await GrokOAuthFetchStrategy().fetch(context)
         } throws: { error in
             guard case GrokCredentialsError.decodeFailed = error else { return false }
             return true
@@ -393,13 +384,78 @@ struct GrokWebBillingFetcherTests {
 
         let result = try await GrokWebFetchStrategy().fetch(context) {
             throw GrokWebBillingError.teamUsageUnsupported
+        } settingsTier: { _ in
+            "SuperGrok Heavy"
         }
 
         #expect(result.sourceLabel == "grok-web")
         #expect(result.diagnostic == GrokStatusProbe.teamUsageUnavailableMessage)
         #expect(result.usage.primary == nil)
+        #expect(result.usage.loginMethod(for: .grok) == "SuperGrok Heavy")
         #expect(result.usage.accountEmail(for: .grok) == "team@example.com")
         #expect(result.usage.accountOrganization(for: .grok) == "team-123")
+    }
+
+    @Test
+    func `web strategy does not attach auth-file settings tier to cookie billing`() async throws {
+        let asked = LockIsolated(false)
+        let result = try await GrokWebFetchStrategy().fetch(
+            Self.webContext(grokHome: nil),
+            webBilling: {
+                (
+                    GrokWebBillingSnapshot(
+                        usedPercent: 0,
+                        resetsAt: Date(timeIntervalSince1970: 1_800_000_003)),
+                    "Chrome",
+                    false)
+            },
+            settingsTier: { _ in
+                asked.setValue(true)
+                return "SuperGrok Heavy"
+            })
+
+        #expect(result.sourceLabel == "Chrome")
+        #expect(asked.value == false)
+        #expect(result.usage.loginMethod(for: .grok) == nil)
+        #expect(result.usage.primary?.usedPercent == 0)
+    }
+
+    @Test
+    func `web strategy applies settings tier when billing used the auth file`() async throws {
+        let result = try await GrokWebFetchStrategy().fetch(
+            Self.webContext(grokHome: nil),
+            webBilling: {
+                (
+                    GrokWebBillingSnapshot(
+                        usedPercent: 0,
+                        resetsAt: Date(timeIntervalSince1970: 1_800_000_003)),
+                    "grok-cli-proxy",
+                    true)
+            },
+            settingsTier: { _ in "SuperGrok Heavy" })
+
+        #expect(result.sourceLabel == "grok-cli-proxy")
+        #expect(result.usage.loginMethod(for: .grok) == "SuperGrok Heavy")
+        #expect(result.usage.primary?.usedPercent == 0)
+    }
+
+    @Test
+    func `web strategy keeps credits when settings enrichment fails`() async throws {
+        let result = try await GrokWebFetchStrategy().fetch(
+            Self.webContext(grokHome: nil),
+            webBilling: {
+                (
+                    GrokWebBillingSnapshot(
+                        usedPercent: 18,
+                        resetsAt: Date(timeIntervalSince1970: 1_800_000_003)),
+                    "grok-cli-proxy",
+                    true)
+            },
+            settingsTier: { _ in nil })
+
+        #expect(result.sourceLabel == "grok-cli-proxy")
+        #expect(result.usage.primary?.usedPercent == 18)
+        #expect(result.usage.loginMethod(for: .grok) == nil)
     }
 
     @Test
@@ -929,6 +985,101 @@ extension GrokWebBillingFetcherTests {
         #expect(usage.loginMethod(for: .grok) == "SuperGrok")
     }
 
+    @Test
+    func `usage snapshot prefers billing SuperGrok Heavy over OIDC SuperGrok`() {
+        let snapshot = GrokUsageSnapshot(
+            billing: nil,
+            webBilling: GrokWebBillingSnapshot(
+                usedPercent: 0,
+                resetsAt: Date(timeIntervalSince1970: 1_800_000_003),
+                subscriptionTier: "SuperGrok Heavy"),
+            credentials: Self.credentials,
+            localSummary: nil,
+            cliVersion: nil,
+            updatedAt: Date(timeIntervalSince1970: 1_799_000_000))
+
+        let usage = snapshot.toUsageSnapshot()
+
+        #expect(usage.primary?.usedPercent == 0)
+        #expect(usage.loginMethod(for: .grok) == "SuperGrok Heavy")
+        #expect(usage.accountEmail(for: .grok) == "grok@example.com")
+    }
+
+    @Test
+    func `CLI RPC usage snapshot uses settings tier when web billing is absent`() throws {
+        let billing = try JSONDecoder().decode(
+            GrokBillingResponse.self,
+            from: Data("""
+            {
+              "billingCycle": {
+                "billingPeriodStart": "2026-08-16T18:42:45Z",
+                "billingPeriodEnd": "2026-08-23T18:42:45Z"
+              },
+              "monthlyLimit": { "val": 100 },
+              "usage": { "totalUsed": { "val": 0 } }
+            }
+            """.utf8))
+        let snapshot = GrokUsageSnapshot(
+            billing: billing,
+            webBilling: nil,
+            credentials: Self.credentials,
+            localSummary: nil,
+            cliVersion: "1.0.4",
+            updatedAt: Date(timeIntervalSince1970: 1_799_000_000),
+            subscriptionTier: "SuperGrok Heavy")
+
+        let usage = snapshot.toUsageSnapshot()
+
+        #expect(usage.primary?.usedPercent == 0)
+        #expect(usage.loginMethod(for: .grok) == "SuperGrok Heavy")
+    }
+
+    @Test
+    func `CLI RPC usage snapshot falls back to OIDC SuperGrok when settings are missing`() throws {
+        let billing = try JSONDecoder().decode(
+            GrokBillingResponse.self,
+            from: Data(#"{"monthlyLimit":{"val":100},"usage":{"totalUsed":{"val":10}}}"#.utf8))
+        let snapshot = GrokUsageSnapshot(
+            billing: billing,
+            webBilling: nil,
+            credentials: Self.credentials,
+            localSummary: nil,
+            cliVersion: "1.0.4",
+            updatedAt: Date(timeIntervalSince1970: 1_799_000_000))
+
+        #expect(snapshot.toUsageSnapshot().loginMethod(for: .grok) == "SuperGrok")
+    }
+
+    @Test
+    func `identity-only CLI fallback keeps a settings SuperGrok Heavy label`() {
+        let snapshot = GrokStatusProbe.identityOnlySnapshot(
+            credentials: Self.credentials,
+            localSummary: nil,
+            cliVersion: "1.0.4",
+            subscriptionTier: "SuperGrok Heavy")
+
+        #expect(snapshot.toUsageSnapshot().loginMethod(for: .grok) == "SuperGrok Heavy")
+        #expect(snapshot.diagnostic == GrokStatusProbe.teamUsageUnavailableMessage)
+    }
+
+    @Test
+    func `usage snapshot does not classify a monthly reset near its end as weekly`() {
+        // A monthly quota with six days left must not be reported as a weekly window.
+        let snapshot = GrokUsageSnapshot(
+            billing: nil,
+            webBilling: GrokWebBillingSnapshot(
+                usedPercent: 12,
+                resetsAt: Date(timeIntervalSince1970: 1_799_000_000 + 6 * 86400)),
+            credentials: Self.credentials,
+            localSummary: nil,
+            cliVersion: nil,
+            updatedAt: Date(timeIntervalSince1970: 1_799_000_000))
+
+        let usage = snapshot.toUsageSnapshot()
+
+        #expect(usage.primary?.windowMinutes == nil)
+    }
+
     private static let credentials = GrokCredentials(
         accessToken: "token-123",
         refreshToken: "refresh-123",
@@ -986,6 +1137,28 @@ extension GrokWebBillingFetcherTests {
         ])
     }
 
+    private static func webContext(grokHome: URL?) -> ProviderFetchContext {
+        let home = grokHome ?? FileManager.default.temporaryDirectory
+            .appendingPathComponent("CodexBar-GrokWebContext-\(UUID().uuidString)", isDirectory: true)
+        let browserDetection = BrowserDetection(cacheTTL: 0)
+        return ProviderFetchContext(
+            runtime: .cli,
+            sourceMode: .web,
+            includeCredits: true,
+            webTimeout: 1,
+            webDebugDumpHTML: false,
+            verbose: false,
+            env: [
+                "GROK_HOME": home.path,
+                "GROK_CLI_PATH": home.appendingPathComponent("missing-grok").path,
+                "PATH": home.path,
+            ],
+            settings: nil,
+            fetcher: UsageFetcher(),
+            claudeFetcher: ClaudeUsageFetcher(browserDetection: browserDetection),
+            browserDetection: browserDetection)
+    }
+
     private static func data(hexString: String) -> Data? {
         var data = Data()
         var index = hexString.startIndex
@@ -996,6 +1169,142 @@ extension GrokWebBillingFetcherTests {
             index = next
         }
         return data
+    }
+}
+
+// MARK: - Browser cookie cache
+
+extension GrokWebBillingFetcherTests {
+    @Test
+    func `cli runtime imports browser cookies only when explicitly enabled`() {
+        #expect(GrokWebFetchStrategy.canImportBrowserCookies(runtime: .app, env: [:]))
+        #expect(!GrokWebFetchStrategy.canImportBrowserCookies(runtime: .cli, env: [:]))
+        #expect(GrokWebFetchStrategy.canImportBrowserCookies(
+            runtime: .cli,
+            env: ["CODEXBAR_ALLOW_BROWSER_COOKIE_IMPORT": "1"]))
+        let userInitiated = ProviderInteractionContext.$current.withValue(.userInitiated) {
+            GrokWebFetchStrategy.canImportBrowserCookies(runtime: .cli, env: [:])
+        }
+        #expect(userInitiated)
+    }
+
+    @Test
+    func `web strategy is available from a cached browser session`() async {
+        let service = "com.steipete.codexbar.tests.grok-availability.\(UUID().uuidString)"
+        CookieHeaderCache.resetDisplayCacheForTesting()
+        defer { CookieHeaderCache.resetDisplayCacheForTesting() }
+        await KeychainCacheStore.withServiceOverrideForTesting(service) {
+            await KeychainCacheStore.withImplicitTestStoreForTesting {
+                CookieHeaderCache.store(
+                    provider: .grok,
+                    cookieHeader: "sso=cached-session",
+                    sourceLabel: "Chrome")
+                let grokHome = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(
+                        "CodexBar-GrokCachedAvailability-\(UUID().uuidString)",
+                        isDirectory: true)
+                let browserDetection = BrowserDetection(cacheTTL: 0)
+                let context = ProviderFetchContext(
+                    runtime: .cli,
+                    sourceMode: .web,
+                    includeCredits: true,
+                    webTimeout: 1,
+                    webDebugDumpHTML: false,
+                    verbose: false,
+                    env: ["GROK_HOME": grokHome.path],
+                    settings: nil,
+                    fetcher: UsageFetcher(),
+                    claudeFetcher: ClaudeUsageFetcher(browserDetection: browserDetection),
+                    browserDetection: browserDetection)
+
+                #expect(await GrokWebFetchStrategy().isAvailable(context))
+            }
+        }
+    }
+
+    @Test
+    func `validated browser session stages a cache replacement for explicit refresh`() async throws {
+        let service = "com.steipete.codexbar.tests.grok-refresh.\(UUID().uuidString)"
+        CookieHeaderCache.resetDisplayCacheForTesting()
+        defer { CookieHeaderCache.resetDisplayCacheForTesting() }
+        try await KeychainCacheStore.withServiceOverrideForTesting(service) {
+            try await KeychainCacheStore.withImplicitTestStoreForTesting {
+                let gate = try #require(CookieHeaderCache.beginRefreshReadSuppression(provider: .grok))
+                defer { CookieHeaderCache.endRefreshReadSuppression(gate) }
+                let observation = CookieHeaderCache.observeForConditionalMutation(provider: .grok)
+                let cookie = try #require(Self.cookie(name: "sso", value: "fresh-session"))
+                let sessions = [GrokCookieImporter.SessionInfo(cookies: [cookie], sourceLabel: "Chrome")]
+
+                let result = try await GrokWebFetchStrategy.fetchFirstValidCookieSession(
+                    sessions,
+                    cacheObservation: observation)
+                { _, _ in
+                    GrokWebBillingSnapshot(usedPercent: 7, resetsAt: nil)
+                }
+
+                #expect(result.0.usedPercent == 7)
+                #expect(CookieHeaderCache.load(provider: .grok)?.cookieHeader == "sso=fresh-session")
+                let commit = CookieHeaderCache.commitRefreshReadSuppression(gate)
+                #expect(commit == CookieRefreshCommitSummary(stagedCount: 1, committedCount: 1, failedCount: 0))
+            }
+        }
+    }
+
+    @Test
+    func `cached cookie eviction is limited to authentication failures`() {
+        #expect(GrokWebFetchStrategy.isCookieAuthenticationFailure(
+            GrokWebBillingError.requestFailed(401, "expired")))
+        #expect(GrokWebFetchStrategy.isCookieAuthenticationFailure(
+            GrokWebBillingError.rpcFailed(16, "unauthenticated")))
+        #expect(!GrokWebFetchStrategy.isCookieAuthenticationFailure(
+            GrokWebBillingError.requestFailed(503, "unavailable")))
+        #expect(!GrokWebFetchStrategy.isCookieAuthenticationFailure(
+            GrokWebBillingError.parseFailed))
+    }
+
+    @Test
+    func `cached team cookie surfaces trailing authentication failure`() async throws {
+        var attempts: [String] = []
+
+        await #expect {
+            _ = try await GrokWebFetchStrategy.fetchValidCookieHeader(
+                "sso=stale",
+                credentials: Self.credentials,
+                preferTrailingAuthenticationFailure: true)
+            { _, authCredentials in
+                if authCredentials != nil {
+                    attempts.append("cookie+bearer")
+                    throw GrokWebBillingError.teamUsageUnsupported
+                }
+                attempts.append("cookie-only")
+                throw GrokWebBillingError.requestFailed(401, "expired")
+            }
+        } throws: { error in
+            GrokWebFetchStrategy.isCookieAuthenticationFailure(error)
+        }
+
+        #expect(attempts == ["cookie+bearer", "cookie-only"])
+    }
+
+    @Test
+    func `cached team cookie keeps team classification for non-auth trailing errors`() async {
+        await #expect {
+            _ = try await GrokWebFetchStrategy.fetchValidCookieHeader(
+                "sso=team-session",
+                credentials: Self.credentials,
+                preferTrailingAuthenticationFailure: true)
+            { _, authCredentials in
+                if authCredentials != nil {
+                    throw GrokWebBillingError.teamUsageUnsupported
+                }
+                throw GrokWebBillingError.rpcFailed(9, "No personal team")
+            }
+        } throws: { error in
+            if case GrokWebBillingError.teamUsageUnsupported = error {
+                return true
+            }
+            return false
+        }
     }
 }
 

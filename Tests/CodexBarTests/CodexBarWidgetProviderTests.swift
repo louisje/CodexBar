@@ -393,9 +393,9 @@ struct CodexBarWidgetProviderTests {
             secondary: RateWindow(usedPercent: 50, windowMinutes: 300, resetsAt: nil, resetDescription: nil),
             tertiary: nil,
             usageRows: [
-                WidgetSnapshot.WidgetUsageRowSnapshot(id: "primary", title: "Weekly", percentLeft: 75),
-                WidgetSnapshot.WidgetUsageRowSnapshot(id: "secondary", title: "Rate Limit", percentLeft: 50),
-                WidgetSnapshot.WidgetUsageRowSnapshot(id: "kimi-monthly", title: "Monthly", percentLeft: 25),
+                WidgetSnapshot.WidgetUsageRowSnapshot(id: "primary", title: "7-day usage", percentLeft: 75),
+                WidgetSnapshot.WidgetUsageRowSnapshot(id: "secondary", title: "5-hour usage", percentLeft: 50),
+                WidgetSnapshot.WidgetUsageRowSnapshot(id: "kimi-monthly", title: "Total usage", percentLeft: 25),
                 WidgetSnapshot.WidgetUsageRowSnapshot(id: "kimi-code-7d", title: "Code 7-day", percentLeft: 90),
             ],
             creditsRemaining: nil,
@@ -826,11 +826,25 @@ struct CodexBarWidgetProviderTests {
             provider: .codex,
             primaryUsed: 20,
             secondaryUsed: 30,
+            primaryReset: now.addingTimeInterval(360),
+            secondaryReset: now.addingTimeInterval(420))
+
+        #expect(BurnDownRefreshSchedule.nextRefresh(snapshot: snapshot, provider: .codex, now: now)
+            == now.addingTimeInterval(361))
+    }
+
+    @Test
+    func `burn down refresh clamps to minimum interval`() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let snapshot = Self.burnSnapshot(
+            provider: .codex,
+            primaryUsed: 20,
+            secondaryUsed: 30,
             primaryReset: now.addingTimeInterval(60),
             secondaryReset: now.addingTimeInterval(120))
 
         #expect(BurnDownRefreshSchedule.nextRefresh(snapshot: snapshot, provider: .codex, now: now)
-            == now.addingTimeInterval(61))
+            == now.addingTimeInterval(300))
     }
 
     @Test

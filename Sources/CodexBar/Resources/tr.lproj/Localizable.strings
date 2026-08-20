@@ -1,7 +1,38 @@
 /* Turkish localization for CodexBar */
 
+/* iCloud Sync */
+"+ %d more" = "+ %d daha";
+"Conversations (%@)" = "Konuşmalar (%@)";
+"Fast" = "Hızlı";
+"iCloud Sync" = "iCloud Sync";
+"Projects" = "Projeler";
+"Session %@" = "Oturum %@";
+"Std" = "Std";
+"Show all (%d)" = "Tümünü göster (%d)";
+"Show less" = "Daha az göster";
+"Sync settings and providers across your Macs via iCloud" = "Sync settings and providers across your Macs via iCloud";
+"Include API keys, cookies, and tokens" = "Include API keys, cookies, and tokens";
+"Sync usage snapshots" = "Sync usage snapshots";
+"Show accounts from other Macs" = "Show accounts from other Macs";
+"Requires a signed release build of CodexBar." = "Requires a signed release build of CodexBar.";
+"Sign in to iCloud in System Settings to enable sync." = "Sign in to iCloud in System Settings to enable sync.";
+"iCloud access is restricted on this Mac." = "iCloud access is restricted on this Mac.";
+"Sync is paused: another Mac uses a newer version of CodexBar. Update to resume." = "Sync is paused: another Mac uses a newer version of CodexBar. Update to resume.";
+"Last successful fetch" = "Last successful fetch";
+"Last successful push" = "Last successful push";
+"Never" = "Never";
+"Macs" = "Macs";
+"No synced Macs yet." = "No synced Macs yet.";
+"Secrets use iCloud end-to-end encryption via encryptedValues. Hooks and machine-local paths never sync." = "Secrets use iCloud end-to-end encryption via encryptedValues. Hooks and machine-local paths never sync.";
+"Last seen %@" = "Last seen %@";
+"This Mac" = "This Mac";
+"another Mac" = "another Mac";
+"%dm ago" = "%dm ago";
+"%dh ago" = "%dh ago";
+"%dd ago" = "%dd ago";
+
 "ollama_safari_cookie_access_hint" = "Safari çerezleri için CodexBar’a Tam Disk Erişimi gerekir (Sistem Ayarları > Gizlilik ve Güvenlik).";
-"ollama_browser_cookie_decryption_denied" = "%@ çerezlerinin şifresini çözme Anahtar Zinciri’nde reddedildi; manuel yenilemeyle tekrar deneyin.";
+"ollama_browser_cookie_decryption_denied" = "%@ çerezlerinin şifresini çözme Anahtar Zinciri’nde reddedildi. Sağlayıcı kartını açın ve Anahtar Zinciri erişimini yeniden istemek için Yenile’ye (⌘R) tıklayın.";
 "ollama_browser_cookie_decryption_disabled" = "%@ çerezlerinin şifresini çözme CodexBar’da devre dışı; Anahtar Zinciri erişimini etkinleştirip yenileyin.";
 
 " providers" = " sağlayıcı";
@@ -413,6 +444,9 @@
 "section_agent_sessions" = "Ajan oturumları";
 "language_title" = "Dil";
 "language_subtitle" = "Görüntüleme dilini değiştirin. Tam olarak geçerli olması için uygulamanın yeniden başlatılması gerekir.";
+"currency_title" = "Tercih edilen para birimi";
+"currency_subtitle" = "Maliyet tahminleri ve harcamalar için para birimi. Günlük güncellenen kurları kullanır.";
+"currency_auto" = "Otomatik (sağlayıcı / USD)";
 "language_system" = "Sistem";
 "language_english" = "English";
 "language_spanish" = "Español";
@@ -459,6 +493,10 @@
 "quota_depleted_title" = "Kota tükenmesi ve yenilenmesi";
 "quota_warning_notifications_subtitle" = "Oturum veya haftalık kalan kota yapılandırılan eşikleri geçtiğinde uyarır.";
 "threshold_warnings_title" = "Eşik uyarıları";
+"provider_accent_color_title" = "Vurgu rengi";
+"provider_accent_color_footer" = "Bu sağlayıcının kullanım çubuklarının, grafiklerinin ve geçiş sekmesinin rengini belirler.";
+"provider_accent_color_hex_label" = "Onaltılık renk değeri";
+"provider_accent_color_reset" = "Varsayılanı kullan";
 "quota_warnings_title" = "Kota uyarıları";
 "quota_warning_session" = "oturum";
 "quota_warning_session_capitalized" = "Oturum";
@@ -585,12 +623,19 @@
 "display_mode_subtitle" = "Menü çubuğunda ne gösterileceğini seçin (Hız, kullanımı beklentiyle karşılaştırır).";
 "show_quota_warning_markers_title" = "Kota uyarı işaretlerini göster";
 "show_quota_warning_markers_subtitle" = "Kota uyarıları yapılandırıldığında kullanım çubuklarına eşik çizgileri çizer.";
+"show_pace_title" = "Hızı göster";
+"show_pace_subtitle" = "Kullanım çubuklarında öndeyken veya gerideyken görünen şeridi ve tahmin metnini gösterir.";
 "weekly_progress_work_days_title" = "Haftalık ilerleme iş günleri";
 "weekly_progress_work_days_subtitle" = "Haftalık kullanım çubuğu işaretleri ve tempo hesaplamaları için iş günlerini ayarlar.";
+"workday_tick_appearance_title" = "İş günü işaretlerinin görünümü";
+"workday_tick_appearance_subtitle" = "İş günü sınırlarının haftalık kullanım çubuklarında nasıl görüneceğini seçin.";
+"workday_tick_appearance_hidden" = "Gizli";
+"workday_tick_appearance_subtle" = "Hafif";
+"workday_tick_appearance_high_contrast" = "Yüksek kontrast";
 "show_provider_changelog_links_title" = "Sağlayıcı değişiklik günlüğü bağlantılarını göster";
 "show_provider_changelog_links_subtitle" = "Desteklenen CLI destekli sağlayıcılar için menüye sürüm notları bağlantıları ekler.";
 "show_credits_extra_usage_title" = "Krediler + ekstra kullanımı göster";
-"show_credits_extra_usage_subtitle" = "Menüde Codex Kredileri ve Claude Ekstra kullanım bölümlerini göster.";
+"show_credits_extra_usage_subtitle" = "Desteklenen sağlayıcılar için kredileri ve ek kullanımı göster.";
 "multi_account_layout_title" = "Çoklu hesap düzeni";
 "multi_account_layout_subtitle" = "Bölümlü hesap değiştirme veya yığınlı hesap kartları seçin.";
 "multi_account_layout_segmented" = "Bölümlü";
@@ -632,6 +677,15 @@
 "keychain_access_caption" = "Tüm Anahtarlık okuma ve yazmalarını devre dışı bırakın. macOS 'Chrome/Brave/Edge Güvenli Depolama' için sürekli istem gösteriyorsa ve Her Zaman İzin Ver'e tıkladıktan sonra bile devam ediyorsa bunu kullanın. Etkinleştirildiğinde tarayıcı çerez içe aktarımı kullanılamaz; Sağlayıcılar bölümünden Çerez başlıklarını el ile yapıştırın. CLI üzerinden Claude/Codex OAuth hâlâ çalışır.";
 "disable_keychain_access_title" = "Anahtarlık erişimini devre dışı bırak";
 "disable_keychain_access_subtitle" = "Etkinleştirildiğinde tüm Anahtarlık erişimini engeller.";
+"Re-authenticate" = "Yeniden kimlik doğrula";
+"kiro_reauthenticate_title" = "Kiro CLI oturumu";
+"kiro_reauthenticate_subtitle" = "Süreniz dolduğunda oturumu yenilemek için 'kiro-cli login' komutunu çalıştırır.";
+"Kiro CLI not found" = "Kiro CLI bulunamadı";
+"Install kiro-cli and try again." = "kiro-cli'yi yükleyip tekrar deneyin.";
+"Could not start kiro-cli login" = "kiro-cli login başlatılamadı";
+"Kiro login timed out" = "Kiro oturum açma zaman aşımına uğradı";
+"kiro-cli login exited with status %d." = "kiro-cli login %d durumuyla sonlandı.";
+"Kiro login failed" = "Kiro oturumu açılamadı";
 
 /* About Pane */
 "about_tagline" = "Jetonlarınız hiç bitmesin—ajan limitlerini göz önünde bulundurun.";
@@ -646,6 +700,8 @@
 "copyright" = "© 2026 Peter Steinberger. MIT Lisansı.";
 
 /* Debug Pane */
+"use_javascriptcore_plugin_engine" = "Sağlayıcı eklentileri için JavaScriptCore kullan";
+"use_javascriptcore_plugin_engine_subtitle" = "Yalnızca uyumluluk geri dönüşü. Uygulamak için CodexBar’ı yeniden başlatın; CODEXBAR_PLUGIN_ENGINE bu ayarı geçersiz kılar.";
 "section_logging" = "Günlükleme";
 "enable_file_logging" = "Dosya günlüğünü etkinleştir";
 "enable_file_logging_subtitle" = "Hata ayıklama için günlükleri %@ konumuna yaz.";
@@ -815,7 +871,7 @@
 "Pace: %@" = "Hız: %@";
 "Pace: %@ · %@" = "Hız: %@ · %@";
 "%@ · %@" = "%@ · %@";
-"≈ %d%% run-out risk" = "≈ %%%d tükenme riski";
+"(%d%% risk)" = "(%d%% tükenme riski)";
 "%d%% in deficit" = "%%%d açıkta";
 "%d%% in reserve" = "%%%d rezervde";
 "usage_percent_suffix_left" = "kaldı";
@@ -1231,6 +1287,8 @@
 "section_links" = "Bağlantılar";
 "Show Codex Spark usage" = "Codex Spark kullanımını göster";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Codex Spark kota satırlarını menüde ve sağlayıcı önizlemesinde gösterir. Görünüm ayarlarında “Krediler + ekstra kullanımı göster” seçeneğinin etkin olmasını gerektirir.";
+"Show Daily Routines usage" = "Günlük Rutinler kullanımını göster";
+"Shows the Daily Routines quota row in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Günlük Rutinler kota satırını menüde ve sağlayıcı önizlemesinde gösterir. Görünüm ayarlarında “Krediler + ekstra kullanımı göster” seçeneğinin etkin olmasını gerektirir.";
 "Scroll to see more models" = "Daha fazla model görmek için kaydırın";
 
 /* Shareable usage card */
@@ -1262,6 +1320,9 @@
 "Native currencies stay separate; Codex account rows exclude Pi session history." = "Kaynak para birimleri ayrı tutulur; Codex hesap satırlarına Pi oturum geçmişi dahil edilmez.";
 "Spend unavailable" = "Harcama verisi kullanılamıyor";
 "Model breakdown unavailable" = "Model dökümü kullanılamıyor";
+"Partial estimate" = "Kısmi tahmin";
+"Partial model breakdown" = "Kısmi model dökümü";
+"%d of %d subscriptions have spend" = "%d / %d abonelikte harcama var";
 "Local estimated history" = "Yerel tahmini geçmiş";
 "Coverage" = "Kapsam";
 "Estimated spend" = "Tahmini harcama";
@@ -1270,10 +1331,19 @@
 "By subscription" = "Aboneliğe göre";
 "No model-level history" = "Model düzeyinde geçmiş yok";
 "Daily estimated spend" = "Günlük tahmini harcama";
+"Hourly estimated spend" = "Saatlik tahmini harcama";
+"Hour" = "Saat";
+"%d hours of usage data across %d services" = "%d saat kullanım verisi, %d hizmet";
+"1 hour of usage data across 1 service" = "1 saat kullanım verisi, 1 hizmet";
+"%d hours of usage data across 1 service" = "%d saat kullanım verisi, 1 hizmet";
+"1 hour of usage data across %d services" = "1 saat kullanım verisi, %d hizmet";
 "≈%d full 5h windows of weekly left · %d windows until reset" = "Haftalık kotadan ≈%d tam 5 saatlik pencere kaldı · sıfırlamaya %d pencere";
 "Weekly cannot run out before reset at this pace" = "Bu hızda haftalık kota sıfırlamadan önce tükenemez";
 "Weekly can run out ≈%d windows early" = "Haftalık kota ≈%d pencere erken tükenebilir";
 "Estimated: %@" = "Tahmini: %@";
+"session_quota_estimate_value_format" = "%1$@ %2$@";
+"session quota" = "oturum kotası";
+"session quotas" = "oturum kotaları";
 "Coding Plan" = "Kodlama Planı";
 "Agent Plan" = "Ajan Planı";
 "Team" = "Ekip";
@@ -1309,6 +1379,7 @@
 "menu_bar_layout_gap" = "Boşluk";
 "menu_bar_layout_gap_tight" = "Dar";
 "menu_bar_layout_gap_regular" = "Normal";
+"menu_bar_layout_vertical_adjustment" = "Dikey Ayar";
 "menu_bar_layout_keyboard_hint" = "Delete seçili belirteci kaldırır";
 "menu_bar_layout_sample_account" = "hesap";
 "menu_bar_layout_sample_runs_out" = "Cum. biter";
@@ -1317,7 +1388,11 @@
 "menu_bar_layout_token_account" = "Hesap";
 "menu_bar_layout_token_session" = "Oturum %";
 "menu_bar_layout_token_weekly" = "Haftalık %";
+"menu_bar_layout_token_scoped_weekly" = "Kapsama göre haftalık %";
 "menu_bar_layout_token_auto" = "Otomatik %";
+"menu_bar_layout_token_session_pace" = "Oturum hızı";
+"menu_bar_layout_token_weekly_pace" = "Haftalık hız";
+"menu_bar_layout_token_auto_pace" = "Otomatik hız";
 "menu_bar_layout_token_bar" = "Kullanım çubuğu";
 "menu_bar_layout_token_resets_in" = "Sıfırlamaya";
 "menu_bar_layout_token_reset_at" = "Sıfırlama saati";
@@ -1343,3 +1418,109 @@
 "Cost today unavailable" = "Bugünkü maliyet: Kullanılamıyor";
 "30-day cost unavailable" = "30 günlük maliyet: Kullanılamıyor";
 "Resets" = "Sıfırlamalar";
+"Finish now" = "Şimdi tamamla";
+"Continue in background" = "Arka planda devam et";
+
+"Cumulative" = "Kümülatif";
+"Token activity" = "Token etkinliği";
+"View" = "Görünüm";
+"in the last year" = "son yılda";
+"No activity in the last 12 months" = "Son 12 ayda etkinlik yok";
+"Each column = 1 week" = "Her sütun = 1 hafta";
+"Running total" = "Birikimli toplam";
+"Less" = "Az";
+"More" = "Çok";
+
+/* Provider Plugins */
+"Install…" = "Yükle…";
+"Install plugin" = "Eklenti yükle";
+"Copies a JavaScript or TypeScript file into the plugins directory." = "Bir JavaScript veya TypeScript dosyasını eklentiler dizinine kopyalar.";
+"Show in Finder" = "Finder'da Göster";
+"Plugins directory" = "Eklentiler dizini";
+"Provider Plugins" = "Sağlayıcı Eklentileri";
+"Plugins are local JavaScript or TypeScript files. Network and cookie access require approval." = "Eklentiler yerel JavaScript veya TypeScript dosyalarıdır. Ağ ve çerez erişimi onay gerektirir.";
+"No Plugins Installed" = "Yüklü Eklenti Yok";
+"Drop a .js or .ts file into the plugins directory, or choose Install…" = "Bir .js veya .ts dosyasını eklentiler dizinine bırakın ya da Yükle… seçeneğini kullanın.";
+"Delete Plugin?" = "Eklenti Silinsin mi?";
+"Delete" = "Sil";
+"This removes the plugin file, transpile cache, approval, saved settings and secrets, and history." = "Bu işlem eklenti dosyasını, kod dönüştürme önbelleğini, onay kaydını, kaydedilmiş ayarları ve gizli bilgileri, ayrıca geçmişi siler.";
+"Plugin Error" = "Eklenti Hatası";
+"Needs approval" = "Onay gerekiyor";
+"File" = "Dosya";
+"Origins" = "Ağ kaynakları";
+"Configure endpoint settings" = "Uç nokta ayarlarını yapılandırın";
+"Capabilities" = "Yetenekler";
+"Network" = "Ağ";
+"Cookie domains" = "Çerez alan adları";
+"Approve…" = "Onayla…";
+"Delete…" = "Sil…";
+"Unknown validation error" = "Bilinmeyen doğrulama hatası";
+"Approve Plugin" = "Eklentiyi Onayla";
+"Install and Approve Plugin" = "Eklentiyi Yükle ve Onayla";
+"Network authority" = "Ağ yetkisi";
+"Auth: %@" = "Kimlik doğrulama: %@";
+"Capabilities: %@" = "Yetenekler: %@";
+"network" = "ağ";
+"Secrets: %@" = "Gizli bilgiler: %@";
+"none" = "yok";
+"Cookie domains: %@" = "Çerez alan adları: %@";
+"Type %@ to confirm" = "Onaylamak için %@ yazın";
+"Enter every endpoint setting to review the exact network origins." = "Kullanılacak ağ kaynaklarını tam olarak incelemek için tüm uç nokta ayarlarını girin.";
+"Approve" = "Onayla";
+"Install" = "Yükle";
+"5-hour usage" = "5 saatlik kullanım";
+"7-day usage" = "7 günlük kullanım";
+"Total usage" = "Toplam kullanım";
+"claude_oauth_keychain_access_revoked" = "Claude Anahtar Zinciri erişimi, Claude Code'un belirteç yenilemesi nedeniyle iptal edildi. Erişimi yeniden vermek için Yenile'ye tıklayın veya Claude Kullanım kaynağını CLI/Web olarak değiştirin.";
+"claude_showing_last_known_usage" = "Bilinen son kullanım gösteriliyor (yakalanma zamanı: %@).";
+/* Spend dashboard cost analysis */
+"90d" = "90d";
+"Input" = "Input";
+"Output" = "Output";
+"Cache write" = "Cache write";
+"Reasoning" = "Reasoning";
+"Sessions" = "Sessions";
+"Projects" = "Projects";
+"Plan metered" = "Plan metered";
+"List-price equivalent" = "List-price equivalent";
+"Metered and list-price" = "Metered and list-price";
+"List-price equivalent — not a billing receipt." = "List-price equivalent — not a billing receipt.";
+"Priced" = "Priced";
+"Unpriced" = "Unpriced";
+"Unmetered" = "Unmetered";
+"Estimated" = "Estimated";
+"Other models" = "Other models";
+"Include OpenCodex usage logs" = "Include OpenCodex usage logs";
+"Hide native Codex when OpenCodex is present" = "Hide native Codex when OpenCodex is present";
+"Export JSON" = "Export JSON";
+"Copy JSON" = "JSON kopyala";
+"Sources" = "Sources";
+"OpenCodex" = "OpenCodex";
+
+"menu_bar_layout_token_conditional" = "Koşullu";
+"menu_bar_layout_group_conditionals" = "Koşullular";
+"menu_bar_layout_conditional_add" = "Yeni Koşullu";
+"menu_bar_layout_conditional_edit" = "Koşulluyu Düzenle";
+"menu_bar_layout_conditional_remove" = "Kitaplıktan Kaldır";
+"menu_bar_layout_conditional_save" = "Kaydet";
+"menu_bar_layout_conditional_if" = "Eğer";
+"menu_bar_layout_conditional_then" = "ise göster";
+"menu_bar_layout_conditional_else" = "değilse göster";
+"menu_bar_layout_conditional_and" = "ve";
+"menu_bar_layout_conditional_or" = "veya";
+"menu_bar_layout_conditional_add_condition" = "Koşul Ekle";
+"menu_bar_layout_conditional_none" = "Henüz koşullu yok";
+"menu_bar_layout_conditional_hide" = "Gizle";
+"menu_bar_layout_conditional_name" = "Ad";
+"menu_bar_layout_conditional_name_placeholder" = "örn. Oturum kontrolü";
+"menu_bar_layout_conditional_name_error" = "Benzersiz bir ad girin";
+"menu_bar_layout_conditional_duplicate" = "Çoğalt";
+"menu_bar_layout_conditional_summary" = "Eğer %1$@ ise %2$@, değilse %3$@ göster";
+"menu_bar_layout_conditional_copy_name" = "%@ (kopya)";
+"menu_bar_layout_conditional_copy_name_numbered" = "%1$@ (kopya %2$d)";
+"menu_bar_layout_conditional_unavailable" = "Koşul kullanılamıyor";
+"menu_bar_layout_conditional_default_session_busy" = "Oturumun %50'sinden fazlası kullanıldı";
+"menu_bar_layout_conditional_default_weekly_high" = "Haftanın %90'ından fazlası kullanıldı";
+"menu_bar_layout_conditional_default_session_spent" = "Oturum neredeyse tükendi";
+"menu_bar_layout_conditional_default_either_high" = "Oturum veya hafta yükseldi";
+"menu_bar_layout_conditional_default_scoped_weekly" = "Model haftasının %60'ından fazlası kullanıldı";

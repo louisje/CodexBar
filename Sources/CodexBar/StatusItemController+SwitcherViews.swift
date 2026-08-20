@@ -4,7 +4,7 @@ import QuartzCore
 
 enum ProviderSwitcherSelection: Hashable {
     case overview
-    case provider(UsageProvider)
+    case provider(ProviderInstanceID)
 }
 
 final class ProviderSwitcherView: NSView {
@@ -63,7 +63,7 @@ final class ProviderSwitcherView: NSView {
             // Avoid any resampling: we ship exact 16pt/32px assets for crisp rendering.
             icon.size = NSSize(width: 16, height: 16)
             return Segment(
-                selection: .provider(provider),
+                selection: .provider(provider.instanceID),
                 image: icon,
                 title: fullTitle)
         }
@@ -654,6 +654,12 @@ final class ProviderSwitcherView: NSView {
                             remainingPercent: remaining,
                             selection: segment.selection)
                         self.quotaIndicators[key] = indicator
+                    } else {
+                        // The switcher view outlives a menu update, so refresh the color even when the
+                        // ratio holds. A new accent color must not wait for usage to move.
+                        indicator.fill.layer?.backgroundColor = Self.quotaIndicatorColor(
+                            for: segment.selection,
+                            remainingPercent: remaining).cgColor
                     }
                 } else {
                     self.addQuotaIndicator(to: button, selection: segment.selection, remainingPercent: remaining)
@@ -668,8 +674,8 @@ final class ProviderSwitcherView: NSView {
 
     private func remainingPercent(for selection: ProviderSwitcherSelection) -> Double? {
         switch selection {
-        case let .provider(provider):
-            self.weeklyRemainingProvider(provider)
+        case let .provider(instanceID):
+            instanceID.firstPartyProvider.flatMap(self.weeklyRemainingProvider)
         case .overview:
             nil
         }
@@ -1039,6 +1045,14 @@ extension ProviderSwitcherView {
         }
     }
 
+    func _test_quotaIndicatorVisibility() -> [(trackHidden: Bool, fillHidden: Bool)] {
+        self.buttons.compactMap { button in
+            self.quotaIndicators[ObjectIdentifier(button)].map { indicator in
+                (indicator.track.isHidden, indicator.fill.isHidden)
+            }
+        }
+    }
+
     func _test_quotaIndicatorFillFrames() -> [NSRect] {
         self.buttons.compactMap { button in
             self.quotaIndicators[ObjectIdentifier(button)]?.fill.frame
@@ -1112,9 +1126,10 @@ extension ProviderSwitcherView {
 
     private func updateQuotaIndicatorVisibility(for view: NSView) {
         guard let indicator = self.quotaIndicators[ObjectIdentifier(view)] else { return }
-        let isSelected = (view as? NSButton)?.state == .on
-        indicator.track.isHidden = isSelected
-        indicator.fill.isHidden = isSelected || indicator.fillRatio <= 0
+        // Keep the provider's quota visible while its tab is selected as well. The
+        // indicator is the cross-provider status cue, not part of the selection chrome.
+        indicator.track.isHidden = false
+        indicator.fill.isHidden = indicator.fillRatio <= 0
     }
 
     fileprivate static func updateQuotaIndicatorFill(
@@ -1145,8 +1160,9 @@ extension ProviderSwitcherView {
         remainingPercent _: Double) -> NSColor
     {
         switch selection {
-        case let .provider(provider):
-            let color = ProviderDescriptorRegistry.descriptor(for: provider).branding.color
+        case let .provider(instanceID):
+            guard let provider = instanceID.firstPartyProvider else { return NSColor.secondaryLabelColor }
+            let color = ProviderAccentPalette.color(for: provider)
             return NSColor(deviceRed: color.red, green: color.green, blue: color.blue, alpha: 1)
         case .overview:
             return NSColor.secondaryLabelColor

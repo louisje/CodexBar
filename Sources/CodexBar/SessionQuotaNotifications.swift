@@ -171,6 +171,8 @@ enum SessionQuotaTransitionReducer {
                 state: self.baselineState(observation: observation))
         }
 
+        // Provider-specific by design: Codex restore detection is owner- and reset-boundary-scoped to reject stale
+        // account observations after a switch.
         let ownerChanged = observation.provider == .codex && previous.codexOwnerKey != observation.codexOwnerKey
         guard previous.source == observation.source, !ownerChanged else {
             return SessionQuotaTransitionEvaluation(
@@ -407,6 +409,10 @@ extension UsageStore {
         provider: UsageProvider,
         snapshot: UsageSnapshot) -> (window: RateWindow, source: SessionQuotaWindowSource)?
     {
+        // Provider-specific by design: MiMo/Qoder balances, Crof PAYG, Antigravity families, and Copilot chat
+        // fallback encode distinct session-quota payload semantics.
+        // MiMo/Qoder balances are never session quotas. Crof is handled below so quota-backed
+        // Crof snapshots can still participate when a real request-quota window is present.
         guard provider != .mimo, provider != .qoder else { return nil }
         if provider == .antigravity {
             guard let window = Self.antigravityWindow(snapshot: snapshot, windowMinutes: 5 * 60) else {
@@ -417,12 +423,13 @@ extension UsageStore {
                 : .antigravityLegacy
             return (window, source)
         }
-        // z.ai's typed sessionTokenLimit is rendered in the tertiary lane when the response also
-        // contains its weekly token limit and MCP time limit. Prefer that semantic session lane.
-        if provider == .zai, let tertiary = snapshot.tertiary {
-            return (tertiary, .zaiTertiary)
-        }
         if let primary = snapshot.primary, Self.isSessionWindow(primary) {
+            // Crof credits-only balances publish a duration-less primary with no secondary quota
+            // window. Keep that PAYG shape out of session-quota transitions so a $0 balance cannot
+            // fire session-limit alerts/hooks. Quota-backed Crof (secondary credits) still qualifies.
+            if provider == .crof, snapshot.secondary == nil {
+                return nil
+            }
             return (primary, .primary)
         }
         if provider == .copilot, let secondary = snapshot.secondary {
@@ -437,7 +444,7 @@ extension UsageStore {
     }
 
     func clearSessionQuotaTransitionState(provider: UsageProvider) {
-        let removedState = self.sessionQuotaTransitionStates.removeValue(forKey: provider)
+        let removedState = self.sessionQuotaTransitionStates.removeValue(forKey: provider.instanceID)
         // Generic provider cleanup can run while Codex is disabled or temporarily unavailable. Preserve
         // an already-depleted baseline across recovery so depletion cannot refire, but let a newly depleted
         // account notify after a positive baseline was discarded.

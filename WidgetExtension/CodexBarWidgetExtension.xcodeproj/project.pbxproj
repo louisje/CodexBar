@@ -291,11 +291,11 @@
 				LIBRARY_SEARCH_PATHS = "$(CODEXBAR_BUILD_DIR)/debug";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				OTHER_LDFLAGS = "-lCodexBarCore -lSweetCookieKit -lLogging -lKeyboardShortcuts -lCommander -lCrypto -lVortex";
+				OTHER_LDFLAGS = "-lCodexBarCore -lSweetCookieKit -lLogging -lKeyboardShortcuts -lCommander -lCrypto -lVortex -lCQuickJS";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(CODEXBAR_WIDGET_BUNDLE_ID)";
 				PRODUCT_NAME = CodexBarWidget;
 				SDKROOT = macosx;
-				SWIFT_INCLUDE_PATHS = "$(CODEXBAR_BUILD_DIR)/debug/Modules";
+				SWIFT_INCLUDE_PATHS = "$(CODEXBAR_BUILD_DIR)/debug/Modules $(CODEXBAR_BUILD_DIR)/debug/CQuickJS.build";
 				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
@@ -313,11 +313,11 @@
 				LIBRARY_SEARCH_PATHS = "$(CODEXBAR_BUILD_DIR)/release";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				OTHER_LDFLAGS = "-lCodexBarCore -lSweetCookieKit -lLogging -lKeyboardShortcuts -lCommander -lCrypto -lVortex";
+				OTHER_LDFLAGS = "-lCodexBarCore -lSweetCookieKit -lLogging -lKeyboardShortcuts -lCommander -lCrypto -lVortex -lCQuickJS";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(CODEXBAR_WIDGET_BUNDLE_ID)";
 				PRODUCT_NAME = CodexBarWidget;
 				SDKROOT = macosx;
-				SWIFT_INCLUDE_PATHS = "$(CODEXBAR_BUILD_DIR)/release/Modules";
+				SWIFT_INCLUDE_PATHS = "$(CODEXBAR_BUILD_DIR)/release/Modules $(CODEXBAR_BUILD_DIR)/release/CQuickJS.build";
 				SWIFT_VERSION = 6.0;
 			};
 			name = Release;

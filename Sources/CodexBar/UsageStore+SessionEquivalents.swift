@@ -30,6 +30,7 @@ extension UsageStore {
     private nonisolated static let unresolvedSessionEquivalentComponentIdentity = "__unresolved__"
 
     func planUtilizationWeeklyWindow(provider: UsageProvider, snapshot: UsageSnapshot) -> RateWindow? {
+        // Provider-specific by design: Antigravity session equivalents aggregate named model-family quota windows.
         if provider == .antigravity {
             let namedWeeklyWindows = snapshot.extraRateWindows?
                 .filter {
@@ -64,6 +65,8 @@ extension UsageStore {
     func sessionEquivalentWindows(provider: UsageProvider, snapshot: UsageSnapshot)
         -> (session: RateWindow, weekly: RateWindow, weeklyWindowID: String?, historyIdentity: String?)?
     {
+        // Provider-specific by design: Antigravity family identity and Claude's fixed session/weekly pair preserve
+        // established burn-history identities across refreshes.
         if provider == .antigravity {
             return Self.antigravitySessionEquivalentWindows(snapshot: snapshot)
         }
@@ -179,7 +182,7 @@ extension UsageStore {
     {
         guard ![UsageProvider.codex, .claude, .antigravity].contains(provider) else { return true }
         guard let historyIdentity else { return false }
-        let persistedIdentity = self.planUtilizationHistory[provider]?
+        let persistedIdentity = self.planUtilizationHistory[provider.instanceID]?
             .sessionEquivalentWindowPairIdentity(for: accountKey)
         return (persistedIdentity ?? self.legacySessionEquivalentHistoryIdentity(
             provider: provider,
@@ -191,6 +194,32 @@ extension UsageStore {
         let identities = self.settings.userDefaults.dictionary(
             forKey: Self.legacySessionEquivalentHistoryIdentityDefaultsKey) as? [String: String]
         return identities?[identityKey]
+    }
+
+    func materializeLegacySessionEquivalentHistoryIdentityDuringAccountAdoption(
+        provider: UsageProvider,
+        from sourceAccountKey: String?,
+        to targetAccountKey: String?,
+        targetHasHistory: Bool,
+        providerBuckets: inout PlanUtilizationHistoryBuckets)
+    {
+        guard sourceAccountKey != targetAccountKey else { return }
+
+        // Persisted identities take precedence. A target legacy identity matters only when it contributed history.
+        let accountKeys = [sourceAccountKey] + (targetHasHistory ? [targetAccountKey] : [])
+        for accountKey in accountKeys {
+            guard providerBuckets.sessionEquivalentWindowPairIdentity(for: accountKey) == nil,
+                  let legacyIdentity = self.legacySessionEquivalentHistoryIdentity(
+                      provider: provider,
+                      accountKey: accountKey)
+            else {
+                continue
+            }
+            providerBuckets.setSessionEquivalentWindowPairIdentity(legacyIdentity, for: accountKey)
+        }
+        providerBuckets.moveSessionEquivalentWindowPairIdentity(
+            from: sourceAccountKey,
+            to: targetAccountKey)
     }
 
     func reconcileGenericSessionEquivalentHistory(
@@ -326,6 +355,7 @@ extension UsageStore {
         let grouped = Dictionary(grouping: namedWindows) { window in
             Self.antigravityQuotaFamilyKey(window.id)
         }
+        // Provider-specific by design: Antigravity's Gemini family is the only complete session/weekly pair.
         let completeGeminiFamilies: [(session: NamedRateWindow, weekly: NamedRateWindow)] = grouped.keys
             .filter { $0 == "gemini" }.compactMap { family in
                 guard let windows = grouped[family] else { return nil }

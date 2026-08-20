@@ -123,6 +123,50 @@ struct UsageStoreHighestUsageTests {
     }
 
     @Test
+    func `automatic metric keeps partially exhausted kimi eligible for highest usage`() {
+        let settings = SettingsStore(
+            configStore: testConfigStore(suiteName: "UsageStoreHighestUsageTests-kimi-partially-exhausted"),
+            zaiTokenStore: NoopZaiTokenStore(),
+            syntheticTokenStore: NoopSyntheticTokenStore())
+        settings.refreshFrequency = .manual
+        settings.statusChecksEnabled = false
+        settings.setMenuBarMetricPreference(.automatic, for: .kimi)
+
+        let registry = ProviderRegistry.shared
+        if let codexMeta = registry.metadata[.codex] {
+            settings.setProviderEnabled(provider: .codex, metadata: codexMeta, enabled: true)
+        }
+        if let kimiMeta = registry.metadata[.kimi] {
+            settings.setProviderEnabled(provider: .kimi, metadata: kimiMeta, enabled: true)
+        }
+
+        let store = UsageStore(
+            fetcher: UsageFetcher(),
+            browserDetection: BrowserDetection(cacheTTL: 0),
+            settings: settings)
+        store._setSnapshotForTesting(
+            UsageSnapshot(
+                primary: RateWindow(usedPercent: 70, windowMinutes: nil, resetsAt: nil, resetDescription: nil),
+                secondary: nil,
+                updatedAt: Date()),
+            provider: .codex)
+        store._setSnapshotForTesting(
+            UsageSnapshot(
+                primary: RateWindow(usedPercent: 100, windowMinutes: nil, resetsAt: nil, resetDescription: "Weekly"),
+                secondary: RateWindow(
+                    usedPercent: 20,
+                    windowMinutes: 300,
+                    resetsAt: nil,
+                    resetDescription: "5-hour"),
+                updatedAt: Date()),
+            provider: .kimi)
+
+        let highest = store.providerWithHighestUsage()
+        #expect(highest?.provider == .kimi)
+        #expect(highest?.usedPercent == 100)
+    }
+
+    @Test
     func `automatic metric ignores antigravity tertiary when compact icon has no quota summary`() {
         let settings = SettingsStore(
             configStore: testConfigStore(suiteName: "UsageStoreHighestUsageTests-antigravity-tertiary"),
@@ -497,7 +541,7 @@ extension UsageStoreHighestUsageTests {
     @Test
     func `automatic metric uses zai 5-hour token lane when ranking highest usage`() {
         let settings = SettingsStore(
-            configStore: testConfigStore(suiteName: "UsageStoreHighestUsageTests-zai-automatic-tertiary"),
+            configStore: testConfigStore(suiteName: "UsageStoreHighestUsageTests-zai-automatic-primary"),
             zaiTokenStore: NoopZaiTokenStore(),
             syntheticTokenStore: NoopSyntheticTokenStore())
         settings.refreshFrequency = .manual
@@ -521,9 +565,9 @@ extension UsageStoreHighestUsageTests {
             secondary: nil,
             updatedAt: Date())
         let zaiSnapshot = UsageSnapshot(
-            primary: RateWindow(usedPercent: 15, windowMinutes: 10080, resetsAt: nil, resetDescription: nil),
-            secondary: RateWindow(usedPercent: 10, windowMinutes: nil, resetsAt: nil, resetDescription: nil),
-            tertiary: RateWindow(usedPercent: 90, windowMinutes: 300, resetsAt: nil, resetDescription: nil),
+            primary: RateWindow(usedPercent: 90, windowMinutes: 300, resetsAt: nil, resetDescription: nil),
+            secondary: RateWindow(usedPercent: 15, windowMinutes: 10080, resetsAt: nil, resetDescription: nil),
+            tertiary: nil,
             updatedAt: Date())
 
         store._setSnapshotForTesting(codexSnapshot, provider: .codex)

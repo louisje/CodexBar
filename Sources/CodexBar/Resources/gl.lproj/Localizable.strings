@@ -1,7 +1,38 @@
 /* Galician localization for CodexBar */
 
+/* iCloud Sync */
+"+ %d more" = "+ %d máis";
+"Conversations (%@)" = "Conversas (%@)";
+"Fast" = "Rápido";
+"iCloud Sync" = "iCloud Sync";
+"Projects" = "Proxectos";
+"Session %@" = "Sesión %@";
+"Std" = "Est.";
+"Show all (%d)" = "Mostrar todo (%d)";
+"Show less" = "Mostrar menos";
+"Sync settings and providers across your Macs via iCloud" = "Sync settings and providers across your Macs via iCloud";
+"Include API keys, cookies, and tokens" = "Include API keys, cookies, and tokens";
+"Sync usage snapshots" = "Sync usage snapshots";
+"Show accounts from other Macs" = "Show accounts from other Macs";
+"Requires a signed release build of CodexBar." = "Requires a signed release build of CodexBar.";
+"Sign in to iCloud in System Settings to enable sync." = "Sign in to iCloud in System Settings to enable sync.";
+"iCloud access is restricted on this Mac." = "iCloud access is restricted on this Mac.";
+"Sync is paused: another Mac uses a newer version of CodexBar. Update to resume." = "Sync is paused: another Mac uses a newer version of CodexBar. Update to resume.";
+"Last successful fetch" = "Last successful fetch";
+"Last successful push" = "Last successful push";
+"Never" = "Never";
+"Macs" = "Macs";
+"No synced Macs yet." = "No synced Macs yet.";
+"Secrets use iCloud end-to-end encryption via encryptedValues. Hooks and machine-local paths never sync." = "Secrets use iCloud end-to-end encryption via encryptedValues. Hooks and machine-local paths never sync.";
+"Last seen %@" = "Last seen %@";
+"This Mac" = "This Mac";
+"another Mac" = "another Mac";
+"%dm ago" = "%dm ago";
+"%dh ago" = "%dh ago";
+"%dd ago" = "%dd ago";
+
 "ollama_safari_cookie_access_hint" = "As cookies de Safari precisan acceso total ao disco para CodexBar (Axustes do Sistema > Privacidade e seguridade).";
-"ollama_browser_cookie_decryption_denied" = "Rexeitouse no Chaveiro o descifrado das cookies de %@; téntao de novo cunha actualización manual.";
+"ollama_browser_cookie_decryption_denied" = "Rexeitouse no Chaveiro o descifrado das cookies de %@. Abre a tarxeta do provedor e preme Actualizar (⌘R) para solicitar de novo acceso ao Chaveiro.";
 "ollama_browser_cookie_decryption_disabled" = "O descifrado das cookies de %@ está desactivado en CodexBar; activa o acceso ao Chaveiro e actualiza.";
 
 " providers" = " provedores";
@@ -410,6 +441,9 @@
 "section_agent_sessions" = "Sesións de axentes";
 "language_title" = "Idioma";
 "language_subtitle" = "Cambia o idioma da interface. Cómpre reiniciar a aplicación para que se aplique por completo.";
+"currency_title" = "Moeda preferida";
+"currency_subtitle" = "Moeda para estimacións de custo e gasto. Usa tipos de cambio actualizados diariamente.";
+"currency_auto" = "Automático (segundo o provedor / USD)";
 "language_system" = "Sistema";
 "language_english" = "Inglés";
 "language_spanish" = "Castelán";
@@ -453,6 +487,10 @@
 "quota_depleted_title" = "Cota esgotada e restaurada";
 "quota_warning_notifications_subtitle" = "Avisa cando a cota restante de sesión ou semanal supera os limiares configurados.";
 "threshold_warnings_title" = "Avisos de limiar";
+"provider_accent_color_title" = "Cor de acento";
+"provider_accent_color_footer" = "Establece a cor das barras de uso, das gráficas e da lapela do selector deste provedor.";
+"provider_accent_color_hex_label" = "Valor de cor hexadecimal";
+"provider_accent_color_reset" = "Usar o predeterminado";
 "quota_warnings_title" = "Avisos de cota";
 "quota_warning_session" = "sesión";
 "quota_warning_session_capitalized" = "Sesión";
@@ -558,12 +596,19 @@
 "display_mode_subtitle" = "Escolle que amosar na barra de menús (Ritmo amosa o uso fronte ao previsto).";
 "show_quota_warning_markers_title" = "Amosar os marcadores de aviso de cota";
 "show_quota_warning_markers_subtitle" = "Debuxa marcas de limiar nas barras de uso cando hai avisos de cota configurados.";
+"show_pace_title" = "Amosar o ritmo";
+"show_pace_subtitle" = "Amosa a franxa de adianto ou atraso e o texto de previsión nas barras de uso.";
 "weekly_progress_work_days_title" = "Días laborables do progreso semanal";
 "weekly_progress_work_days_subtitle" = "Define os días laborables para os marcadores das barras de uso semanal e os cálculos de ritmo.";
+"workday_tick_appearance_title" = "Aspecto das marcas dos días laborables";
+"workday_tick_appearance_subtitle" = "Escolle como aparecen os límites dos días laborables nas barras de uso semanal.";
+"workday_tick_appearance_hidden" = "Ocultas";
+"workday_tick_appearance_subtle" = "Sutís";
+"workday_tick_appearance_high_contrast" = "Contraste alto";
 "show_provider_changelog_links_title" = "Amosar as ligazóns ao rexistro de cambios do provedor";
 "show_provider_changelog_links_subtitle" = "Engade ao menú enlaces ás notas de versión dos provedores compatibles baseados en CLI.";
 "show_credits_extra_usage_title" = "Amosar créditos + uso adicional";
-"show_credits_extra_usage_subtitle" = "Amosa as seccións de Créditos de Codex e Uso adicional de Claude no menú.";
+"show_credits_extra_usage_subtitle" = "Amosa créditos e uso adicional para os provedores compatibles.";
 "multi_account_layout_title" = "Disposición multiconta";
 "multi_account_layout_subtitle" = "Escolle o cambio de conta segmentado ou tarxetas de conta apiladas.";
 "multi_account_layout_segmented" = "Segmentado";
@@ -605,6 +650,15 @@
 "keychain_access_caption" = "Desactiva todas as lecturas e escrituras do Chaveiro. A importación de cookies do navegador non estará dispoñible; pega as cabeceiras de Cookie manualmente en Provedores.";
 "disable_keychain_access_title" = "Desactivar o acceso ao Chaveiro";
 "disable_keychain_access_subtitle" = "Evita calquera acceso ao Chaveiro mentres estea activado.";
+"Re-authenticate" = "Volver autenticar";
+"kiro_reauthenticate_title" = "Inicio de sesión de Kiro CLI";
+"kiro_reauthenticate_subtitle" = "Executa «kiro-cli login» para renovar a sesión cando caduque.";
+"Kiro CLI not found" = "Non se atopou Kiro CLI";
+"Install kiro-cli and try again." = "Instala kiro-cli e téntao de novo.";
+"Could not start kiro-cli login" = "Non se puido iniciar kiro-cli login";
+"Kiro login timed out" = "Esgotouse o tempo de inicio de sesión de Kiro";
+"kiro-cli login exited with status %d." = "kiro-cli login rematou co estado %d.";
+"Kiro login failed" = "Fallou o inicio de sesión de Kiro";
 
 /* About Pane */
 "about_tagline" = "Que os teus tokens nunca se esgoten: mantén á vista os límites dos teus axentes.";
@@ -619,6 +673,8 @@
 "copyright" = "© 2026 Peter Steinberger. Licenza MIT.";
 
 /* Debug Pane */
+"use_javascriptcore_plugin_engine" = "Usar JavaScriptCore para os complementos de provedores";
+"use_javascriptcore_plugin_engine_subtitle" = "Só como reversión de compatibilidade. Reinicia CodexBar para aplicalo; CODEXBAR_PLUGIN_ENGINE substitúe este axuste.";
 "section_logging" = "Rexistro";
 "enable_file_logging" = "Activar o rexistro en ficheiro";
 "enable_file_logging_subtitle" = "Escribe os rexistros en %@ para depuración.";
@@ -1226,9 +1282,11 @@
 "usage_percent_suffix_left" = "restante";
 "usage_percent_suffix_used" = "usado";
 "z.ai API token not found. Set apiKey in ~/.codexbar/config.json or Z_AI_API_KEY." = "Non se atopou o token da API de z.ai. Define apiKey en ~/.codexbar/config.json ou Z_AI_API_KEY.";
-"≈ %d%% run-out risk" = "≈ %d%% de risco de esgotamento";
+"(%d%% risk)" = "(%d%% de risco de esgotamento)";
 "Show Codex Spark usage" = "Amosar o uso de Codex Spark";
 "Shows Codex Spark quota rows in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Amosa as filas de cota de Codex Spark no menú e na previsualización do provedor. Require activar «Amosar créditos + uso adicional» nos axustes de Pantalla.";
+"Show Daily Routines usage" = "Amosar o uso de Rutinas diarias";
+"Shows the Daily Routines quota row in the menu and provider preview. Requires optional credits and extra usage in Display settings." = "Amosa a fila de cota de Rutinas diarias no menú e na previsualización do provedor. Require activar «Amosar créditos + uso adicional» nos axustes de Pantalla.";
 "Scroll to see more models" = "Desprázate para ver máis modelos";
 
 /* Shareable usage card */
@@ -1260,6 +1318,9 @@
 "Native currencies stay separate; Codex account rows exclude Pi session history." = "As moedas orixinais mantéñense separadas; as filas das contas de Codex exclúen o historial de sesións de Pi.";
 "Spend unavailable" = "Gasto non dispoñible";
 "Model breakdown unavailable" = "Desglose por modelo non dispoñible";
+"Partial estimate" = "Estimación parcial";
+"Partial model breakdown" = "Desagregación de modelos parcial";
+"%d of %d subscriptions have spend" = "%d de %d subscricións teñen gasto";
 "Local estimated history" = "Historial local estimado";
 "Coverage" = "Cobertura";
 "Estimated spend" = "Gasto estimado";
@@ -1268,10 +1329,19 @@
 "By subscription" = "Por subscrición";
 "No model-level history" = "Sen historial por modelo";
 "Daily estimated spend" = "Gasto diario estimado";
+"Hourly estimated spend" = "Gasto horario estimado";
+"Hour" = "Hora";
+"%d hours of usage data across %d services" = "%d horas de datos de uso en %d servizos";
+"1 hour of usage data across 1 service" = "1 hora de datos de uso en 1 servizo";
+"%d hours of usage data across 1 service" = "%d horas de datos de uso en 1 servizo";
+"1 hour of usage data across %d services" = "1 hora de datos de uso en %d servizos";
 "≈%d full 5h windows of weekly left · %d windows until reset" = "≈%d xanelas completas de 5 h de cota semanal · %d xanelas ata o restablecemento";
 "Weekly cannot run out before reset at this pace" = "A cota semanal non pode esgotarse antes do restablecemento a este ritmo";
 "Weekly can run out ≈%d windows early" = "A cota semanal pode esgotarse ≈%d xanelas antes";
 "Estimated: %@" = "Estimación: %@";
+"session_quota_estimate_value_format" = "%1$@ %2$@";
+"session quota" = "cota de sesión";
+"session quotas" = "cotas de sesión";
 "Coding Plan" = "Plan de programación";
 "Agent Plan" = "Plan de axente";
 "Team" = "Equipo";
@@ -1307,6 +1377,7 @@
 "menu_bar_layout_gap" = "Separación";
 "menu_bar_layout_gap_tight" = "Estreita";
 "menu_bar_layout_gap_regular" = "Normal";
+"menu_bar_layout_vertical_adjustment" = "Axuste vertical";
 "menu_bar_layout_keyboard_hint" = "Suprimir retira a ficha seleccionada";
 "menu_bar_layout_sample_account" = "conta";
 "menu_bar_layout_sample_runs_out" = "esgótase ven.";
@@ -1315,7 +1386,11 @@
 "menu_bar_layout_token_account" = "Conta";
 "menu_bar_layout_token_session" = "Sesión %";
 "menu_bar_layout_token_weekly" = "Semanal %";
+"menu_bar_layout_token_scoped_weekly" = "Semanal con ámbito %";
 "menu_bar_layout_token_auto" = "% automática";
+"menu_bar_layout_token_session_pace" = "Ritmo de sesión";
+"menu_bar_layout_token_weekly_pace" = "Ritmo semanal";
+"menu_bar_layout_token_auto_pace" = "Ritmo automático";
 "menu_bar_layout_token_bar" = "Barra de uso";
 "menu_bar_layout_token_resets_in" = "Reiníciase en";
 "menu_bar_layout_token_reset_at" = "Reinicio ás";
@@ -1341,3 +1416,108 @@
 "Cost today unavailable" = "Custo de hoxe: Non dispoñible";
 "30-day cost unavailable" = "Custo de 30 días: Non dispoñible";
 "Resets" = "Reinicios";
+"Finish now" = "Rematar agora";
+"Continue in background" = "Continuar en segundo plano";
+
+"Cumulative" = "Acumulado";
+"Token activity" = "Actividade de tokens";
+"View" = "Vista";
+"in the last year" = "no último ano";
+"No activity in the last 12 months" = "Sen actividade nos últimos 12 meses";
+"Each column = 1 week" = "Cada columna = 1 semana";
+"Running total" = "Total acumulado";
+"Less" = "Menos";
+"More" = "Máis";
+
+/* Provider Plugins */
+"Install…" = "Instalar…";
+"Install plugin" = "Instalar complemento";
+"Copies a JavaScript or TypeScript file into the plugins directory." = "Copia un ficheiro JavaScript ou TypeScript no directorio de complementos.";
+"Show in Finder" = "Amosar no Finder";
+"Plugins directory" = "Directorio de complementos";
+"Provider Plugins" = "Complementos de provedores";
+"Plugins are local JavaScript or TypeScript files. Network and cookie access require approval." = "Os complementos son ficheiros locais JavaScript ou TypeScript. O acceso á rede e ás cookies require aprobación.";
+"No Plugins Installed" = "Non hai complementos instalados";
+"Drop a .js or .ts file into the plugins directory, or choose Install…" = "Solta un ficheiro .js ou .ts no directorio de complementos ou escolle Instalar…";
+"Delete Plugin?" = "Queres eliminar o complemento?";
+"Delete" = "Eliminar";
+"This removes the plugin file, transpile cache, approval, saved settings and secrets, and history." = "Isto elimina o ficheiro do complemento, a caché de transpilación, a aprobación, os axustes e segredos gardados e o historial.";
+"Plugin Error" = "Erro do complemento";
+"Needs approval" = "Precisa aprobación";
+"File" = "Ficheiro";
+"Origins" = "Orixes";
+"Configure endpoint settings" = "Configurar os axustes dos puntos de conexión";
+"Capabilities" = "Capacidades";
+"Network" = "Rede";
+"Cookie domains" = "Dominios das cookies";
+"Approve…" = "Aprobar…";
+"Delete…" = "Eliminar…";
+"Unknown validation error" = "Erro de validación descoñecido";
+"Approve Plugin" = "Aprobar o complemento";
+"Install and Approve Plugin" = "Instalar e aprobar o complemento";
+"Network authority" = "Autorización de rede";
+"Auth: %@" = "Autenticación: %@";
+"Capabilities: %@" = "Capacidades: %@";
+"network" = "rede";
+"Secrets: %@" = "Segredos: %@";
+"none" = "ningún";
+"Cookie domains: %@" = "Dominios das cookies: %@";
+"Type %@ to confirm" = "Escribe %@ para confirmar";
+"Enter every endpoint setting to review the exact network origins." = "Introduce todos os axustes dos puntos de conexión para revisar as orixes de rede exactas.";
+"Approve" = "Aprobar";
+"Install" = "Instalar";
+"5-hour usage" = "Uso de 5 horas";
+"7-day usage" = "Uso de 7 días";
+"Total usage" = "Uso total";
+"claude_oauth_keychain_access_revoked" = "O acceso ao chaveiro de Claude foi revogado pola rotación do token de Claude Code. Preme Actualizar para volver conceder o acceso ou cambia a orixe de uso de Claude a CLI/Web.";
+"claude_showing_last_known_usage" = "Mostrando o último uso coñecido, capturado %@.";
+/* Spend dashboard cost analysis */
+"90d" = "90d";
+"Input" = "Input";
+"Output" = "Output";
+"Cache write" = "Cache write";
+"Reasoning" = "Reasoning";
+"Sessions" = "Sessions";
+"Projects" = "Projects";
+"Plan metered" = "Plan metered";
+"List-price equivalent" = "List-price equivalent";
+"Metered and list-price" = "Metered and list-price";
+"List-price equivalent — not a billing receipt." = "List-price equivalent — not a billing receipt.";
+"Priced" = "Priced";
+"Unpriced" = "Unpriced";
+"Unmetered" = "Unmetered";
+"Estimated" = "Estimated";
+"Other models" = "Other models";
+"Include OpenCodex usage logs" = "Include OpenCodex usage logs";
+"Hide native Codex when OpenCodex is present" = "Hide native Codex when OpenCodex is present";
+"Export JSON" = "Export JSON";
+"Copy JSON" = "Copiar JSON";
+"Sources" = "Sources";
+"OpenCodex" = "OpenCodex";
+"menu_bar_layout_token_conditional" = "Condicional";
+"menu_bar_layout_group_conditionals" = "Condicionais";
+"menu_bar_layout_conditional_add" = "Nova condición";
+"menu_bar_layout_conditional_edit" = "Editar a condición";
+"menu_bar_layout_conditional_remove" = "Retirar da biblioteca";
+"menu_bar_layout_conditional_save" = "Gardar";
+"menu_bar_layout_conditional_if" = "Se";
+"menu_bar_layout_conditional_then" = "Entón mostrar";
+"menu_bar_layout_conditional_else" = "Se non, mostrar";
+"menu_bar_layout_conditional_and" = "e";
+"menu_bar_layout_conditional_or" = "ou";
+"menu_bar_layout_conditional_add_condition" = "Engadir condición";
+"menu_bar_layout_conditional_none" = "Aínda non hai condicións";
+"menu_bar_layout_conditional_hide" = "Agochar";
+"menu_bar_layout_conditional_name" = "Nome";
+"menu_bar_layout_conditional_name_placeholder" = "p. ex. Comprobación de sesión";
+"menu_bar_layout_conditional_name_error" = "Introduce un nome único";
+"menu_bar_layout_conditional_duplicate" = "Duplicar";
+"menu_bar_layout_conditional_summary" = "Se %1$@ entón %2$@ se non %3$@";
+"menu_bar_layout_conditional_copy_name" = "%@ (copia)";
+"menu_bar_layout_conditional_copy_name_numbered" = "%1$@ (copia %2$d)";
+"menu_bar_layout_conditional_unavailable" = "Condicional non dispoñible";
+"menu_bar_layout_conditional_default_session_busy" = "Sesión por riba do 50 % usado";
+"menu_bar_layout_conditional_default_weekly_high" = "Semana por riba do 90 % usado";
+"menu_bar_layout_conditional_default_session_spent" = "Sesión case esgotada";
+"menu_bar_layout_conditional_default_either_high" = "Sesión ou semana en nivel alto";
+"menu_bar_layout_conditional_default_scoped_weekly" = "Semana por modelo por riba do 60 %";

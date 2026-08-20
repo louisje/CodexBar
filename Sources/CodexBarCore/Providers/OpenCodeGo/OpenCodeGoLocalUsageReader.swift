@@ -66,21 +66,45 @@ public struct OpenCodeGoLocalUsageReader: Sendable {
     }
 
     private func readRows() throws -> [UsageRow] {
+        do {
+            return try self.readRows(immutable: false)
+        } catch let failure as SQLiteReadFailure {
+            // A clean WAL shutdown can remove both sidecars while leaving the database header in WAL mode.
+            // Immutable mode reads that idle main file without recreating sidecars; active WALs stay on the normal
+            // path.
+            guard failure.code == SQLITE_CANTOPEN, self.walSidecarsAreMissing else {
+                throw OpenCodeGoLocalUsageError.sqliteFailed(failure.message)
+            }
+
+            do {
+                return try self.readRows(immutable: true)
+            } catch let fallbackFailure as SQLiteReadFailure {
+                throw OpenCodeGoLocalUsageError.sqliteFailed(fallbackFailure.message)
+            }
+        }
+    }
+
+    private func readRows(immutable: Bool) throws -> [UsageRow] {
         var db: OpaquePointer?
-        guard sqlite3_open_v2(self.databaseURL.path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else {
-            let message = db.flatMap { String(cString: sqlite3_errmsg($0)) } ?? "unknown error"
+        let filename = immutable ? "\(self.databaseURL.absoluteURL.absoluteString)?immutable=1" : self.databaseURL.path
+        let flags = immutable ? SQLITE_OPEN_READONLY | SQLITE_OPEN_URI : SQLITE_OPEN_READONLY
+        let openResult = sqlite3_open_v2(filename, &db, flags, nil)
+        guard openResult == SQLITE_OK else {
+            let failure = Self.sqliteFailure(db: db, resultCode: openResult)
             sqlite3_close(db)
-            throw OpenCodeGoLocalUsageError.sqliteFailed(message)
+            throw failure
         }
         defer { sqlite3_close(db) }
         sqlite3_busy_timeout(db, 250)
 
-        let sql = self.hasTable(named: "part", db: db) ? Self.messageAndPartUsageSQL : Self.messageUsageSQL
+        let sql = try self.hasTable(named: "part", db: db)
+            ? Self.messageAndPartUsageSQL
+            : Self.messageUsageSQL
 
         var stmt: OpaquePointer?
-        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
-            let message = db.flatMap { String(cString: sqlite3_errmsg($0)) } ?? "unknown error"
-            throw OpenCodeGoLocalUsageError.sqliteFailed(message)
+        let prepareResult = sqlite3_prepare_v2(db, sql, -1, &stmt, nil)
+        guard prepareResult == SQLITE_OK else {
+            throw Self.sqliteFailure(db: db, resultCode: prepareResult)
         }
         defer { sqlite3_finalize(stmt) }
 
@@ -91,42 +115,59 @@ public struct OpenCodeGoLocalUsageReader: Sendable {
                 break
             }
             guard step == SQLITE_ROW else {
-                let message = db.flatMap { String(cString: sqlite3_errmsg($0)) } ?? "unknown error"
-                throw OpenCodeGoLocalUsageError.sqliteFailed(message)
+                throw Self.sqliteFailure(db: db, resultCode: step)
             }
 
             let createdMs = sqlite3_column_int64(stmt, 0)
             let cost = sqlite3_column_double(stmt, 1)
             guard createdMs > 0, cost >= 0, cost.isFinite else { continue }
             let requestCount = max(1, Int(sqlite3_column_int64(stmt, 2)))
-            rows.append(UsageRow(createdMs: createdMs, cost: cost, requestCount: requestCount))
+            let model = sqlite3_column_text(stmt, 3).map { String(cString: $0) } ?? ""
+            rows.append(UsageRow(createdMs: createdMs, cost: cost, requestCount: requestCount, model: model))
         }
         return rows
     }
 
-    private func hasTable(named name: String, db: OpaquePointer?) -> Bool {
+    private var walSidecarsAreMissing: Bool {
+        !FileManager.default.fileExists(atPath: self.databaseURL.path + "-wal") &&
+            !FileManager.default.fileExists(atPath: self.databaseURL.path + "-shm")
+    }
+
+    private func hasTable(named name: String, db: OpaquePointer?) throws -> Bool {
         var stmt: OpaquePointer?
-        guard sqlite3_prepare_v2(
+        let prepareResult = sqlite3_prepare_v2(
             db,
             "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1",
             -1,
             &stmt,
-            nil) == SQLITE_OK
-        else {
-            return false
+            nil)
+        guard prepareResult == SQLITE_OK else {
+            throw Self.sqliteFailure(db: db, resultCode: prepareResult)
         }
         defer { sqlite3_finalize(stmt) }
 
         let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
         sqlite3_bind_text(stmt, 1, name, -1, transient)
-        return sqlite3_step(stmt) == SQLITE_ROW
+        let step = sqlite3_step(stmt)
+        if step == SQLITE_ROW {
+            return true
+        }
+        guard step == SQLITE_DONE else { throw Self.sqliteFailure(db: db, resultCode: step) }
+        return false
+    }
+
+    private static func sqliteFailure(db: OpaquePointer?, resultCode: Int32) -> SQLiteReadFailure {
+        SQLiteReadFailure(
+            code: db.map { sqlite3_errcode($0) } ?? resultCode,
+            message: db.map { String(cString: sqlite3_errmsg($0)) } ?? "unknown error")
     }
 
     private static let messageUsageSQL = """
         SELECT
           CAST(COALESCE(json_extract(data, '$.time.created'), time_created) AS INTEGER) AS createdMs,
           CAST(json_extract(data, '$.cost') AS REAL) AS cost,
-          1 AS requestCount
+          1 AS requestCount,
+          COALESCE(json_extract(data, '$.modelID'), '') AS modelID
         FROM message
         WHERE json_valid(data)
           AND json_extract(data, '$.providerID') = 'opencode-go'
@@ -140,7 +181,8 @@ public struct OpenCodeGoLocalUsageReader: Sendable {
             id AS messageID,
             CAST(COALESCE(json_extract(data, '$.time.created'), time_created) AS INTEGER) AS createdMs,
             CAST(json_extract(data, '$.cost') AS REAL) AS cost,
-            json_type(data, '$.cost') IN ('integer', 'real') AS hasCost
+            json_type(data, '$.cost') IN ('integer', 'real') AS hasCost,
+            COALESCE(json_extract(data, '$.modelID'), '') AS modelID
           FROM message
           WHERE json_valid(data)
             AND json_extract(data, '$.providerID') = 'opencode-go'
@@ -150,14 +192,15 @@ public struct OpenCodeGoLocalUsageReader: Sendable {
           CAST(COALESCE(json_extract(p.data, '$.time.created'), p.time_created, m.createdMs) AS INTEGER)
             AS createdMs,
           CAST(json_extract(p.data, '$.cost') AS REAL) AS cost,
-          1 AS requestCount
+          1 AS requestCount,
+          m.modelID AS modelID
         FROM part p
         JOIN provider_messages m ON m.messageID = p.message_id
         WHERE json_valid(p.data)
           AND json_extract(p.data, '$.type') = 'step-finish'
           AND json_type(p.data, '$.cost') IN ('integer', 'real')
         UNION ALL
-        SELECT createdMs, cost, 1 AS requestCount
+        SELECT createdMs, cost, 1 AS requestCount, modelID
         FROM provider_messages m
         WHERE hasCost
           AND NOT EXISTS (
@@ -175,6 +218,13 @@ public struct OpenCodeGoLocalUsageReader: Sendable {
         let cost: Double
         /// One provider invocation per step-finish part; message-only databases fall back to one.
         let requestCount: Int
+        /// The underlying model behind the `opencode-go` Zen proxy; empty when unattributed.
+        let model: String
+    }
+
+    private struct SQLiteReadFailure: Error {
+        let code: Int32
+        let message: String
     }
 
     private static func hasAuthKey(at url: URL) -> Bool {
@@ -272,30 +322,46 @@ public struct OpenCodeGoLocalUsageReader: Sendable {
         }
         let sinceStartOfDay = calendar.startOfDay(for: since)
 
-        var totals: [String: (cost: Double, requestCount: Int)] = [:]
+        var totalsByModel: [String: [String: (cost: Double, requestCount: Int)]] = [:]
         for row in rows {
             let date = Date(timeIntervalSince1970: TimeInterval(row.createdMs) / 1000)
             guard date >= sinceStartOfDay, date <= now else { continue }
             let key = CostUsageScanner.CostUsageDayRange.dayKey(from: date)
-            var bucket = totals[key] ?? (cost: 0, requestCount: 0)
+            let trimmedModel = row.model.trimmingCharacters(in: .whitespacesAndNewlines)
+            let model = trimmedModel.isEmpty ? Self.unknownModelName : trimmedModel
+            var dayTotals = totalsByModel[key] ?? [:]
+            var bucket = dayTotals[model] ?? (cost: 0, requestCount: 0)
             bucket.cost += row.cost
             bucket.requestCount += row.requestCount
-            totals[key] = bucket
+            dayTotals[model] = bucket
+            totalsByModel[key] = dayTotals
         }
 
-        return totals.keys.sorted().compactMap { key in
-            guard let bucket = totals[key] else { return nil }
+        return totalsByModel.keys.sorted().compactMap { key in
+            guard let dayTotals = totalsByModel[key] else { return nil }
+            let modelBreakdowns = dayTotals.keys.sorted().map { model in
+                let bucket = dayTotals[model] ?? (cost: 0, requestCount: 0)
+                return CostUsageDailyReport.ModelBreakdown(
+                    modelName: model,
+                    costUSD: bucket.cost,
+                    requestCount: bucket.requestCount)
+            }.sorted { ($0.costUSD ?? 0) > ($1.costUSD ?? 0) }
+            let totalCost = dayTotals.values.reduce(0) { $0 + $1.cost }
+            let totalRequests = dayTotals.values.reduce(0) { $0 + $1.requestCount }
             return CostUsageDailyReport.Entry(
                 date: key,
                 inputTokens: nil,
                 outputTokens: nil,
                 totalTokens: nil,
-                requestCount: bucket.requestCount,
-                costUSD: bucket.cost,
-                modelsUsed: nil,
-                modelBreakdowns: nil)
+                requestCount: totalRequests,
+                costUSD: totalCost,
+                modelsUsed: dayTotals.keys.sorted(),
+                modelBreakdowns: modelBreakdowns)
         }
     }
+
+    /// Bucket label for rows whose local `modelID` is missing or blank.
+    private static let unknownModelName = "unknown"
 
     private static func percent(used: Double, limit: Double) -> Double {
         guard used.isFinite, limit > 0 else { return 0 }

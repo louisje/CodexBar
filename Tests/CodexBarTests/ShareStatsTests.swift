@@ -6,7 +6,21 @@ import Testing
 
 struct ShareStatsTests {
     @Test
-    func `builder preserves native currencies and unavailable spend`() throws {
+    func `descriptor share plan labels preserve the legacy central table`() throws {
+        var fingerprint: UInt64 = 1_469_598_103_934_665_603
+        for descriptor in ProviderDescriptorRegistry.all where !descriptor.metadata.sharePlanLabels.isEmpty {
+            Self.hash(descriptor.id.rawValue, into: &fingerprint)
+            for key in descriptor.metadata.sharePlanLabels.keys.sorted() {
+                Self.hash(key, into: &fingerprint)
+                try Self.hash(#require(descriptor.metadata.sharePlanLabels[key]), into: &fingerprint)
+            }
+        }
+
+        #expect(fingerprint == 2_500_333_924_415_227_190)
+    }
+
+    @Test
+    func `builder preserves native currencies and partial group spend`() throws {
         let subscriptionNames = try [
             "codex:one": #require(Self.subscriptionName(provider: .codex, rawName: "pro")),
             "cursor": #require(Self.subscriptionName(provider: .cursor, rawName: "Cursor Pro")),
@@ -17,10 +31,15 @@ struct ShareStatsTests {
             subscriptionNames: subscriptionNames))
 
         #expect(payload.days == 30)
-        #expect(payload.totalTokens == nil)
+        #expect(payload.totalTokens == 500)
+        #expect(payload.hasPartialTokens)
         #expect(payload.currencies == [
             ShareStatsCurrencyPayload(currencyCode: "GBP", estimatedCost: 12, coveredDayCount: 10),
-            ShareStatsCurrencyPayload(currencyCode: "USD", estimatedCost: nil, coveredDayCount: 0),
+            ShareStatsCurrencyPayload(
+                currencyCode: "USD",
+                estimatedCost: 4,
+                coveredDayCount: 0,
+                isPartial: true),
         ])
         #expect(payload.providers.map(\.providerName) == ["Claude", "Codex · #1", "Cursor"])
         #expect(payload.providers.map(\.subscriptionName) == ["Max", "Pro 20x", "Cursor Pro"])
@@ -30,9 +49,26 @@ struct ShareStatsTests {
         let text = ShareStatsFormatting.text(payload)
         #expect(text.contains("GBP: £12.00 estimated · coverage 10/30 days"))
         #expect(text.contains("Claude · Max: 300 tokens · ~£12.00 est · 10/30 days"))
-        #expect(text.contains("USD: Spend unavailable · coverage 0/30 days"))
+        #expect(text.contains("USD: $4.00 estimated (partial) · coverage 0/30 days"))
+        #expect(text.contains("~500 tracked tokens (partial)"))
         #expect(text.contains("Cursor · Cursor Pro: Spend unavailable"))
         #expect(!text.contains("£12.00 +"))
+    }
+
+    @Test
+    func `copied share stats uses all-time labels for the scan window`() throws {
+        let payload = try #require(ShareStatsBuilder.make(
+            model: SpendDashboardModel(
+                requestedDays: SpendDashboardSource.scanDays,
+                groups: Self.dashboard.groups)))
+        let text = ShareStatsFormatting.text(payload)
+
+        #expect(payload.days == SpendDashboardSource.scanDays)
+        #expect(text.contains("My AI subscriptions · all time"))
+        #expect(text.contains("GBP: £12.00 estimated · coverage 10/all"))
+        #expect(text.contains("Claude: 300 tokens · ~£12.00 est · 10/all"))
+        #expect(!text.contains("last \(SpendDashboardSource.scanDays) days"))
+        #expect(!text.contains("/\(SpendDashboardSource.scanDays) days"))
     }
 
     @Test
@@ -152,6 +188,7 @@ struct ShareStatsTests {
                     coveredDayCount: 7),
             ],
             models: rows,
+            projects: [],
             dailyPoints: [],
             totalTokens: 1,
             totalCost: nil,
@@ -207,6 +244,7 @@ struct ShareStatsTests {
                         totalTokens: nil,
                         totalCost: nil),
                 ],
+                projects: [],
                 dailyPoints: [],
                 totalTokens: 10,
                 totalCost: -.infinity,
@@ -248,6 +286,7 @@ struct ShareStatsTests {
                     totalTokens: 10,
                     totalCost: 2),
             ],
+            projects: [],
             dailyPoints: [],
             totalTokens: nil,
             totalCost: nil,
@@ -306,13 +345,21 @@ struct ShareStatsTests {
     }
 
     @Test
-    func `overall token total becomes unavailable on overflow`() {
+    func `overall token total skips unavailable groups and fails closed on overflow`() {
         #expect(ShareStatsBuilder.combinedTotalTokens([Int.max, 1]) == nil)
-        #expect(ShareStatsBuilder.combinedTotalTokens([10, nil]) == nil)
+        #expect(ShareStatsBuilder.combinedTotalTokens([10, nil]) == 10)
+        #expect(ShareStatsBuilder.combinedTotalTokens([nil, nil]) == nil)
         #expect(ShareStatsBuilder.combinedTotalTokens([10, 20]) == 30)
     }
 
     private static let date = Date(timeIntervalSince1970: 1_783_382_400)
+
+    private static func hash(_ value: String, into fingerprint: inout UInt64) {
+        for byte in value.utf8 {
+            fingerprint = (fingerprint ^ UInt64(byte)) &* 1_099_511_628_211
+        }
+        fingerprint = (fingerprint ^ 0xFF) &* 1_099_511_628_211
+    }
 
     private static func subscriptionName(
         provider: UsageProvider,
@@ -333,7 +380,7 @@ struct ShareStatsTests {
         accountOrganization: String? = nil) -> UsageSnapshot
     {
         let identity = ProviderIdentitySnapshot(
-            providerID: provider,
+            providerID: provider.instanceID,
             accountEmail: nil,
             accountOrganization: accountOrganization,
             loginMethod: rawName)
@@ -367,6 +414,7 @@ struct ShareStatsTests {
                         totalTokens: 1000,
                         totalCost: 1),
                 ],
+                projects: [],
                 dailyPoints: [],
                 totalTokens: 300,
                 totalCost: 12,
@@ -402,9 +450,10 @@ struct ShareStatsTests {
                         totalTokens: 200,
                         totalCost: 4)
                 },
+                projects: [],
                 dailyPoints: [],
-                totalTokens: nil,
-                totalCost: nil,
+                totalTokens: 200,
+                totalCost: 4,
                 coveredDayCount: 0,
                 chartDomain: self.date...self.date,
                 modelHistoryCompleteness: .complete),

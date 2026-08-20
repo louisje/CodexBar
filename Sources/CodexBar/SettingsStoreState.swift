@@ -23,7 +23,9 @@ struct SettingsDefaultsState {
     var quotaWarningSoundEnabled: Bool
     var quotaWarningOnScreenAlertEnabled: Bool
     var quotaWarningMarkersVisible: Bool
+    var paceVisible: Bool
     var weeklyProgressWorkDays: Int?
+    var workdayTickAppearanceRaw: String
     var usageBarsShowUsed: Bool
     var resetTimesShowAbsolute: Bool
     var providerChangelogLinksEnabled: Bool
@@ -37,14 +39,20 @@ struct SettingsDefaultsState {
     var multiAccountMenuLayoutRaw: String
     var menuBarMetricPreferencesRaw: [String: String]
     var storedMenuBarLayout: MenuBarLayout?
+    var menuBarLayoutConditionals: [MenuBarLayoutConditional]
     var menuBarLayoutOverridesRaw: [String: MenuBarLayout]
     var menuBarLayoutSizeRaw: String
     var menuBarLayoutGapRaw: String
+    var menuBarLayoutVerticalAdjustment: Int
     var copilotBudgetExtrasEnabled: Bool
     var copilotIconSecondaryWindowIDRaw: String
     var costUsageEnabled: Bool
     var codexLocalSessionCostLedgerEnabled: Bool
     var costUsageHistoryDays: Int
+    var costUsageBucketTimeZoneIdentifier: String
+    var openCodexUsageLogsEnabled: Bool
+    var hideNativeCodexCostWhenOpenCodexPresent: Bool
+    var spendDashboardHiddenSourceIDs: [String]
     var costComparisonPeriodsEnabled: Bool
     var costSummaryDisplayStyleRaw: String
     var hidePersonalInfo: Bool
@@ -54,11 +62,16 @@ struct SettingsDefaultsState {
     var menuBarShowsHighestUsage: Bool
     var claudeOAuthKeychainPromptModeRaw: String?
     var claudeOAuthKeychainReadStrategyRaw: String?
+    var claudeOAuthDirectKeychainReadAllowed: Bool
     var claudeWebExtrasEnabledRaw: Bool
     var showOptionalCreditsAndExtraUsage: Bool
+    var claudeDailyRoutinesUsageVisible: Bool
+    var claudeModelScopedWeeklyUsageVisible: Bool
     var codexSparkUsageVisible: Bool
+    var codexExternalOAuthSourcesAllowed: Bool
     var openAIWebAccessEnabled: Bool
     var openAIWebBatterySaverEnabled: Bool
+    var backgroundWorkLowPowerModePreference: LowPowerModePreference
     var providerStorageFootprintsEnabled: Bool
     var jetbrainsIDEBasePath: String
     var mergeIcons: Bool
@@ -73,4 +86,10 @@ struct SettingsDefaultsState {
     var agentSessionsEnabled: Bool
     var agentSessionLabelStyleRaw: String
     var agentSessionsManualHosts: String
+    var preferredCurrencyCode: String
+    var iCloudSyncEnabled: Bool
+    var iCloudSyncIncludeSecrets: Bool
+    var iCloudSyncSnapshotsEnabled: Bool
+    var iCloudSyncShowFleetAccounts: Bool
+    var iCloudSyncDeviceID: String
 }

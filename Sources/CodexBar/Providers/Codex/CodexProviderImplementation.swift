@@ -18,6 +18,7 @@ struct CodexProviderImplementation: ProviderImplementation {
         _ = settings.codexUsageDataSource
         _ = settings.codexCookieSource
         _ = settings.codexCookieHeader
+        _ = settings.codexExternalOAuthSourcesAllowed
     }
 
     @MainActor
@@ -48,6 +49,7 @@ struct CodexProviderImplementation: ProviderImplementation {
     func sourceMode(context: ProviderSourceModeContext) -> ProviderSourceMode {
         switch context.settings.codexUsageDataSource {
         case .auto: .auto
+        case .pat: .api
         case .oauth: .oauth
         case .cli: .cli
         }
@@ -133,8 +135,23 @@ struct CodexProviderImplementation: ProviderImplementation {
                 onAppDidBecomeActive: nil,
                 onAppearWhenEnabled: nil),
             ProviderSettingsToggleDescriptor(
+                id: "codex-external-oauth-sources",
+                title: "External Codex OAuth sources",
+                subtitle: [
+                    "Explicitly allow read-only fallback to legacy Codex and OpenCode OAuth files.",
+                    "CodexBar never refreshes or writes those external credentials.",
+                    "Off by default because this shares another app's OAuth session with Codex usage requests.",
+                ].joined(separator: " "),
+                binding: context.boolBinding(\.codexExternalOAuthSourcesAllowed),
+                statusText: nil,
+                actions: [],
+                isVisible: nil,
+                onChange: nil,
+                onAppDidBecomeActive: nil,
+                onAppearWhenEnabled: nil),
+            ProviderSettingsToggleDescriptor(
                 id: "codex-openai-web-battery-saver",
-                title: "Battery Saver",
+                title: "OpenAI web battery saver",
                 subtitle: [
                     "Limits background chatgpt.com refreshes to reduce battery and network usage.",
                     "Dashboard extras may stay stale until you refresh them manually.",

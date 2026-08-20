@@ -244,6 +244,9 @@ public struct ZedKeychainCredentialsReader: ZedCredentialsReading, Sendable {
     public init() {}
 
     public func loadCredentials(serviceURL: String) throws -> ZedCredentials? {
+        guard !KeychainAccessGate.isDisabled else {
+            throw ZedStatusProbeError.keychainUnavailable
+        }
         if let credentials = try self.loadInternetPasswordCredentials(server: serviceURL) {
             return credentials
         }
@@ -332,7 +335,7 @@ public struct ZedStatusProbe: Sendable {
             .appendingPathComponent(".config/zed/settings.json")
     }
 
-    private static let logger = CodexBarLog.logger(LogCategories.zed)
+    private static let logger = CodexBarLog.logger(LogCategories.provider(.zed))
 
     private let credentialsReader: any ZedCredentialsReading
     private let transport: any ProviderHTTPTransport
@@ -527,15 +530,14 @@ extension ZedUsageSnapshot {
         return max(0, min(100, elapsed / total * 100))
     }
 
-    private static func formatResetDescription(_ date: Date) -> String? {
-        let now = Date()
+    static func formatResetDescription(_ date: Date, now: Date = Date()) -> String? {
         let interval = date.timeIntervalSince(now)
         guard interval > 0 else { return "Cycle ended" }
 
         let hours = Int(interval / 3600)
         let minutes = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
 
-        if hours > 24 {
+        if hours >= 24 {
             let days = hours / 24
             let remainingHours = hours % 24
             return "Cycle ends in \(days)d \(remainingHours)h"

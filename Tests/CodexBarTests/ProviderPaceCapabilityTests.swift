@@ -7,7 +7,7 @@ struct ProviderPaceCapabilityTests {
     private static let monthlyWindowSentinelMinutes = 30 * 24 * 60
 
     @Test
-    func `descriptor pace capabilities preserve the legacy provider mapping`() {
+    func `descriptor pace capabilities match the supported provider mapping`() {
         let now = Date(timeIntervalSince1970: 1_750_000_000)
         let fixtures: [RateWindow] = [
             Self.window(minutes: nil, resetsAt: nil),
@@ -22,6 +22,10 @@ struct ProviderPaceCapabilityTests {
             Self.window(
                 minutes: Self.monthlyWindowSentinelMinutes,
                 resetsAt: now.addingTimeInterval(20 * 24 * 60 * 60)),
+            Self.window(
+                minutes: Self.monthlyWindowSentinelMinutes,
+                resetsAt: now.addingTimeInterval(20 * 24 * 60 * 60),
+                resetDescription: "MCP"),
             Self.window(minutes: 0, resetsAt: now.addingTimeInterval(60)),
             Self.window(minutes: Self.weeklyWindowMinutes, resetsAt: now.addingTimeInterval(-60)),
         ]
@@ -30,12 +34,12 @@ struct ProviderPaceCapabilityTests {
             let capability = ProviderDescriptorRegistry.descriptor(for: provider).pace
             for window in fixtures {
                 let actualResetWindowPace = capability.supportsResetWindowPace(window: window, now: now)
-                let legacyResetWindowPace = Self.legacySupportsResetWindowPace(
+                let expectedResetWindowPace = Self.expectedSupportsResetWindowPace(
                     provider: provider,
                     window: window,
                     now: now)
                 #expect(
-                    actualResetWindowPace == legacyResetWindowPace,
+                    actualResetWindowPace == expectedResetWindowPace,
                     "Reset-window pace changed for \(provider.rawValue), window=\(String(describing: window)).")
 
                 let actualMonthlyInference = capability.usesInferredMonthlyDuration(window: window)
@@ -49,16 +53,90 @@ struct ProviderPaceCapabilityTests {
         }
     }
 
-    private static func window(minutes: Int?, resetsAt: Date?) -> RateWindow {
+    @Test
+    func `amp monthly pace is limited to subscription windows`() {
+        let now = Date(timeIntervalSince1970: 1_750_000_000)
+        let capability = AmpProviderDescriptor.descriptor.pace
+        let freeTier = Self.window(
+            minutes: 24 * 60,
+            resetsAt: now.addingTimeInterval(12 * 60 * 60))
+        let subscription = Self.window(
+            minutes: Self.monthlyWindowSentinelMinutes,
+            resetsAt: now.addingTimeInterval(20 * 24 * 60 * 60))
+
+        #expect(!capability.supportsResetWindowPace(window: freeTier, now: now))
+        #expect(!capability.usesInferredMonthlyDuration(window: freeTier))
+        #expect(capability.supportsResetWindowPace(window: subscription, now: now))
+        #expect(capability.usesInferredMonthlyDuration(window: subscription))
+    }
+
+    @Test
+    func `calendar month pace resolves the real cycle duration`() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
+        let resetsAt = try #require(calendar.date(from: DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 3,
+            day: 1)))
+        let window = Self.window(
+            minutes: Self.monthlyWindowSentinelMinutes,
+            resetsAt: resetsAt)
+
+        let resolved = ProviderPaceCapability.calendarMonthResetWindow.resolvedResetWindowForPace(window)
+
+        #expect(resolved.windowMinutes == 28 * 24 * 60)
+        #expect(resolved.resetsAt == resetsAt)
+        #expect(resolved.usedPercent == window.usedPercent)
+    }
+
+    @Test
+    func `zai pace maps only verified coding windows`() {
+        let now = Date(timeIntervalSince1970: 1_750_000_000)
+        let capability = ZaiProviderDescriptor.descriptor.pace
+        let session = Self.window(minutes: 5 * 60, resetsAt: now.addingTimeInterval(2 * 60 * 60))
+        let weekly = Self.window(
+            minutes: Self.weeklyWindowMinutes,
+            resetsAt: now.addingTimeInterval(4 * 24 * 60 * 60))
+        let unknown = Self.window(minutes: nil, resetsAt: now.addingTimeInterval(2 * 60 * 60))
+        let monthlyMCP = Self.window(
+            minutes: Self.monthlyWindowSentinelMinutes,
+            resetsAt: now.addingTimeInterval(20 * 24 * 60 * 60),
+            resetDescription: "MCP")
+        let rollingThirtyDay = Self.window(
+            minutes: Self.monthlyWindowSentinelMinutes,
+            resetsAt: now.addingTimeInterval(20 * 24 * 60 * 60),
+            resetDescription: "30 days window")
+
+        #expect(capability.resolvedKind(slot: .primary, window: session, now: now) == .session)
+        #expect(capability.resolvedKind(slot: .secondary, window: weekly, now: now) == .weekly)
+        #expect(capability.resolvedKind(slot: .primary, window: weekly, now: now) == nil)
+        #expect(capability.resolvedKind(slot: .secondary, window: session, now: now) == nil)
+        #expect(capability.supportsSessionPace(window: session, now: now))
+        #expect(!capability.supportsSessionPace(window: unknown, now: now))
+        #expect(capability.supportsResetWindowPace(window: monthlyMCP, now: now))
+        #expect(capability.usesInferredMonthlyDuration(window: monthlyMCP))
+        #expect(!capability.supportsResetWindowPace(window: rollingThirtyDay, now: now))
+        #expect(!capability.usesInferredMonthlyDuration(window: rollingThirtyDay))
+        #expect(capability.resolvedKind(slot: .primary, window: rollingThirtyDay, now: now) == nil)
+        #expect(capability.resolvedResetWindowForPace(rollingThirtyDay) == rollingThirtyDay)
+    }
+
+    private static func window(
+        minutes: Int?,
+        resetsAt: Date?,
+        resetDescription: String? = nil) -> RateWindow
+    {
         RateWindow(
             usedPercent: 50,
             windowMinutes: minutes,
             resetsAt: resetsAt,
-            resetDescription: nil)
+            resetDescription: resetDescription)
     }
 
-    /// Snapshot of the switches removed from UsageMenuCardView.Model.
-    private static func legacySupportsResetWindowPace(
+    /// Expected provider-specific reset-window behavior, including newly declared capabilities.
+    private static func expectedSupportsResetWindowPace(
         provider: UsageProvider,
         window: RateWindow,
         now: Date) -> Bool
@@ -77,7 +155,12 @@ struct ProviderPaceCapabilityTests {
             return windowMinutes > 0
                 && timeUntilReset > 0
                 && timeUntilReset <= TimeInterval(windowMinutes) * 60
-        case .alibaba, .alibabatokenplan, .doubao, .opencodego:
+        case .kimi:
+            return window.windowMinutes == self.weeklyWindowMinutes
+        case .zai:
+            return window.windowMinutes == self.monthlyWindowSentinelMinutes
+                && window.resetDescription == "MCP"
+        case .alibaba, .alibabatokenplan, .amp, .commandcode, .doubao, .mimo, .notion, .opencodego, .stepfun:
             return window.windowMinutes == self.monthlyWindowSentinelMinutes
         default:
             return false
@@ -91,7 +174,10 @@ struct ProviderPaceCapabilityTests {
         switch provider {
         case .copilot:
             window.windowMinutes == nil
-        case .alibaba, .alibabatokenplan, .doubao, .opencodego:
+        case .zai:
+            window.windowMinutes == self.monthlyWindowSentinelMinutes
+                && window.resetDescription == "MCP"
+        case .alibaba, .alibabatokenplan, .amp, .commandcode, .doubao, .mimo, .notion, .opencodego, .stepfun:
             window.windowMinutes == self.monthlyWindowSentinelMinutes
         default:
             false
