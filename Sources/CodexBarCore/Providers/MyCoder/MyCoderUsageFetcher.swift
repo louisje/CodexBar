@@ -5,7 +5,11 @@ import FoundationNetworking
 
 public enum MyCoderUsageFetcher {
     private static let log = CodexBarLog.logger(LogCategories.mycoderUsage)
-    private static let baseURL = "https://afs-mycoder.asus.com/billing"
+    /// The quota API lives on a separate host from the SPA; the SPA's
+    /// `PUBLIC_USER_SSO_TOKEN` cookie is forwarded as a Bearer token.
+    private static let apiBaseURL = "https://afs-mycoder-api.asus.com"
+    private static let webBaseURL = "https://afs-mycoder.asus.com"
+    private static let ssoCookieName = "PUBLIC_USER_SSO_TOKEN"
     private static let userAgent =
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
@@ -26,30 +30,78 @@ public enum MyCoderUsageFetcher {
         now: Date = Date(),
         timeout: TimeInterval = 15) async throws -> MyCoderUsageSnapshot
     {
+        guard let token = Self.ssoToken(fromCredentials: cookieHeader) else {
+            throw MyCoderUsageError.missingCredentials
+        }
+        guard let userId = Self.userId(fromSSOToken: token) else {
+            throw MyCoderUsageError.invalidCredentials
+        }
         let quotaData = try await self.sendRequest(
-            path: "/api/quota/me",
-            cookieHeader: cookieHeader,
+            path: "/mycoder-quota/api/v1/user/\(userId)/quota",
+            token: token,
             transport: transport,
             timeout: timeout)
         return try self.parseQuota(data: quotaData, now: now)
     }
 
+    /// Extracts the SSO token from a browser cookie header (or accepts a raw JWT).
+    static func ssoToken(fromCredentials credentials: String) -> String? {
+        let trimmedCredentials = credentials.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedCredentials.contains("="), trimmedCredentials.contains(";") || trimmedCredentials.contains(" ") {
+            for pair in trimmedCredentials.split(separator: ";") {
+                let keyValue = pair.split(separator: "=", maxSplits: 1)
+                guard keyValue.count == 2 else { continue }
+                let name = keyValue[0].trimmingCharacters(in: .whitespaces)
+                guard name == Self.ssoCookieName else { continue }
+                let value = keyValue[1].trimmingCharacters(in: .whitespaces)
+                return value.isEmpty ? nil : value
+            }
+            return nil
+        }
+        // A pasted manual credential may be the raw token itself.
+        return trimmedCredentials.isEmpty ? nil : trimmedCredentials
+    }
+
+    /// Decodes the JWT payload and returns the user id from its `aud` claim.
+    static func userId(fromSSOToken token: String) -> String? {
+        let parts = token.split(separator: ".")
+        guard parts.count == 3 else { return nil }
+        var payload = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        while payload.count % 4 != 0 {
+            payload += "="
+        }
+        guard let data = Data(base64Encoded: payload),
+              let claims = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return nil }
+        switch claims["aud"] {
+        case let audience as [String]:
+            return audience.first { !$0.isEmpty }
+        case let audience as String:
+            return audience.isEmpty ? nil : audience
+        default:
+            return nil
+        }
+    }
+
     private static func sendRequest(
         path: String,
-        cookieHeader: String,
+        token: String,
         transport: any ProviderHTTPTransport,
         timeout: TimeInterval) async throws -> Data
     {
-        guard let url = URL(string: self.baseURL + path) else {
+        guard let url = URL(string: self.apiBaseURL + path) else {
             throw MyCoderUsageError.networkError("invalid URL")
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = timeout
-        request.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json, */*", forHTTPHeaderField: "Accept")
         request.setValue(self.userAgent, forHTTPHeaderField: "User-Agent")
-        request.setValue(self.baseURL, forHTTPHeaderField: "Referer")
+        request.setValue(self.webBaseURL, forHTTPHeaderField: "Origin")
+        request.setValue(self.webBaseURL + "/token_usage/usages", forHTTPHeaderField: "Referer")
 
         let response: ProviderHTTPResponse
         do {
@@ -156,7 +208,7 @@ public enum MyCoderUsageFetcher {
 /// Uses completion-handler based `dataTask` (like Antigravity's LocalhostSessionDelegate)
 /// to guarantee the URLSessionDelegate auth challenge callback is invoked.
 private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked Sendable {
-    private static let trustedHost = "afs-mycoder.asus.com"
+    private static let trustedHosts: Set<String> = ["afs-mycoder.asus.com", "afs-mycoder-api.asus.com"]
 
     private let session: URLSession
     private let delegate: MyCoderTrustDelegate
@@ -189,7 +241,7 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
 }
 
 private final class MyCoderTrustDelegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, @unchecked Sendable {
-    private static let trustedHost = "afs-mycoder.asus.com"
+    private static let trustedHosts: Set<String> = ["afs-mycoder.asus.com", "afs-mycoder-api.asus.com"]
 
     func urlSession(
         _: URLSession,
@@ -215,7 +267,7 @@ private final class MyCoderTrustDelegate: NSObject, URLSessionDelegate, URLSessi
     {
         let space = challenge.protectionSpace
         guard space.authenticationMethod == NSURLAuthenticationMethodServerTrust,
-              space.host.lowercased() == Self.trustedHost,
+              Self.trustedHosts.contains(space.host.lowercased()),
               let trust = space.serverTrust
         else {
             return (.performDefaultHandling, nil)

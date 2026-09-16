@@ -24,7 +24,7 @@ public enum MyCoderProviderDescriptor {
                 opusLabel: nil,
                 supportsOpus: false,
                 supportsCredits: false,
-                creditsHint: "Monthly budget from the MyCoder billing dashboard.",
+                creditsHint: "Monthly budget from the MyCoder token usage dashboard.",
                 toggleTitle: "Show MyCoder usage",
                 cliName: "mycoder",
                 defaultEnabled: false,
@@ -32,7 +32,7 @@ public enum MyCoderProviderDescriptor {
                 isPrimaryProvider: false,
                 usesAccountFallback: false,
                 browserCookieOrder: self.browserCookieOrder,
-                dashboardURL: "https://afs-mycoder.asus.com/billing",
+                dashboardURL: "https://afs-mycoder.asus.com/token_usage/usages",
                 statusPageURL: nil,
                 statusLinkURL: nil),
             branding: ProviderBranding(
