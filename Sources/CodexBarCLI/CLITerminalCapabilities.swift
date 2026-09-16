@@ -22,14 +22,22 @@ enum CLITerminalCapabilities {
         environment: [String: String] = ProcessInfo.processInfo.environment) -> Bool
     {
         guard useColor else { return false }
-        if environment["CODEXBAR_CARDS_ENHANCED"] == "1" { return true }
-        if environment["CODEXBAR_CARDS_ENHANCED"] == "0" { return false }
+        if environment["CODEXBAR_CARDS_ENHANCED"] == "1" {
+            return true
+        }
+        if environment["CODEXBAR_CARDS_ENHANCED"] == "0" {
+            return false
+        }
         return self.supportsTruecolor(environment: environment)
     }
 
     static func supportsKittyGraphics(environment: [String: String]) -> Bool {
-        if environment["KITTY_WINDOW_ID"] != nil { return true }
-        if environment["GHOSTTY_RESOURCES_DIR"] != nil { return true }
+        if environment["KITTY_WINDOW_ID"] != nil {
+            return true
+        }
+        if environment["GHOSTTY_RESOURCES_DIR"] != nil {
+            return true
+        }
         let term = environment["TERM"]?.lowercased() ?? ""
         if term.contains("kitty") || term.contains("ghostty") || term.contains("wezterm") {
             return true
@@ -38,9 +46,13 @@ enum CLITerminalCapabilities {
     }
 
     static func supportsTruecolor(environment: [String: String]) -> Bool {
-        if self.supportsKittyGraphics(environment: environment) { return true }
+        if self.supportsKittyGraphics(environment: environment) {
+            return true
+        }
         let colorTerm = environment["COLORTERM"]?.lowercased() ?? ""
-        if colorTerm.contains("truecolor") || colorTerm.contains("24bit") { return true }
+        if colorTerm.contains("truecolor") || colorTerm.contains("24bit") {
+            return true
+        }
         let term = environment["TERM"]?.lowercased() ?? ""
         return term.contains("foot") || term.contains("alacritty")
     }

@@ -87,7 +87,9 @@ public struct KiloUsageSnapshot: Sendable {
     }
 
     private var resolvedTotal: Double? {
-        if let creditsTotal { return max(0, creditsTotal) }
+        if let creditsTotal {
+            return max(0, creditsTotal)
+        }
         if let creditsUsed, let creditsRemaining {
             return max(0, creditsUsed + creditsRemaining)
         }
@@ -107,7 +109,9 @@ public struct KiloUsageSnapshot: Sendable {
     }
 
     private var resolvedPassTotal: Double? {
-        if let passTotal { return max(0, passTotal) }
+        if let passTotal {
+            return max(0, passTotal)
+        }
         if let passUsed, let passRemaining {
             return max(0, passUsed + passRemaining)
         }
@@ -600,14 +604,18 @@ public struct KiloUsageFetcher: Sendable {
 
         if let dataObject = resultObject["data"] as? [String: Any] {
             if let jsonPayload = dataObject["json"] {
-                if jsonPayload is NSNull { return nil }
+                if jsonPayload is NSNull {
+                    return nil
+                }
                 return jsonPayload
             }
             return dataObject
         }
 
         if let jsonPayload = resultObject["json"] {
-            if jsonPayload is NSNull { return nil }
+            if jsonPayload is NSNull {
+                return nil
+            }
             return jsonPayload
         }
 

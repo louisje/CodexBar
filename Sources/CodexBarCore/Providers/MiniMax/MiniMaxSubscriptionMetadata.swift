@@ -33,7 +33,9 @@ enum MiniMaxSubscriptionMetadataFetcher {
 
         let response = try await transport.response(for: request)
         guard response.statusCode == 200 else {
-            if response.statusCode == 401 || response.statusCode == 403 { throw MiniMaxUsageError.invalidCredentials }
+            if response.statusCode == 401 || response.statusCode == 403 {
+                throw MiniMaxUsageError.invalidCredentials
+            }
             throw MiniMaxUsageError.apiError("HTTP \(response.statusCode)")
         }
         return try self.parse(data: response.data)
@@ -153,9 +155,15 @@ enum MiniMaxSubscriptionMetadataFetcher {
 
     private static func tokenPlanRank(_ value: String) -> Int? {
         let lower = value.lowercased()
-        if lower.contains("tokenplanplus") { return 0 }
-        if lower.contains("tokenplanmax") { return 1 }
-        if lower.contains("tokenplanultra") { return 2 }
+        if lower.contains("tokenplanplus") {
+            return 0
+        }
+        if lower.contains("tokenplanmax") {
+            return 1
+        }
+        if lower.contains("tokenplanultra") {
+            return 2
+        }
         if lower.contains("token plan"), lower.contains("plus") || lower.contains("max") || lower.contains("ultra") {
             return 3
         }
@@ -163,8 +171,12 @@ enum MiniMaxSubscriptionMetadataFetcher {
     }
 
     private static func collectStrings(in object: Any) -> [String] {
-        if let string = object as? String { return [string] }
-        if let array = object as? [Any] { return array.flatMap(self.collectStrings(in:)) }
+        if let string = object as? String {
+            return [string]
+        }
+        if let array = object as? [Any] {
+            return array.flatMap(self.collectStrings(in:))
+        }
         if let dictionary = object as? [String: Any] {
             return dictionary.sorted { $0.key < $1.key }.flatMap { self.collectStrings(in: $0.value) }
         }
@@ -172,8 +184,12 @@ enum MiniMaxSubscriptionMetadataFetcher {
     }
 
     private static func intValue(_ value: Any?) -> Int? {
-        if let int = value as? Int { return int }
-        if let string = value as? String { return Int(string) }
+        if let int = value as? Int {
+            return int
+        }
+        if let string = value as? String {
+            return Int(string)
+        }
         return nil
     }
 
@@ -185,7 +201,9 @@ enum MiniMaxSubscriptionMetadataFetcher {
 
     private static func findValue(forKey key: String, in object: Any) -> Any? {
         if let dictionary = object as? [String: Any] {
-            if let value = dictionary[key] { return value }
+            if let value = dictionary[key] {
+                return value
+            }
             for nested in dictionary.values {
                 if let value = self.findValue(forKey: key, in: nested) {
                     return value

@@ -42,8 +42,12 @@ extension FactoryStatusProbe {
         }
         // Prefer 401/403 auth failures over later host noise (e.g. 404) so API-key Auto mode
         // can map to unauthorizedAPIKey and fall back to cookies/WorkOS.
-        if let preferredAuthError { throw preferredAuthError }
-        if let lastError { throw lastError }
+        if let preferredAuthError {
+            throw preferredAuthError
+        }
+        if let lastError {
+            throw lastError
+        }
         throw FactoryStatusProbeError.notLoggedIn
     }
 

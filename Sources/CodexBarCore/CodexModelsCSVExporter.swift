@@ -109,9 +109,15 @@ public enum CodexModelsCSVExporter {
     }
 
     private static func costStatus(_ cost: CodexModelsCost, usageTokens: Int64) -> String {
-        if usageTokens == 0 { return "no_usage" }
-        if cost.pricedTokens == 0 { return "unavailable" }
-        if cost.unpricedTokens > 0 { return "partial" }
+        if usageTokens == 0 {
+            return "no_usage"
+        }
+        if cost.pricedTokens == 0 {
+            return "unavailable"
+        }
+        if cost.unpricedTokens > 0 {
+            return "partial"
+        }
         return "known"
     }
 

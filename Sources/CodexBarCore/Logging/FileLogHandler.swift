@@ -53,7 +53,9 @@ final class FileLogSink: @unchecked Sendable {
     }
 
     private func openHandleIfNeeded() -> FileHandle? {
-        if let handle = self.fileHandle { return handle }
+        if let handle = self.fileHandle {
+            return handle
+        }
         do {
             try self.prepareFile(at: self.fileURL)
             let handle = try FileHandle(forWritingTo: self.fileURL)
@@ -111,7 +113,9 @@ struct FileLogHandler: LogHandler {
         guard self.sink.isWriteEnabled() else { return }
         let ts = Self.timestamp()
         var combined = self.metadata
-        if let metadata = event.metadata { combined.merge(metadata, uniquingKeysWith: { _, new in new }) }
+        if let metadata = event.metadata {
+            combined.merge(metadata, uniquingKeysWith: { _, new in new })
+        }
         var metaText = ""
         if !combined.isEmpty {
             let pairs = combined

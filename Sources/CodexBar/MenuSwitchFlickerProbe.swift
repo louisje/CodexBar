@@ -276,7 +276,9 @@ enum MenuSwitchFlickerProbe {
         }
 
         private func startedAtOrLocateMenu() -> DispatchTime? {
-            if let startedAt = self.startedAt { return startedAt }
+            if let startedAt = self.startedAt {
+                return startedAt
+            }
             self.searchTicks += 1
             if let menu = self.controller.openMenus.values.first,
                menu.items.first?.view is ProviderSwitcherView,

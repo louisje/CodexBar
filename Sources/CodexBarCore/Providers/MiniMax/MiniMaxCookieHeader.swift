@@ -72,7 +72,9 @@ public enum MiniMaxCookieHeader {
                 continue
             }
             let captured = String(raw[captureRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-            if !captured.isEmpty { return captured }
+            if !captured.isEmpty {
+                return captured
+            }
         }
         return nil
     }

@@ -15,7 +15,9 @@ public struct ProviderStorageFootprint: Sendable, Equatable {
         public var name: String {
             let url = URL(fileURLWithPath: self.path)
             let last = url.lastPathComponent
-            if last.isEmpty { return self.path }
+            if last.isEmpty {
+                return self.path
+            }
             return last
         }
     }
@@ -388,7 +390,9 @@ public struct ProviderStorageScanner: @unchecked Sendable {
         var components: [ProviderStorageFootprint.Component] = []
 
         for path in candidatePaths {
-            if Task.isCancelled { break }
+            if Task.isCancelled {
+                break
+            }
             var isDirectory: ObjCBool = false
             guard self.fileManager.fileExists(atPath: path, isDirectory: &isDirectory) else {
                 missingPaths.append(path)
@@ -402,7 +406,9 @@ public struct ProviderStorageScanner: @unchecked Sendable {
             }
             if isDirectory.boolValue {
                 let result = self.scanDirectory(at: url)
-                if Task.isCancelled { break }
+                if Task.isCancelled {
+                    break
+                }
                 totalBytes += result.bytes
                 unreadablePaths.append(contentsOf: result.unreadablePaths)
                 components.append(contentsOf: result.componentBytes.map {
@@ -438,7 +444,9 @@ public struct ProviderStorageScanner: @unchecked Sendable {
     }
 
     private func sizeOfFile(at url: URL) -> (bytes: Int64, unreadablePaths: [String]) {
-        if Task.isCancelled { return (0, []) }
+        if Task.isCancelled {
+            return (0, [])
+        }
         let keys: Set<URLResourceKey> = [
             .isRegularFileKey,
             .isSymbolicLinkKey,
@@ -461,7 +469,9 @@ public struct ProviderStorageScanner: @unchecked Sendable {
     }
 
     private func scanDirectory(at url: URL) -> DirectoryScanResult {
-        if Task.isCancelled { return DirectoryScanResult() }
+        if Task.isCancelled {
+            return DirectoryScanResult()
+        }
         let keys: Set<URLResourceKey> = [
             .isDirectoryKey,
             .isRegularFileKey,

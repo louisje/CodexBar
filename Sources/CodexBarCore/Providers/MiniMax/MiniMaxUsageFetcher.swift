@@ -179,7 +179,9 @@ public struct MiniMaxUsageFetcher: Sendable {
                 Self.log.debug("MiniMax token-plan API failed, trying legacy coding-plan endpoint")
             }
         }
-        if let lastError { throw lastError }
+        if let lastError {
+            throw lastError
+        }
         throw MiniMaxUsageError.parseFailed("Missing MiniMax API remains URL.")
     }
 
@@ -329,7 +331,9 @@ public struct MiniMaxUsageFetcher: Sendable {
                 Self.log.debug("MiniMax remains API failed for \(baseRemainsURL.host ?? "unknown host"), trying next")
             }
         }
-        if let lastError { throw lastError }
+        if let lastError {
+            throw lastError
+        }
         throw MiniMaxUsageError.parseFailed("Missing MiniMax remains URL.")
     }
 
@@ -428,12 +432,20 @@ public struct MiniMaxUsageFetcher: Sendable {
     }
 
     private static func shouldRethrowAfterHTMLFallback(_ error: Error) -> Bool {
-        if error is CancellationError { return true }
-        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
-        if let minimaxError = error as? MiniMaxUsageError {
-            if case .invalidCredentials = minimaxError { return true }
+        if error is CancellationError {
+            return true
         }
-        if error is ProviderEndpointOverrideError { return true }
+        if let urlError = error as? URLError, urlError.code == .cancelled {
+            return true
+        }
+        if let minimaxError = error as? MiniMaxUsageError {
+            if case .invalidCredentials = minimaxError {
+                return true
+            }
+        }
+        if error is ProviderEndpointOverrideError {
+            return true
+        }
         return false
     }
 
@@ -492,8 +504,12 @@ public struct MiniMaxUsageFetcher: Sendable {
             totalCount = payload.totalCount ?? totalCount
             guard !payload.chargeRecords.isEmpty else { break }
             records.append(contentsOf: payload.chargeRecords)
-            if MiniMaxBillingHistoryParser.containsRecordBefore30DayWindow(payload.chargeRecords, now: now) { break }
-            if let totalCount, records.count >= totalCount { break }
+            if MiniMaxBillingHistoryParser.containsRecordBefore30DayWindow(payload.chargeRecords, now: now) {
+                break
+            }
+            if let totalCount, records.count >= totalCount {
+                break
+            }
             page += 1
         }
 
@@ -674,8 +690,12 @@ public struct MiniMaxUsageFetcher: Sendable {
 
         func compose(_ base: URL) -> URL? {
             var components = URLComponents(url: base, resolvingAgainstBaseURL: false)!
-            if let path { components.path = "/" + path }
-            if let query { components.query = query }
+            if let path {
+                components.path = "/" + path
+            }
+            if let query {
+                components.query = query
+            }
             return components.url
         }
 
@@ -1312,10 +1332,18 @@ enum MiniMaxUsageParser {
 
     private static func minutes(from value: Double, unit: String) -> Int {
         let lower = unit.lowercased()
-        if lower.hasPrefix("d") { return Int((value * 24 * 60).rounded()) }
-        if lower.hasPrefix("h") { return Int((value * 60).rounded()) }
-        if lower.hasPrefix("m") { return Int(value.rounded()) }
-        if lower.hasPrefix("s") { return max(1, Int((value / 60).rounded())) }
+        if lower.hasPrefix("d") {
+            return Int((value * 24 * 60).rounded())
+        }
+        if lower.hasPrefix("h") {
+            return Int((value * 60).rounded())
+        }
+        if lower.hasPrefix("m") {
+            return Int(value.rounded())
+        }
+        if lower.hasPrefix("s") {
+            return max(1, Int((value / 60).rounded()))
+        }
         return 0
     }
 
@@ -1348,9 +1376,15 @@ enum MiniMaxUsageParser {
 
     private static func seconds(from value: Double, unit: String) -> TimeInterval {
         let lower = unit.lowercased()
-        if lower.hasPrefix("d") { return value * 24 * 60 * 60 }
-        if lower.hasPrefix("h") { return value * 60 * 60 }
-        if lower.hasPrefix("m") { return value * 60 }
+        if lower.hasPrefix("d") {
+            return value * 24 * 60 * 60
+        }
+        if lower.hasPrefix("h") {
+            return value * 60 * 60
+        }
+        if lower.hasPrefix("m") {
+            return value * 60
+        }
         return value
     }
 
@@ -1584,7 +1618,9 @@ enum MiniMaxUsageParser {
         let startTime = self.dateFromEpoch(input.start)
         let endTime = self.dateFromEpoch(input.end)
         var (windowType, timeRange) = self.parseWindowInfo(startTime: startTime, endTime: endTime, now: now)
-        if let windowTypeOverride = input.windowTypeOverride { windowType = windowTypeOverride }
+        if let windowTypeOverride = input.windowTypeOverride {
+            windowType = windowTypeOverride
+        }
         if windowType.lowercased() == "weekly",
            let weeklyRange = self.formatMiniMaxDateTimeRange(startTime: startTime, endTime: endTime)
         {

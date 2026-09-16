@@ -61,7 +61,9 @@ public enum CurlCaptureParser {
             let rawName = field[..<colon].trimmingCharacters(in: .whitespacesAndNewlines)
             guard rawName.caseInsensitiveCompare(name) == .orderedSame else { continue }
             let value = field[field.index(after: colon)...].trimmingCharacters(in: .whitespacesAndNewlines)
-            if !value.isEmpty { return value }
+            if !value.isEmpty {
+                return value
+            }
         }
         return nil
     }

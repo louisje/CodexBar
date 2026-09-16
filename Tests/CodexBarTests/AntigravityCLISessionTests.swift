@@ -418,7 +418,9 @@ private final class AntigravityManualSleeper: @unchecked Sendable {
 
     func waitForSleeps(_ expectedCount: Int) async {
         for _ in 0..<200 {
-            if self.pendingSleepCount >= expectedCount { return }
+            if self.pendingSleepCount >= expectedCount {
+                return
+            }
             try? await Task.sleep(nanoseconds: 1_000_000)
         }
         Issue.record("Timed out waiting for \(expectedCount) sleep continuation(s)")
@@ -703,7 +705,9 @@ struct AntigravityCLISessionTests {
                 let lines = output
                     .split(separator: "\n")
                     .map(String.init)
-                if lines.count >= 2, output.hasSuffix("\n") { break }
+                if lines.count >= 2, output.hasSuffix("\n") {
+                    break
+                }
             }
             Thread.sleep(forTimeInterval: 0.01)
         }
@@ -1454,7 +1458,9 @@ extension AntigravityCLISessionTests {
 
     private func waitForLaunches(_ launcher: FakeAntigravityProcessLauncher, count: Int) async -> Bool {
         for _ in 0..<200 {
-            if launcher.launchedBinarySnapshot().count >= count { return true }
+            if launcher.launchedBinarySnapshot().count >= count {
+                return true
+            }
             try? await Task.sleep(nanoseconds: 1_000_000)
         }
         return false
@@ -1463,7 +1469,9 @@ extension AntigravityCLISessionTests {
     private func waitUntilStopped(_ session: AntigravityCLISession) async {
         for _ in 0..<200 {
             let running = await session.isRunning
-            if !running { return }
+            if !running {
+                return
+            }
             await Task.yield()
         }
         Issue.record("Timed out waiting for Antigravity CLI session to stop")

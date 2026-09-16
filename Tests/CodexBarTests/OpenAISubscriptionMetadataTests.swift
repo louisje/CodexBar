@@ -39,7 +39,9 @@ final class OpenAISubscriptionMetadataTests: XCTestCase {
 
     @MainActor
     func test_resetInvalidatesStaleInFlightCaptureAndScopesEndpointToSameOrigin() async throws {
-        if Self.shouldSkipWebKitOnCI() { return }
+        if Self.shouldSkipWebKitOnCI() {
+            return
+        }
 
         let webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
         _ = webView.loadHTMLString(Self.fetchFixtureHTML, baseURL: URL(string: "https://chatgpt.com/"))
@@ -80,7 +82,9 @@ final class OpenAISubscriptionMetadataTests: XCTestCase {
     {
         let deadline = Date().addingTimeInterval(2)
         while Date() < deadline {
-            if try await condition(webView) { return }
+            if try await condition(webView) {
+                return
+            }
             try await Task.sleep(for: .milliseconds(25))
         }
         XCTFail("Timed out waiting for WebKit fixture")

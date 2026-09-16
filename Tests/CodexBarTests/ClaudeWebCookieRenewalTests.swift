@@ -642,7 +642,9 @@ private actor ClaudePrepaidRequestProbe {
     }
 
     func waitUntilStarted() async {
-        if self.started { return }
+        if self.started {
+            return
+        }
         await withCheckedContinuation { continuation in
             self.startedWaiters.append(continuation)
         }
@@ -650,7 +652,9 @@ private actor ClaudePrepaidRequestProbe {
 
     func waitForCancellation() async -> Bool {
         for _ in 0..<100 {
-            if self.cancelled { return true }
+            if self.cancelled {
+                return true
+            }
             try? await Task.sleep(for: .milliseconds(10))
         }
         return self.cancelled
@@ -704,7 +708,9 @@ private actor ConcurrentClaudeFetchProbe {
     }
 
     func waitForOrganizationCount(_ count: Int) async {
-        if self.requestCookies.count >= count { return }
+        if self.requestCookies.count >= count {
+            return
+        }
         await withCheckedContinuation { continuation in
             self.organizationCountWaiters.append((count, continuation))
         }

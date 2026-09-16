@@ -56,7 +56,9 @@ struct TTYIntegrationTests {
             shouldAssert = false
         }
 
-        if !shouldAssert { return }
+        if !shouldAssert {
+            return
+        }
     }
 
     @Test

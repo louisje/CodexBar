@@ -132,7 +132,9 @@ public struct OpenAIDashboardSnapshot: Codable, Equatable, Sendable {
             let services = serviceTotals
                 .map { OpenAIDashboardServiceUsage(service: $0.key, creditsUsed: $0.value) }
                 .sorted { lhs, rhs in
-                    if lhs.creditsUsed == rhs.creditsUsed { return lhs.service < rhs.service }
+                    if lhs.creditsUsed == rhs.creditsUsed {
+                        return lhs.service < rhs.service
+                    }
                     return lhs.creditsUsed > rhs.creditsUsed
                 }
             let total = services.reduce(0) { $0 + $1.creditsUsed }

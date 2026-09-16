@@ -77,8 +77,12 @@ public enum GroqConsoleSession {
             let name = pair.name.trimmingCharacters(in: .whitespacesAndNewlines)
             let value = pair.value.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !value.isEmpty else { continue }
-            if name == self.sessionCookieName { token = value }
-            if name == self.jwtCookieName { jwt = value }
+            if name == self.sessionCookieName {
+                token = value
+            }
+            if name == self.jwtCookieName {
+                jwt = value
+            }
         }
         guard token != nil || jwt != nil else { return nil }
         return SessionInfo(sessionToken: token, directJWT: jwt, sourceLabel: "manual")

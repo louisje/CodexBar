@@ -6,7 +6,9 @@ public struct SyntheticSettingsReader: Sendable {
     public static func apiKey(
         environment: [String: String] = ProcessInfo.processInfo.environment) -> String?
     {
-        if let token = self.cleaned(environment[apiKeyKey]) { return token }
+        if let token = self.cleaned(environment[apiKeyKey]) {
+            return token
+        }
         return nil
     }
 

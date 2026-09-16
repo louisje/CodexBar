@@ -15,7 +15,9 @@ private actor NeuralWattAccountRefreshRecorder {
     }
 
     func waitForCount(_ count: Int) async {
-        if self.dates.count >= count { return }
+        if self.dates.count >= count {
+            return
+        }
         await withCheckedContinuation { continuation in
             self.waiters.append((count, continuation))
         }

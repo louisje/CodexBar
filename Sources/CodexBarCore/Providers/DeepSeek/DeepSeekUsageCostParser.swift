@@ -630,7 +630,9 @@ enum DeepSeekUsageCostParser {
         }
 
         let topModel = modelTokens.max {
-            if $0.value == $1.value { return $0.key > $1.key }
+            if $0.value == $1.value {
+                return $0.key > $1.key
+            }
             return $0.value < $1.value
         }?.key
 

@@ -3,7 +3,9 @@ import Foundation
 extension MiniMaxUsageSnapshot {
     func withPlanNameIfMissing(_ planName: String?) -> MiniMaxUsageSnapshot {
         let existing = self.planName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let existing, !existing.isEmpty { return self }
+        if let existing, !existing.isEmpty {
+            return self
+        }
         let cleaned = planName?.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let cleaned, !cleaned.isEmpty else { return self }
         return MiniMaxUsageSnapshot(

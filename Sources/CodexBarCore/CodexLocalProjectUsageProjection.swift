@@ -29,12 +29,18 @@ public struct CodexLocalProjectUsageProjection: Sendable, Equatable {
         return projects.sorted { lhs, rhs in
             let lhsTokens = self.displayedTokens(for: lhs.totals) ?? -1
             let rhsTokens = self.displayedTokens(for: rhs.totals) ?? -1
-            if lhsTokens != rhsTokens { return lhsTokens > rhsTokens }
+            if lhsTokens != rhsTokens {
+                return lhsTokens > rhsTokens
+            }
 
             let lhsCost = lhs.costEstimate.knownUSD
             let rhsCost = rhs.costEstimate.knownUSD
-            if lhsCost != rhsCost { return lhsCost > rhsCost }
-            if lhs.sessionCount != rhs.sessionCount { return lhs.sessionCount > rhs.sessionCount }
+            if lhsCost != rhsCost {
+                return lhsCost > rhsCost
+            }
+            if lhs.sessionCount != rhs.sessionCount {
+                return lhs.sessionCount > rhs.sessionCount
+            }
             if lhs.latestActivity != rhs.latestActivity {
                 return (lhs.latestActivity ?? .distantPast) > (rhs.latestActivity ?? .distantPast)
             }

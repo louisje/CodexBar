@@ -22,7 +22,9 @@ struct AzureOpenAIProviderImplementation: ProviderImplementation {
         let hasEnvironmentConfig = AzureOpenAISettingsReader.apiKey(environment: environment) != nil &&
             AzureOpenAISettingsReader.rawEndpoint(environment: environment) != nil &&
             AzureOpenAISettingsReader.deploymentName(environment: environment) != nil
-        if hasEnvironmentConfig { return true }
+        if hasEnvironmentConfig {
+            return true
+        }
 
         return !context.settings.azureOpenAIAPIKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             !context.settings.azureOpenAIEndpoint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&

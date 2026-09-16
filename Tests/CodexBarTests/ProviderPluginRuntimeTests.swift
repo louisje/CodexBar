@@ -861,7 +861,9 @@ private actor TransportCancellationProbe {
     }
 
     func waitUntilCancelled() async {
-        if self.cancelled { return }
+        if self.cancelled {
+            return
+        }
         await withCheckedContinuation { continuation in
             self.waiters.append(continuation)
         }

@@ -16,7 +16,9 @@ struct OpenAIDashboardNavigationDelegateTests {
     {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
-            if let result = result() { return result }
+            if let result = result() {
+                return result
+            }
             try? await Task.sleep(nanoseconds: 50_000_000)
         }
         return result()

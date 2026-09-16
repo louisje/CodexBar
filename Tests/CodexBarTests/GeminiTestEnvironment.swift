@@ -51,9 +51,15 @@ struct GeminiTestEnvironment {
         var payload: [String: Any] = [
             "expiry_date": expiry.timeIntervalSince1970 * 1000,
         ]
-        if let accessToken { payload["access_token"] = accessToken }
-        if let refreshToken { payload["refresh_token"] = refreshToken }
-        if let idToken { payload["id_token"] = idToken }
+        if let accessToken {
+            payload["access_token"] = accessToken
+        }
+        if let refreshToken {
+            payload["refresh_token"] = refreshToken
+        }
+        if let idToken {
+            payload["id_token"] = idToken
+        }
         let data = try JSONSerialization.data(withJSONObject: payload)
         try data.write(to: self.geminiDir.appendingPathComponent("oauth_creds.json"), options: .atomic)
     }
@@ -79,12 +85,24 @@ struct GeminiTestEnvironment {
             "access_token": accessToken,
             "expiry_date": expiry.timeIntervalSince1970 * 1000,
         ]
-        if let refreshToken { payload["refresh_token"] = refreshToken }
-        if let idToken { payload["id_token"] = idToken }
-        if let email { payload["email"] = email }
-        if let projectID { payload["project_id"] = projectID }
-        if let clientID { payload["client_id"] = clientID }
-        if let clientSecret { payload["client_secret"] = clientSecret }
+        if let refreshToken {
+            payload["refresh_token"] = refreshToken
+        }
+        if let idToken {
+            payload["id_token"] = idToken
+        }
+        if let email {
+            payload["email"] = email
+        }
+        if let projectID {
+            payload["project_id"] = projectID
+        }
+        if let clientID {
+            payload["client_id"] = clientID
+        }
+        if let clientSecret {
+            payload["client_secret"] = clientSecret
+        }
         let data = try JSONSerialization.data(withJSONObject: payload)
         try data.write(to: self.antigravityDir.appendingPathComponent("oauth_creds.json"), options: .atomic)
     }

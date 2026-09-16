@@ -28,7 +28,9 @@ extension UsageStore {
     {
         let publishesPAT = provider == .codex && self.isCodexPATOutcome(outcome)
         let explicitPATFailure = explicitPAT && {
-            if case .failure = outcome.result { return true }
+            if case .failure = outcome.result {
+                return true
+            }
             return false
         }()
         if publishesPAT || explicitPATFailure {

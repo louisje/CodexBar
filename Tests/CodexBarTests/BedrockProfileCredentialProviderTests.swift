@@ -54,7 +54,9 @@ struct BedrockProfileCredentialProviderTests {
             _ = try await sut.exportCredentials(profile: "work")
             Issue.record("expected an error")
         } catch let error as BedrockUsageError {
-            if case .apiError = error { } else { Issue.record("expected apiError, got \(error)") }
+            if case .apiError = error { } else {
+                Issue.record("expected apiError, got \(error)")
+            }
         } catch {
             Issue.record("unexpected error type: \(error)")
         }
@@ -67,7 +69,9 @@ struct BedrockProfileCredentialProviderTests {
             _ = try await sut.exportCredentials(profile: "work")
             Issue.record("expected an error")
         } catch let error as BedrockUsageError {
-            if case .parseFailed = error { } else { Issue.record("expected parseFailed, got \(error)") }
+            if case .parseFailed = error { } else {
+                Issue.record("expected parseFailed, got \(error)")
+            }
         } catch {
             Issue.record("unexpected error type: \(error)")
         }

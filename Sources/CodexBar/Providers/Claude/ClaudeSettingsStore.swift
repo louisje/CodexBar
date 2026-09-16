@@ -174,7 +174,9 @@ extension SettingsStore {
         if routing.adminAPIKey != nil {
             return .off
         }
-        if self.tokenAccounts(for: .claude).isEmpty { return fallback }
+        if self.tokenAccounts(for: .claude).isEmpty {
+            return fallback
+        }
         return .manual
     }
 

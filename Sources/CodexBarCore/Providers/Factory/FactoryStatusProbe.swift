@@ -673,7 +673,9 @@ public struct FactoryStatusProbe: Sendable {
                 log("Using manual Factory bearer token")
                 return try await self.fetchWithBearerToken(bearerToken, logger: log)
             }
-            if let lastError { throw lastError }
+            if let lastError {
+                throw lastError
+            }
             throw FactoryStatusProbeError.noSessionCookie
         }
 
@@ -720,7 +722,9 @@ public struct FactoryStatusProbe: Sendable {
             }
         }
 
-        if let lastError { throw lastError }
+        if let lastError {
+            throw lastError
+        }
         throw FactoryStatusProbeError.noSessionCookie
         #else
         _ = cookieHeaderOverride
@@ -760,7 +764,9 @@ public struct FactoryStatusProbe: Sendable {
                     }
                 }
             }
-            if let lastError { return .failure(lastError) }
+            if let lastError {
+                return .failure(lastError)
+            }
             return .skipped
         } catch {
             BrowserCookieAccessGate.recordIfNeeded(error)
@@ -849,7 +855,9 @@ public struct FactoryStatusProbe: Sendable {
                 lastError = error
             }
         }
-        if let lastError { return .failure(lastError) }
+        if let lastError {
+            return .failure(lastError)
+        }
         return .skipped
     }
 
@@ -892,7 +900,9 @@ public struct FactoryStatusProbe: Sendable {
             }
         }
 
-        if let lastError { return .failure(lastError) }
+        if let lastError {
+            return .failure(lastError)
+        }
         return .skipped
     }
 
@@ -929,7 +939,9 @@ public struct FactoryStatusProbe: Sendable {
             }
         }
 
-        if let lastError { throw lastError }
+        if let lastError {
+            throw lastError
+        }
         throw FactoryStatusProbeError.noSessionCookie
     }
 
@@ -1012,7 +1024,9 @@ public struct FactoryStatusProbe: Sendable {
                 }
             }
 
-            if let lastError { throw lastError }
+            if let lastError {
+                throw lastError
+            }
             throw error
         } catch {
             throw error
@@ -1232,7 +1246,9 @@ public struct FactoryStatusProbe: Sendable {
         var seen = Set<String>()
         return candidates.filter { url in
             let key = url.absoluteString
-            if seen.contains(key) { return false }
+            if seen.contains(key) {
+                return false
+            }
             seen.insert(key)
             return true
         }
@@ -1270,7 +1286,9 @@ public struct FactoryStatusProbe: Sendable {
                 lastError = error
             }
         }
-        if let lastError { throw lastError }
+        if let lastError {
+            throw lastError
+        }
         throw FactoryStatusProbeError.networkError("WorkOS auth failed")
     }
 
@@ -1339,7 +1357,9 @@ public struct FactoryStatusProbe: Sendable {
                 logger("WorkOS cookie auth failed for client \(clientID): \(error.localizedDescription)")
             }
         }
-        if let lastError { throw lastError }
+        if let lastError {
+            throw lastError
+        }
         throw FactoryStatusProbeError.networkError("WorkOS cookie auth failed")
     }
 

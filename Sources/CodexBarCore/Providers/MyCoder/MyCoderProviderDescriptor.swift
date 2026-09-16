@@ -38,7 +38,12 @@ public enum MyCoderProviderDescriptor {
             branding: ProviderBranding(
                 iconStyle: .init(provider: .mycoder),
                 iconResourceName: "ProviderIcon-mycoder",
-                color: ProviderColor(red: 0 / 255, green: 113 / 255, blue: 197 / 255)),
+                color: ProviderColor(hex: 0x0071C5),
+                confettiPalette: [
+                    ProviderColor(hex: 0x0071C5),
+                    ProviderColor(hex: 0x4DA3E8),
+                    ProviderColor(hex: 0xFFFFFF),
+                ]),
             tokenCost: ProviderTokenCostConfig(
                 supportsTokenCost: false,
                 noDataMessage: { "MyCoder cost summary is not supported." }),

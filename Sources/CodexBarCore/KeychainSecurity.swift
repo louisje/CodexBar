@@ -41,9 +41,15 @@ enum KeychainTestSafety {
         processName: String,
         environment: [String: String]) -> Bool
     {
-        if environment[self.allowAccessEnvironmentKey] == "1" { return false }
-        if environment[self.suppressAccessEnvironmentKey] == "1" { return true }
-        if environment[KeychainAccessGate.disableAccessEnvironmentKey] == "1" { return true }
+        if environment[self.allowAccessEnvironmentKey] == "1" {
+            return false
+        }
+        if environment[self.suppressAccessEnvironmentKey] == "1" {
+            return true
+        }
+        if environment[KeychainAccessGate.disableAccessEnvironmentKey] == "1" {
+            return true
+        }
         return self.isRunningUnderTests(processName: processName, environment: environment)
     }
 
@@ -108,8 +114,12 @@ public enum KeychainSecurity {
         keychainAccessDisabled: Bool,
         testSafetyBlocked: Bool) -> ItemOperationBlockReason?
     {
-        if keychainAccessDisabled { return .keychainAccessDisabled }
-        if testSafetyBlocked { return .testSafetySuppressed }
+        if keychainAccessDisabled {
+            return .keychainAccessDisabled
+        }
+        if testSafetyBlocked {
+            return .testSafetySuppressed
+        }
         return nil
     }
 

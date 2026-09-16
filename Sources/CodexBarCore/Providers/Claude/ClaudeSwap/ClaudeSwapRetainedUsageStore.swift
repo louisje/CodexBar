@@ -71,7 +71,9 @@ public enum ClaudeSwapRetainedUsageStore {
     }
 
     private static func resolvedFileURL() -> URL? {
-        if self.isRunningTests { return nil }
+        if self.isRunningTests {
+            return nil
+        }
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
         return base?
             .appendingPathComponent("CodexBar", isDirectory: true)

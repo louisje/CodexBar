@@ -123,7 +123,9 @@ struct CostUsageScanExecutorTests {
         let clock = ContinuousClock()
         let deadline = clock.now.advanced(by: timeout)
         while clock.now < deadline {
-            if condition() { return true }
+            if condition() {
+                return true
+            }
             try? await Task.sleep(for: .milliseconds(5))
         }
         return condition()

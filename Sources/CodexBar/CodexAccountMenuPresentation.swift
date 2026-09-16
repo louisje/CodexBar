@@ -123,11 +123,15 @@ enum CodexAccountPresentationOrdering {
         }
 
         static func < (lhs: Rank, rhs: Rank) -> Bool {
-            if lhs.bucket != rhs.bucket { return lhs.bucket < rhs.bucket }
+            if lhs.bucket != rhs.bucket {
+                return lhs.bucket < rhs.bucket
+            }
             if lhs.availabilityScore != rhs.availabilityScore {
                 return lhs.availabilityScore > rhs.availabilityScore
             }
-            if lhs.displaySort != rhs.displaySort { return lhs.displaySort < rhs.displaySort }
+            if lhs.displaySort != rhs.displaySort {
+                return lhs.displaySort < rhs.displaySort
+            }
             return lhs.originalIndex < rhs.originalIndex
         }
 

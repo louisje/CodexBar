@@ -198,13 +198,17 @@ public struct NeuralWattUsageSnapshot: Codable, Sendable, Equatable {
     }
 
     public var effectiveRemainingCredits: Double? {
-        if let remaining = Self.validNonNegative(self.creditsRemainingUSD) { return remaining }
+        if let remaining = Self.validNonNegative(self.creditsRemainingUSD) {
+            return remaining
+        }
         guard let total = self.effectiveTotalCredits, let used = self.effectiveUsedCredits else { return nil }
         return max(0, total - used)
     }
 
     public var effectiveTotalCredits: Double? {
-        if let total = Self.validPositive(self.totalCreditsUSD) { return total }
+        if let total = Self.validPositive(self.totalCreditsUSD) {
+            return total
+        }
         guard let remaining = Self.validNonNegative(self.creditsRemainingUSD),
               let used = Self.validNonNegative(self.creditsUsedUSD)
         else { return nil }
@@ -213,7 +217,9 @@ public struct NeuralWattUsageSnapshot: Codable, Sendable, Equatable {
     }
 
     public var effectiveUsedCredits: Double? {
-        if let used = Self.validNonNegative(self.creditsUsedUSD) { return used }
+        if let used = Self.validNonNegative(self.creditsUsedUSD) {
+            return used
+        }
         guard let total = Self.validPositive(self.totalCreditsUSD),
               let remaining = Self.validNonNegative(self.creditsRemainingUSD)
         else { return nil }
@@ -221,7 +227,9 @@ public struct NeuralWattUsageSnapshot: Codable, Sendable, Equatable {
     }
 
     public var keyAllowanceUsedPercent: Double? {
-        if self.keyAllowance?.blocked == true { return 100 }
+        if self.keyAllowance?.blocked == true {
+            return 100
+        }
         guard let spent = self.keyAllowance?.spentUSD, let limit = self.keyAllowance?.limitUSD, limit > 0 else {
             return nil
         }
@@ -281,7 +289,9 @@ public struct NeuralWattUsageSnapshot: Codable, Sendable, Equatable {
     }
 
     private var effectiveSubscriptionTotalKWh: Double? {
-        if let included = Self.validPositive(self.subscription?.kwhIncluded) { return included }
+        if let included = Self.validPositive(self.subscription?.kwhIncluded) {
+            return included
+        }
         guard let used = Self.validNonNegative(self.subscription?.kwhUsed),
               let remaining = Self.validNonNegative(self.subscription?.kwhRemaining)
         else { return nil }
@@ -290,7 +300,9 @@ public struct NeuralWattUsageSnapshot: Codable, Sendable, Equatable {
     }
 
     private var effectiveSubscriptionUsedKWh: Double? {
-        if let used = Self.validNonNegative(self.subscription?.kwhUsed) { return used }
+        if let used = Self.validNonNegative(self.subscription?.kwhUsed) {
+            return used
+        }
         guard let total = self.effectiveSubscriptionTotalKWh,
               let remaining = Self.validNonNegative(self.subscription?.kwhRemaining)
         else { return nil }

@@ -1722,7 +1722,9 @@ private actor BlockingStatusMenuProviderRefresh {
     }
 
     func waitUntilStarted() async {
-        if self.started > 0 { return }
+        if self.started > 0 {
+            return
+        }
         await withCheckedContinuation { continuation in
             self.startWaiters.append(continuation)
         }

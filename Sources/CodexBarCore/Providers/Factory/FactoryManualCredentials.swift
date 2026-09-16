@@ -24,7 +24,9 @@ extension FactoryStatusProbe {
     static func bearerToken(fromHeader cookieHeader: String) -> String? {
         for pair in CookieHeaderNormalizer.pairs(from: cookieHeader) where pair.name == "access-token" {
             let token = pair.value.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !token.isEmpty { return token }
+            if !token.isEmpty {
+                return token
+            }
         }
         return nil
     }

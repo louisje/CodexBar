@@ -92,7 +92,9 @@ public enum OneConsoleCookieHeaderBuilder {
         for cookie in cookies {
             guard !cookie.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
             guard !cookie.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
-            if let expiry = cookie.expiresDate, expiry < Date() { continue }
+            if let expiry = cookie.expiresDate, expiry < Date() {
+                continue
+            }
             guard Self.matchesRequestURL(cookie: cookie, url: targetURL) else { continue }
 
             if let existing = byName[cookie.name] {

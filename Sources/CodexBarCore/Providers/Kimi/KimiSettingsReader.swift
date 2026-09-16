@@ -81,7 +81,9 @@ public enum KimiSettingsReader {
     }
 
     private static func hasCodeEndpointOverride(environment: [String: String]) -> Bool {
-        if self.cleaned(environment[self.codeAPIBaseURLEnvironmentKey]) != nil { return true }
+        if self.cleaned(environment[self.codeAPIBaseURLEnvironmentKey]) != nil {
+            return true
+        }
         return self.codeOAuthHostEnvironmentKeys.contains { self.cleaned(environment[$0]) != nil }
     }
 
@@ -195,9 +197,15 @@ private struct KimiCodeOAuthCredential: Decodable {
         in container: KeyedDecodingContainer<CodingKeys>,
         forKey key: CodingKeys) -> TimeInterval?
     {
-        if let value = try? container.decode(Double.self, forKey: key) { return value }
-        if let value = try? container.decode(Int64.self, forKey: key) { return TimeInterval(value) }
-        if let value = try? container.decode(String.self, forKey: key) { return TimeInterval(value) }
+        if let value = try? container.decode(Double.self, forKey: key) {
+            return value
+        }
+        if let value = try? container.decode(Int64.self, forKey: key) {
+            return TimeInterval(value)
+        }
+        if let value = try? container.decode(String.self, forKey: key) {
+            return TimeInterval(value)
+        }
         return nil
     }
 }

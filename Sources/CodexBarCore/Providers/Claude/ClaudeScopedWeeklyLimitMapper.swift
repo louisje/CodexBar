@@ -43,7 +43,11 @@ enum ClaudeScopedWeeklyLimitMapper {
 
     private static func nonEmpty(_ value: String?) -> String? {
         let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return if let trimmed, !trimmed.isEmpty { trimmed } else { nil }
+        return if let trimmed, !trimmed.isEmpty {
+            trimmed
+        } else {
+            nil
+        }
     }
 
     private static func slug(_ value: String) -> String {

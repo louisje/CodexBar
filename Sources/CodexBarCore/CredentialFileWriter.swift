@@ -55,7 +55,9 @@ enum CredentialFileWriter {
             }
             guard renamed == 0 else { throw Self.posixError(errno, path: url.path) }
         } catch {
-            if handleOpen { try? handle.close() }
+            if handleOpen {
+                try? handle.close()
+            }
             try? fm.removeItem(at: staged)
             throw error
         }

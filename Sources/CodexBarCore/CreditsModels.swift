@@ -137,7 +137,9 @@ public struct CodexRateLimitResetCreditInventory: Equatable, Sendable {
             .sorted { lhs, rhs in
                 switch (lhs.expiresAt, rhs.expiresAt) {
                 case let (lhsDate?, rhsDate?):
-                    if lhsDate != rhsDate { return lhsDate < rhsDate }
+                    if lhsDate != rhsDate {
+                        return lhsDate < rhsDate
+                    }
                 case (_?, nil):
                     return true
                 case (nil, _?):

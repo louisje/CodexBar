@@ -35,10 +35,14 @@ public struct OpenAIDashboardBrowserCookieImporter {
             case .dashboardStillRequiresLogin:
                 return "Browser cookies imported, but dashboard still requires login."
             case let .noMatchingAccount(found):
-                if found.isEmpty { return "No matching OpenAI web session found in browsers." }
+                if found.isEmpty {
+                    return "No matching OpenAI web session found in browsers."
+                }
                 let display = found
                     .sorted { lhs, rhs in
-                        if lhs.sourceLabel == rhs.sourceLabel { return lhs.email < rhs.email }
+                        if lhs.sourceLabel == rhs.sourceLabel {
+                            return lhs.email < rhs.email
+                        }
                         return lhs.sourceLabel < rhs.sourceLabel
                     }
                     .map { "\($0.sourceLabel)=\($0.email)" }
@@ -207,7 +211,9 @@ public struct OpenAIDashboardBrowserCookieImporter {
 
         if !diagnostics.mismatches.isEmpty {
             let found = Array(Set(diagnostics.mismatches)).sorted { lhs, rhs in
-                if lhs.sourceLabel == rhs.sourceLabel { return lhs.email < rhs.email }
+                if lhs.sourceLabel == rhs.sourceLabel {
+                    return lhs.email < rhs.email
+                }
                 return lhs.sourceLabel < rhs.sourceLabel
             }
             log("No matching browser session found. Candidate count: \(found.count)")
@@ -599,7 +605,9 @@ public struct OpenAIDashboardBrowserCookieImporter {
                 }
                 return .mismatch(candidate: candidate, signedInEmail: apiEmail)
             }
-            if allowAnyAccount { return .loggedIn(candidate: candidate, signedInEmail: apiEmail) }
+            if allowAnyAccount {
+                return .loggedIn(candidate: candidate, signedInEmail: apiEmail)
+            }
         }
 
         if !self.hasSessionCookies(candidate.cookies) {
@@ -626,7 +634,9 @@ public struct OpenAIDashboardBrowserCookieImporter {
                     }
                     return .mismatch(candidate: candidate, signedInEmail: resolvedEmail)
                 }
-                if allowAnyAccount { return .loggedIn(candidate: candidate, signedInEmail: resolvedEmail) }
+                if allowAnyAccount {
+                    return .loggedIn(candidate: candidate, signedInEmail: resolvedEmail)
+                }
             }
 
             return .unknown(candidate: candidate)
@@ -646,7 +656,9 @@ public struct OpenAIDashboardBrowserCookieImporter {
             if name.contains("session-token") || name.contains("authjs") || name.contains("next-auth") {
                 return true
             }
-            if name == "_account" { return true }
+            if name == "_account" {
+                return true
+            }
         }
         return false
     }
@@ -729,7 +741,9 @@ public struct OpenAIDashboardBrowserCookieImporter {
             }
             if let dict = cur as? [String: Any] {
                 for (k, v) in dict {
-                    if k.lowercased() == "email", let s = v as? String, s.contains("@") { return s }
+                    if k.lowercased() == "email", let s = v as? String, s.contains("@") {
+                        return s
+                    }
                     queue.append(v)
                 }
             } else if let arr = cur as? [Any] {
@@ -959,7 +973,9 @@ public struct OpenAIDashboardBrowserCookieImporter {
             guard let c = nameCounts[name], c > 0 else { return nil }
             return "\(name)=\(c)"
         }
-        if parts.isEmpty { return "no key cookies detected" }
+        if parts.isEmpty {
+            return "no key cookies detected"
+        }
         return parts.joined(separator: ", ")
     }
 }
@@ -997,10 +1013,14 @@ public struct OpenAIDashboardBrowserCookieImporter {
             case .dashboardStillRequiresLogin:
                 return "Browser cookies imported, but dashboard still requires login."
             case let .noMatchingAccount(found):
-                if found.isEmpty { return "No matching OpenAI web session found in browsers." }
+                if found.isEmpty {
+                    return "No matching OpenAI web session found in browsers."
+                }
                 let display = found
                     .sorted { lhs, rhs in
-                        if lhs.sourceLabel == rhs.sourceLabel { return lhs.email < rhs.email }
+                        if lhs.sourceLabel == rhs.sourceLabel {
+                            return lhs.email < rhs.email
+                        }
                         return lhs.sourceLabel < rhs.sourceLabel
                     }
                     .map { "\($0.sourceLabel)=\($0.email)" }

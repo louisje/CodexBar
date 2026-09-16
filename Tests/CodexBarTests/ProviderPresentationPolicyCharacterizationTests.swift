@@ -140,8 +140,12 @@ struct ProviderPresentationPolicyCharacterizationTests {
 
         for provider in UsageProvider.allCases {
             var expected: Set<ProviderUsageLane> = []
-            if weekly.contains(provider) { expected.insert(.secondary) }
-            if monthly.contains(provider) { expected.insert(.tertiary) }
+            if weekly.contains(provider) {
+                expected.insert(.secondary)
+            }
+            if monthly.contains(provider) {
+                expected.insert(.tertiary)
+            }
             let actual = ProviderDescriptorRegistry.descriptor(for: provider)
                 .presentation.primaryBindingQuotaLanes
             #expect(actual == expected, "Unexpected binding quota lanes for \(provider.rawValue)")

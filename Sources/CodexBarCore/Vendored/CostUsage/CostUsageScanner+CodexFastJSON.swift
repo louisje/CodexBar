@@ -189,9 +189,13 @@ extension CostUsageScanner {
             sawDigit = true
             let digit = Int(byte - 0x30)
             let multiplied = value.multipliedReportingOverflow(by: 10)
-            if multiplied.overflow { return nil }
+            if multiplied.overflow {
+                return nil
+            }
             let added = multiplied.partialValue.addingReportingOverflow(digit)
-            if added.overflow { return nil }
+            if added.overflow {
+                return nil
+            }
             value = added.partialValue
             index += 1
         }

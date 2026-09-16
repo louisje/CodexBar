@@ -24,7 +24,9 @@ extension OpenAIDashboardBrowserCookieImporter {
                 self.didFinish = true
                 return true
             }
-            if shouldFinish { action() }
+            if shouldFinish {
+                action()
+            }
         }
     }
 

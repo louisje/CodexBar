@@ -107,8 +107,12 @@ package enum CodexAdditionalRateLimitMapper {
         fallback: SparkWindowKind) -> SparkWindowKind
     {
         let minutes = snapshot.limitWindowSeconds > 0 ? snapshot.limitWindowSeconds / 60 : 0
-        if minutes > 0, minutes <= 6 * 60 { return .fiveHour }
-        if minutes >= 6 * 24 * 60 { return .weekly }
+        if minutes > 0, minutes <= 6 * 60 {
+            return .fiveHour
+        }
+        if minutes >= 6 * 24 * 60 {
+            return .weekly
+        }
         return fallback
     }
 
@@ -131,7 +135,9 @@ package enum CodexAdditionalRateLimitMapper {
     private static func firstNonEmpty(_ values: String?...) -> String? {
         for value in values {
             let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
-            if let trimmed, !trimmed.isEmpty { return trimmed }
+            if let trimmed, !trimmed.isEmpty {
+                return trimmed
+            }
         }
         return nil
     }

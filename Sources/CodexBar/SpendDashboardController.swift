@@ -1493,7 +1493,9 @@ final class SpendDashboardController {
     }
 
     private func provider(for sourceID: String) -> UsageProvider? {
-        if sourceID.hasPrefix("codex:") { return .codex }
+        if sourceID.hasPrefix("codex:") {
+            return .codex
+        }
         return UsageProvider(rawValue: sourceID)
     }
 

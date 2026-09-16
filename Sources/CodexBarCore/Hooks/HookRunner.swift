@@ -95,7 +95,9 @@ public enum HookRunner {
     }
 
     public static func failureSummary(_ error: Error) -> String {
-        if error is HookRunnerError { return "payload too large" }
+        if error is HookRunnerError {
+            return "payload too large"
+        }
         guard let error = error as? SubprocessRunnerError else { return "error" }
         switch error {
         case .binaryNotFound: return "executable not found"

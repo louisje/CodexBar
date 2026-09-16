@@ -142,7 +142,9 @@ enum BedrockUsageFetcher {
                     endpointOverride: cloudWatchOverride,
                     transport: cloudWatchTransport)
             } catch {
-                if Task.isCancelled { throw error }
+                if Task.isCancelled {
+                    throw error
+                }
                 Self.log.debug("AWS CloudWatch Claude activity unavailable; keeping Cost Explorer usage.")
             }
         }

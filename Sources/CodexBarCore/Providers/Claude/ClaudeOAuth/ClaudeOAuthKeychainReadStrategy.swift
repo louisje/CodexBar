@@ -14,7 +14,9 @@ public enum ClaudeOAuthKeychainReadStrategyPreference {
 
     public static func current(userDefaults: UserDefaults = .standard) -> ClaudeOAuthKeychainReadStrategy {
         #if DEBUG
-        if let taskOverride { return taskOverride }
+        if let taskOverride {
+            return taskOverride
+        }
         #endif
         if let raw = userDefaults.string(forKey: self.userDefaultsKey) {
             let strategy = ClaudeOAuthKeychainReadStrategy(rawValue: raw) ?? .securityFramework

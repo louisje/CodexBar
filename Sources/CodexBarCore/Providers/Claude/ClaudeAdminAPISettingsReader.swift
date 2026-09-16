@@ -10,7 +10,9 @@ public enum ClaudeAdminAPISettingsReader {
 
     public static func apiKey(environment: [String: String] = ProcessInfo.processInfo.environment) -> String? {
         for key in self.apiKeyEnvironmentKeys {
-            if let token = self.cleaned(environment[key]) { return token }
+            if let token = self.cleaned(environment[key]) {
+                return token
+            }
         }
         return nil
     }

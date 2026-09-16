@@ -155,7 +155,9 @@ extension StatusItemController {
                   resolution.layout
                       .flattenedTokens(conditionals: self.settings.menuBarLayoutConditionals)
                       .contains(where: {
-                          if case .pace(window: .weekly) = $0 { return true }
+                          if case .pace(window: .weekly) = $0 {
+                              return true
+                          }
                           return false
                       })
             else { return nil }

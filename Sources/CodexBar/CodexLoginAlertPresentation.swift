@@ -36,8 +36,12 @@ enum CodexLoginAlertPresentation {
     private static func trimmedOutput(_ text: String) -> String {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let limit = 600
-        if trimmed.isEmpty { return L("No output captured.") }
-        if trimmed.count <= limit { return trimmed }
+        if trimmed.isEmpty {
+            return L("No output captured.")
+        }
+        if trimmed.count <= limit {
+            return trimmed
+        }
         let idx = trimmed.index(trimmed.startIndex, offsetBy: limit)
         return "\(trimmed[..<idx])…"
     }

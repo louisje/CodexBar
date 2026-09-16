@@ -352,7 +352,9 @@ struct ClaudeOAuthDelegatedRefreshCoordinatorTests {
             }
 
             func waitStarted() async {
-                if self.hasStarted { return }
+                if self.hasStarted {
+                    return
+                }
                 await withCheckedContinuation { cont in
                     self.startedContinuations.append(cont)
                 }
@@ -366,7 +368,9 @@ struct ClaudeOAuthDelegatedRefreshCoordinatorTests {
             }
 
             func waitRelease() async {
-                if self.isReleased { return }
+                if self.isReleased {
+                    return
+                }
                 await withCheckedContinuation { cont in
                     self.releaseContinuations.append(cont)
                 }
@@ -454,7 +458,9 @@ struct ClaudeOAuthDelegatedRefreshCoordinatorTests {
             }
 
             func waitStarted() async {
-                if self.hasStarted { return }
+                if self.hasStarted {
+                    return
+                }
                 await withCheckedContinuation { self.startedContinuation = $0 }
             }
 
@@ -465,7 +471,9 @@ struct ClaudeOAuthDelegatedRefreshCoordinatorTests {
             }
 
             func waitRelease() async {
-                if self.isReleased { return }
+                if self.isReleased {
+                    return
+                }
                 await withCheckedContinuation { self.releaseContinuation = $0 }
             }
 
@@ -476,7 +484,9 @@ struct ClaudeOAuthDelegatedRefreshCoordinatorTests {
             }
 
             func waitJoined() async {
-                if self.hasJoined { return }
+                if self.hasJoined {
+                    return
+                }
                 await withCheckedContinuation { self.joinedContinuation = $0 }
             }
         }

@@ -113,7 +113,9 @@ public struct OneConsoleCookieRouting: Sendable {
     }
 
     private static func normalizedPort(_ url: URL) -> Int? {
-        if let port = url.port { return port }
+        if let port = url.port {
+            return port
+        }
         switch url.scheme?.lowercased() {
         case "http": return 80
         case "https": return 443

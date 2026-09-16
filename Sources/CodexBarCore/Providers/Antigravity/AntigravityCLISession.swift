@@ -1087,12 +1087,16 @@ final class AntigravitySpawnedPTYProcessHandle: AntigravityCLIProcessHandle, @un
                     retries = 0
                     continue
                 }
-                if written == 0 { break }
+                if written == 0 {
+                    break
+                }
 
                 let err = errno
                 if err == EINTR || err == EAGAIN || err == EWOULDBLOCK {
                     retries += 1
-                    if retries > 200 { return }
+                    if retries > 200 {
+                        return
+                    }
                     usleep(5000)
                     continue
                 }

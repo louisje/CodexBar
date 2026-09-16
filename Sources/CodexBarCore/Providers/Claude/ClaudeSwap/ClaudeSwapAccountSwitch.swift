@@ -91,14 +91,18 @@ public enum ClaudeSwapSwitchParser {
     }
 
     private static func accountNumber(in raw: Any?, field: String, allowsNull: Bool) throws -> Int? {
-        if raw is NSNull, allowsNull { return nil }
+        if raw is NSNull, allowsNull {
+            return nil
+        }
         guard let account = raw as? [String: Any] else {
             throw ClaudeSwapSwitchParserError.malformedShape("missing \(field) account")
         }
         guard let rawNumber = account["number"] else {
             throw ClaudeSwapSwitchParserError.malformedShape("\(field) account has no number")
         }
-        if rawNumber is NSNull, allowsNull { return nil }
+        if rawNumber is NSNull, allowsNull {
+            return nil
+        }
         guard let number = self.integer(rawNumber), number > 0
         else {
             throw ClaudeSwapSwitchParserError.malformedShape("\(field) account number is not a positive slot")

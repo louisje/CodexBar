@@ -41,12 +41,24 @@ public enum LogRedactor {
     }
 
     private static func mayContainSensitiveValue(_ text: String) -> Bool {
-        if text.range(of: "@") != nil { return true }
-        if text.range(of: "sk-cp-", options: [.caseInsensitive]) != nil { return true }
-        if text.range(of: "sk-api-", options: [.caseInsensitive]) != nil { return true }
-        if text.range(of: "bearer", options: [.caseInsensitive]) != nil { return true }
-        if text.range(of: "cookie", options: [.caseInsensitive]) != nil { return true }
-        if text.range(of: "authorization", options: [.caseInsensitive]) != nil { return true }
+        if text.range(of: "@") != nil {
+            return true
+        }
+        if text.range(of: "sk-cp-", options: [.caseInsensitive]) != nil {
+            return true
+        }
+        if text.range(of: "sk-api-", options: [.caseInsensitive]) != nil {
+            return true
+        }
+        if text.range(of: "bearer", options: [.caseInsensitive]) != nil {
+            return true
+        }
+        if text.range(of: "cookie", options: [.caseInsensitive]) != nil {
+            return true
+        }
+        if text.range(of: "authorization", options: [.caseInsensitive]) != nil {
+            return true
+        }
         return false
     }
 

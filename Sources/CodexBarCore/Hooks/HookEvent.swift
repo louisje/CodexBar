@@ -76,13 +76,27 @@ public struct HookEvent: Codable, Sendable, Equatable {
             "CODEXBAR_PROVIDER": self.provider,
             "CODEXBAR_TIMESTAMP": Self.iso8601String(self.timestamp),
         ]
-        if let account { env["CODEXBAR_ACCOUNT"] = account }
-        if let window { env["CODEXBAR_WINDOW"] = window }
-        if let usagePercent { env["CODEXBAR_USAGE_PERCENT"] = Self.number(usagePercent) }
-        if let used { env["CODEXBAR_USED"] = Self.number(used) }
-        if let limit { env["CODEXBAR_LIMIT"] = Self.number(limit) }
-        if let resetAt { env["CODEXBAR_RESET_AT"] = Self.iso8601String(resetAt) }
-        if let status { env["CODEXBAR_STATUS"] = status }
+        if let account {
+            env["CODEXBAR_ACCOUNT"] = account
+        }
+        if let window {
+            env["CODEXBAR_WINDOW"] = window
+        }
+        if let usagePercent {
+            env["CODEXBAR_USAGE_PERCENT"] = Self.number(usagePercent)
+        }
+        if let used {
+            env["CODEXBAR_USED"] = Self.number(used)
+        }
+        if let limit {
+            env["CODEXBAR_LIMIT"] = Self.number(limit)
+        }
+        if let resetAt {
+            env["CODEXBAR_RESET_AT"] = Self.iso8601String(resetAt)
+        }
+        if let status {
+            env["CODEXBAR_STATUS"] = status
+        }
         return env
     }
 

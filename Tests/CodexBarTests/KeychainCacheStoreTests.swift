@@ -10,7 +10,7 @@ struct KeychainCacheStoreTests {
     }
 
     @Test
-    func `tests suppress real keychain access by default`() {
+    func `s suppress real keychain access by default`() {
         guard ProcessInfo.processInfo.environment["CODEXBAR_ALLOW_TEST_KEYCHAIN_ACCESS"] != "1" else { return }
 
         #expect(KeychainCacheStore.canUseRealKeychainForTesting == false)

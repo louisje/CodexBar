@@ -68,7 +68,9 @@ public enum OpenAIDashboardParser {
                   match.numberOfRanges >= 2,
                   let r = Range(match.range(at: 1), in: cleaned)
             else { continue }
-            if let val = Double(cleaned[r]) { return min(100, max(0, val)) }
+            if let val = Double(cleaned[r]) {
+                return min(100, max(0, val))
+            }
         }
         return nil
     }
@@ -81,7 +83,9 @@ public enum OpenAIDashboardParser {
             #"credit\s*balance[^0-9]*([0-9][0-9.,]*)"#,
         ]
         for pattern in patterns {
-            if let val = TextParsing.firstNumber(pattern: pattern, text: cleaned) { return val }
+            if let val = TextParsing.firstNumber(pattern: pattern, text: cleaned) {
+                return val
+            }
         }
         return nil
     }
@@ -324,34 +328,58 @@ public enum OpenAIDashboardParser {
         let lower = line.lowercased()
         let isRemaining = lower.contains("remaining") || lower.contains("left")
         let isUsed = lower.contains("used") || lower.contains("spent") || lower.contains("consumed")
-        if isUsed { return (percent, false) }
-        if isRemaining { return (percent, true) }
+        if isUsed {
+            return (percent, false)
+        }
+        if isRemaining {
+            return (percent, true)
+        }
         return (percent, true)
     }
 
     private static func isFiveHourLimitLine(_ line: String) -> Bool {
         let lower = line.lowercased()
-        if lower.contains("5h") { return true }
-        if lower.range(of: #"\b5\s*h\b"#, options: .regularExpression) != nil { return true }
-        if lower.contains("5-hour") { return true }
-        if lower.contains("5 hour") { return true }
+        if lower.contains("5h") {
+            return true
+        }
+        if lower.range(of: #"\b5\s*h\b"#, options: .regularExpression) != nil {
+            return true
+        }
+        if lower.contains("5-hour") {
+            return true
+        }
+        if lower.contains("5 hour") {
+            return true
+        }
         return false
     }
 
     private static func isWeeklyLimitLine(_ line: String) -> Bool {
         let lower = line.lowercased()
-        if lower.contains("weekly") { return true }
-        if lower.contains("7-day") { return true }
-        if lower.contains("7 day") { return true }
-        if lower.contains("7d") { return true }
-        if lower.range(of: #"\b7\s*d\b"#, options: .regularExpression) != nil { return true }
+        if lower.contains("weekly") {
+            return true
+        }
+        if lower.contains("7-day") {
+            return true
+        }
+        if lower.contains("7 day") {
+            return true
+        }
+        if lower.contains("7d") {
+            return true
+        }
+        if lower.range(of: #"\b7\s*d\b"#, options: .regularExpression) != nil {
+            return true
+        }
         return false
     }
 
     private static func isCodeReviewLimitLine(_ line: String) -> Bool {
         let lower = line.lowercased()
         guard lower.contains("code review") || lower.contains("core review") else { return false }
-        if lower.contains("github code review") { return false }
+        if lower.contains("github code review") {
+            return false
+        }
         return true
     }
 
@@ -471,7 +499,9 @@ public enum OpenAIDashboardParser {
     private static func nextWeekdayDate(weekday: Int, now: Date, calendar: Calendar) -> Date {
         let currentWeekday = calendar.component(.weekday, from: now)
         var delta = weekday - currentWeekday
-        if delta < 0 { delta += 7 }
+        if delta < 0 {
+            delta += 7
+        }
         guard let next = calendar.date(byAdding: .day, value: delta, to: calendar.startOfDay(for: now)) else {
             return now
         }
@@ -491,7 +521,9 @@ public enum OpenAIDashboardParser {
             seen += 1
             if let dict = cur as? [String: Any] {
                 for (k, v) in dict {
-                    if let plan = self.planCandidate(forKey: k, value: v) { return plan }
+                    if let plan = self.planCandidate(forKey: k, value: v) {
+                        return plan
+                    }
                     queue.append(v)
                 }
             } else if let arr = cur as? [Any] {
@@ -507,9 +539,15 @@ public enum OpenAIDashboardParser {
             return self.normalizePlanValue(str)
         }
         if let dict = value as? [String: Any] {
-            if let name = dict["name"] as? String, let plan = self.normalizePlanValue(name) { return plan }
-            if let display = dict["displayName"] as? String, let plan = self.normalizePlanValue(display) { return plan }
-            if let tier = dict["tier"] as? String, let plan = self.normalizePlanValue(tier) { return plan }
+            if let name = dict["name"] as? String, let plan = self.normalizePlanValue(name) {
+                return plan
+            }
+            if let display = dict["displayName"] as? String, let plan = self.normalizePlanValue(display) {
+                return plan
+            }
+            if let tier = dict["tier"] as? String, let plan = self.normalizePlanValue(tier) {
+                return plan
+            }
         }
         return nil
     }

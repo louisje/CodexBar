@@ -39,7 +39,9 @@ struct CodexThreadCatalogReadResult: Sendable {
     let completeness: CodexThreadCatalogCompleteness
 
     var isComplete: Bool {
-        if case .complete = self.completeness { return true }
+        if case .complete = self.completeness {
+            return true
+        }
         return false
     }
 }
@@ -169,7 +171,9 @@ enum CodexThreadCatalogReader {
         var entries: [CodexThreadCatalogEntry] = []
         while true {
             let step = sqlite3_step(stmt)
-            if step == SQLITE_DONE { break }
+            if step == SQLITE_DONE {
+                break
+            }
             guard step == SQLITE_ROW else { return nil }
             guard let id = self.text(stmt, 0),
                   let rolloutPath = self.text(stmt, 1)

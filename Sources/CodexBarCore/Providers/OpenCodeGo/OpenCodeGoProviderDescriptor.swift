@@ -401,8 +401,12 @@ struct OpenCodeGoAPIUsageFetchStrategy: ProviderFetchStrategy {
 
     func shouldFallback(on error: Error, context: ProviderFetchContext) -> Bool {
         guard context.sourceMode == .auto else { return false }
-        if error is CancellationError { return false }
-        if let urlError = error as? URLError, urlError.code == .cancelled { return false }
+        if error is CancellationError {
+            return false
+        }
+        if let urlError = error as? URLError, urlError.code == .cancelled {
+            return false
+        }
         return true
     }
 }

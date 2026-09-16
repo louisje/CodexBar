@@ -32,15 +32,29 @@ public enum KeychainAccessGate {
     }
 
     private static func isDisabledLocked() -> Bool {
-        if let taskOverrideValue { return taskOverrideValue }
-        if self.isDisabledByEnvironment() { return true }
+        if let taskOverrideValue {
+            return taskOverrideValue
+        }
+        if self.isDisabledByEnvironment() {
+            return true
+        }
         #if DEBUG
-        if Self.forcesDisabledUnderTests { return true }
+        if Self.forcesDisabledUnderTests {
+            return true
+        }
         #endif
-        if self.processForceDisabledReason != nil { return true }
-        if let overrideValue { return overrideValue }
-        if UserDefaults.standard.bool(forKey: Self.flagKey) { return true }
-        if let shared = AppGroupSupport.sharedDefaults(), shared.bool(forKey: Self.flagKey) { return true }
+        if self.processForceDisabledReason != nil {
+            return true
+        }
+        if let overrideValue {
+            return overrideValue
+        }
+        if UserDefaults.standard.bool(forKey: Self.flagKey) {
+            return true
+        }
+        if let shared = AppGroupSupport.sharedDefaults(), shared.bool(forKey: Self.flagKey) {
+            return true
+        }
         return false
     }
 
@@ -52,12 +66,24 @@ public enum KeychainAccessGate {
     }
 
     private static func isExplicitlyDisabledLocked() -> Bool {
-        if let taskOverrideValue { return taskOverrideValue }
-        if self.isDisabledByEnvironment() { return true }
-        if self.processForceDisabledReason != nil { return true }
-        if let overrideValue { return overrideValue }
-        if UserDefaults.standard.bool(forKey: Self.flagKey) { return true }
-        if let shared = AppGroupSupport.sharedDefaults(), shared.bool(forKey: Self.flagKey) { return true }
+        if let taskOverrideValue {
+            return taskOverrideValue
+        }
+        if self.isDisabledByEnvironment() {
+            return true
+        }
+        if self.processForceDisabledReason != nil {
+            return true
+        }
+        if let overrideValue {
+            return overrideValue
+        }
+        if UserDefaults.standard.bool(forKey: Self.flagKey) {
+            return true
+        }
+        if let shared = AppGroupSupport.sharedDefaults(), shared.bool(forKey: Self.flagKey) {
+            return true
+        }
         return false
     }
 

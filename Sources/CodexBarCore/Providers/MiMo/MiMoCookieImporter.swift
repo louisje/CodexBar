@@ -40,7 +40,9 @@ enum MiMoCookieHeader {
         for cookie in cookies {
             guard self.knownCookieNames.contains(cookie.name) else { continue }
             guard !cookie.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { continue }
-            if let expiry = cookie.expiresDate, expiry < Date() { continue }
+            if let expiry = cookie.expiresDate, expiry < Date() {
+                continue
+            }
             guard Self.matchesRequestURL(cookie: cookie, url: requestURL) else { continue }
 
             if let existing = byName[cookie.name] {
@@ -591,7 +593,9 @@ enum MiMoFirefoxSessionCookieImporter {
         guard self.domainMatchesMiMo(domain) else { return nil }
 
         let expiry = self.expiryDate(from: dictionary["expires"] ?? dictionary["expiry"])
-        if let expiry, expiry < now { return nil }
+        if let expiry, expiry < now {
+            return nil
+        }
 
         let path = self.cookiePath(from: dictionary)
         return BrowserCookieRecord(
@@ -735,7 +739,9 @@ enum MiMoFirefoxSessionCookieImporter {
                 throw ImportError.resourceLimit(.outputBytes)
             }
             length += next
-            if next != 255 { break }
+            if next != 255 {
+                break
+            }
         }
         return length
     }

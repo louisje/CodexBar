@@ -55,7 +55,9 @@ extension StatusItemController {
 
         func updatable(_ shape: MenuRowShape, _ newItem: NSMenuItem) -> Bool {
             guard shape.isSeparator == newItem.isSeparatorItem else { return false }
-            if shape.isSeparator { return true }
+            if shape.isSeparator {
+                return true
+            }
             guard !shape.requiresNativeImageReplacement,
                   !self.shouldReplaceNativeImageItemDuringReconcile(newItem)
             else { return false }
@@ -191,7 +193,9 @@ extension StatusItemController {
     }
 
     private func updateMenuItemInPlace(_ liveItem: NSMenuItem, from newItem: NSMenuItem) {
-        if liveItem.isSeparatorItem { return }
+        if liveItem.isSeparatorItem {
+            return
+        }
         let remainsHighlighted = liveItem.menu.map {
             self.highlightedMenuItems[ObjectIdentifier($0)] === liveItem
         } ?? false

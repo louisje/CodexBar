@@ -16,7 +16,9 @@ struct OpenAIDashboardScrapeScriptTests {
 
     @Test
     func `scraper returns structured account fields without full html`() async throws {
-        if Self.shouldSkipOnCI() { return }
+        if Self.shouldSkipOnCI() {
+            return
+        }
 
         let webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
         _ = webView.loadHTMLString(Self.bootstrapAccountHTML, baseURL: nil)
@@ -33,7 +35,9 @@ struct OpenAIDashboardScrapeScriptTests {
 
     @Test
     func `usage breakdown scraper ignores neighboring client charts`() async throws {
-        if Self.shouldSkipOnCI() { return }
+        if Self.shouldSkipOnCI() {
+            return
+        }
 
         let webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
         _ = webView.loadHTMLString(Self.multiChartHTML, baseURL: nil)
@@ -53,7 +57,9 @@ struct OpenAIDashboardScrapeScriptTests {
 
     @Test
     func `usage breakdown scraper reports wrong chart instead of accepting it`() async throws {
-        if Self.shouldSkipOnCI() { return }
+        if Self.shouldSkipOnCI() {
+            return
+        }
 
         let webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
         _ = webView.loadHTMLString(Self.clientOnlyChartHTML, baseURL: nil)
@@ -68,7 +74,9 @@ struct OpenAIDashboardScrapeScriptTests {
 
     @Test
     func `usage breakdown scraper rejects non english chart titles`() async throws {
-        if Self.shouldSkipOnCI() { return }
+        if Self.shouldSkipOnCI() {
+            return
+        }
 
         let webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
         _ = webView.loadHTMLString(Self.localizedUsageChartHTML, baseURL: nil)
@@ -93,7 +101,9 @@ struct OpenAIDashboardScrapeScriptTests {
         while Date() < deadline {
             let loaded = try? await webView.evaluateJavaScript(
                 "document.getElementById('\(elementID)') !== null") as? Bool
-            if loaded == true { return }
+            if loaded == true {
+                return
+            }
             try await Task.sleep(for: .milliseconds(50))
         }
     }

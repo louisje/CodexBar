@@ -121,7 +121,7 @@ struct MyCoderUsageFetcherTests {
     }
 
     @Test
-    func `extracts user id from sso token audience`() throws {
+    func `extracts user id from sso token audience`() {
         // JWT payload: {"iss":"iam user access token","aud":["test-user-id"],"exp":1790139598}
         let payload = Data(#"{"iss":"iam user access token","aud":["test-user-id"],"exp":1790139598}"#.utf8)
             .base64EncodedString()

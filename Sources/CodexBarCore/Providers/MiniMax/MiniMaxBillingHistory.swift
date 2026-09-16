@@ -130,7 +130,9 @@ struct MiniMaxBillingRecord: Decodable {
     }
 
     var tokenCount: Int {
-        if let consumeToken, consumeToken > 0 { return consumeToken }
+        if let consumeToken, consumeToken > 0 {
+            return consumeToken
+        }
         return max(0, (self.consumeInputToken ?? 0) + (self.consumeOutputToken ?? 0))
     }
 
@@ -344,7 +346,9 @@ enum MiniMaxBillingHistoryParser {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         for format in formats {
             formatter.dateFormat = format
-            if let date = formatter.date(from: trimmed) { return date }
+            if let date = formatter.date(from: trimmed) {
+                return date
+            }
         }
         return nil
     }

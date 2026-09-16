@@ -79,7 +79,9 @@ struct CLIOutputPreferences {
     /// command, so the argv bootstrap scanner has to reach the same verdict as the post-parse path.
     static func commandSupportsToon(argv: [String]) -> Bool {
         guard let first = argv.first else { return true }
-        if first.hasPrefix("-") { return true }
+        if first.hasPrefix("-") {
+            return true
+        }
         return first == "usage"
     }
 

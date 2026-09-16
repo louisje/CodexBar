@@ -26,7 +26,9 @@ private func killProcessTree(childPID: pid_t, graceSeconds: TimeInterval = 0.5) 
     var status: Int32 = 0
     while Date() < deadline {
         let rc = waitpid(childPID, &status, WNOHANG)
-        if rc == childPID { return }
+        if rc == childPID {
+            return
+        }
         usleep(50000)
     }
 
@@ -63,7 +65,11 @@ let spawnResult: Int32 = childArgv.withUnsafeBufferPointer { buffer in
     var cStrings: [UnsafeMutablePointer<CChar>?] = buffer
         .map { strdup($0) }
     cStrings.append(nil)
-    defer { cStrings.forEach { if let p = $0 { free(p) } } }
+    defer { for cString in cStrings {
+        if let p = cString {
+            free(p)
+        }
+    } }
 
     return cStrings.withUnsafeMutableBufferPointer { cBuffer in
         var pid: pid_t = 0

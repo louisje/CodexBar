@@ -290,9 +290,15 @@ actor HistoricalUsageHistoryStore {
             return true
         }
 
-        if prior.resetsAt != sample.resetsAt { return true }
-        if sample.sampledAt.timeIntervalSince(prior.sampledAt) >= Self.writeInterval { return true }
-        if abs(sample.usedPercent - prior.usedPercent) >= Self.writeDeltaThreshold { return true }
+        if prior.resetsAt != sample.resetsAt {
+            return true
+        }
+        if sample.sampledAt.timeIntervalSince(prior.sampledAt) >= Self.writeInterval {
+            return true
+        }
+        if abs(sample.usedPercent - prior.usedPercent) >= Self.writeDeltaThreshold {
+            return true
+        }
         return false
     }
 
@@ -411,7 +417,9 @@ actor HistoricalUsageHistoryStore {
             let windowMinutes: Int
         }
 
-        if scoped.isEmpty { return nil }
+        if scoped.isEmpty {
+            return nil
+        }
 
         let grouped = Dictionary(grouping: scoped) {
             WeekKey(resetsAt: $0.resetsAt, windowMinutes: $0.windowMinutes)
@@ -444,7 +452,9 @@ actor HistoricalUsageHistoryStore {
         }
 
         weeks.sort { $0.resetsAt < $1.resetsAt }
-        if weeks.isEmpty { return nil }
+        if weeks.isEmpty {
+            return nil
+        }
         return CodexHistoricalDataset(weeks: weeks)
     }
 
@@ -697,8 +707,12 @@ actor HistoricalUsageHistoryStore {
         guard end > start else { return 0 }
         var total = 0.0
         for day in dayUsages {
-            if day.end <= start { continue }
-            if day.start >= end { break }
+            if day.end <= start {
+                continue
+            }
+            if day.start >= end {
+                break
+            }
             let overlapStart = max(day.start, start)
             let overlapEnd = min(day.end, end)
             guard overlapEnd > overlapStart else { continue }
@@ -779,7 +793,9 @@ enum CodexHistoricalPaceEvaluator {
 
         let elapsed = Self.clamp(duration - timeUntilReset, lower: 0, upper: duration)
         let actual = Self.clamp(window.usedPercent, lower: 0, upper: 100)
-        if elapsed == 0, actual > 0 { return nil }
+        if elapsed == 0, actual > 0 {
+            return nil
+        }
 
         let uNow = Self.clamp(elapsed / duration, lower: 0, upper: 1)
         let scopedWeeks = dataset.weeks.filter { week in
@@ -913,11 +929,15 @@ enum CodexHistoricalPaceEvaluator {
         let startIndex = min(gridCount - 1, max(1, Int(floor(uNow * denominator)) + 1))
         for index in startIndex..<gridCount {
             let u = Double(index) / denominator
-            if u <= uNow + Self.epsilon { continue }
+            if u <= uNow + Self.epsilon {
+                continue
+            }
             let value = Self.clamp(curve[index] + shift, lower: 0, upper: 100)
             if previousValue < 100 - Self.epsilon, value >= 100 - Self.epsilon {
                 let delta = value - previousValue
-                if abs(delta) <= Self.epsilon { return u }
+                if abs(delta) <= Self.epsilon {
+                    return u
+                }
                 let ratio = Self.clamp((100 - previousValue) / delta, lower: 0, upper: 1)
                 return Self.clamp(previousU + ratio * (u - previousU), lower: uNow, upper: 1)
             }
@@ -929,13 +949,17 @@ enum CodexHistoricalPaceEvaluator {
 
     private static func interpolate(curve: [Double], at u: Double) -> Double {
         guard !curve.isEmpty else { return 0 }
-        if curve.count == 1 { return curve[0] }
+        if curve.count == 1 {
+            return curve[0]
+        }
 
         let clipped = Self.clamp(u, lower: 0, upper: 1)
         let scaled = clipped * Double(curve.count - 1)
         let lower = Int(floor(scaled))
         let upper = min(curve.count - 1, lower + 1)
-        if lower == upper { return curve[lower] }
+        if lower == upper {
+            return curve[lower]
+        }
         let ratio = scaled - Double(lower)
         return curve[lower] + ((curve[upper] - curve[lower]) * ratio)
     }

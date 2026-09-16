@@ -97,7 +97,9 @@ struct ProviderEndpointOverrideValidator {
 
     private static func hasExplicitURLScheme(_ raw: String) -> Bool {
         guard let colonIndex = raw.firstIndex(of: ":") else { return false }
-        if raw[colonIndex...].hasPrefix("://") { return true }
+        if raw[colonIndex...].hasPrefix("://") {
+            return true
+        }
 
         if let authorityEnd = raw.firstIndex(where: { ["/", "?", "#"].contains($0) }),
            colonIndex > authorityEnd
@@ -119,7 +121,9 @@ struct ProviderEndpointOverrideValidator {
     }
 
     private static func isLoopbackHost(_ host: String) -> Bool {
-        if host == "localhost" || host == "::1" { return true }
+        if host == "localhost" || host == "::1" {
+            return true
+        }
         let octets = host.split(separator: ".", omittingEmptySubsequences: false)
         guard octets.count == 4,
               let first = UInt8(octets[0]),

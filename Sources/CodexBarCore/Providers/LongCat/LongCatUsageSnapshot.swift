@@ -35,8 +35,12 @@ public struct LongCatUsageSnapshot: Sendable {
 
 extension LongCatUsageSnapshot {
     private func resolvedUsed(total: Double) -> Double {
-        if let used = usedQuota { return max(0, used) }
-        if let remaining = remainingQuota { return max(0, total - remaining) }
+        if let used = usedQuota {
+            return max(0, used)
+        }
+        if let remaining = remainingQuota {
+            return max(0, total - remaining)
+        }
         return 0
     }
 

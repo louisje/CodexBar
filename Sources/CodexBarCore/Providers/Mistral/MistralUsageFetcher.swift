@@ -196,7 +196,9 @@ public enum MistralUsageFetcher {
     private static func parseISO8601Date(_ value: String) -> Date? {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: value) { return date }
+        if let date = formatter.date(from: value) {
+            return date
+        }
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: value)
     }
@@ -462,7 +464,9 @@ public enum MistralUsageFetcher {
     private static func parseDate(_ string: String) -> Date? {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: string) { return date }
+        if let date = formatter.date(from: string) {
+            return date
+        }
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: string)
     }
@@ -521,7 +525,9 @@ private struct DailyAccumulator {
             models: self.models.values
                 .map { $0.makeBreakdown() }
                 .sorted {
-                    if $0.totalTokens == $1.totalTokens { return $0.name < $1.name }
+                    if $0.totalTokens == $1.totalTokens {
+                        return $0.name < $1.name
+                    }
                     return $0.totalTokens > $1.totalTokens
                 })
     }

@@ -579,6 +579,16 @@ private final class UserProviderPluginHTTPClient: NSObject, ProviderHTTPTranspor
         self.finish(taskIdentifier: task.taskIdentifier, result: result)
     }
 
+    private func finish(taskIdentifier: Int, result: Result<(Data, URLResponse), Error>) {
+        let continuation = self.lock.withLock { self.states.removeValue(forKey: taskIdentifier)?.continuation }
+        continuation?.resume(with: result)
+    }
+}
+
+/// Auth-challenge handling lives in an extension so its signature does not
+/// "nearly match" the optional URLSessionTaskDelegate requirement and trigger
+/// near-miss diagnostics.
+extension UserProviderPluginHTTPClient {
     func urlSession(
         _: URLSession,
         task _: URLSessionTask,
@@ -595,10 +605,5 @@ private final class UserProviderPluginHTTPClient: NSObject, ProviderHTTPTranspor
         _ = challenge
         completionHandler(.performDefaultHandling, nil)
         #endif
-    }
-
-    private func finish(taskIdentifier: Int, result: Result<(Data, URLResponse), Error>) {
-        let continuation = self.lock.withLock { self.states.removeValue(forKey: taskIdentifier)?.continuation }
-        continuation?.resume(with: result)
     }
 }

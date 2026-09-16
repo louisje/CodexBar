@@ -468,7 +468,9 @@ enum ToonSerializer {
         let headerKey = key.map(self.quoteKeyIfNeeded) ?? ""
 
         guard !items.isEmpty else {
-            if key != nil { return ["\(prefix)\(headerKey): []"] }
+            if key != nil {
+                return ["\(prefix)\(headerKey): []"]
+            }
             return ["\(prefix)[]"]
         }
 
@@ -537,7 +539,9 @@ enum ToonSerializer {
     private static func formatNumber(_ value: Double) -> String {
         // Non-finite doubles never reach here: every encode site rejects them via
         // `ToonFormatter.requireFinite` before a `.double` node can be constructed.
-        if value == 0 { return "0" }
+        if value == 0 {
+            return "0"
+        }
         if value == value.rounded(), abs(value) < 1e15 {
             return String(Int64(value))
         }
@@ -578,17 +582,29 @@ enum ToonSerializer {
     }
 
     private static func needsQuoting(_ value: String) -> Bool {
-        if value.isEmpty { return true }
-        if value.first == " " || value.last == " " { return true }
-        if value == "true" || value == "false" || value == "null" { return true }
-        if self.looksNumeric(value) { return true }
-        if value.hasPrefix("-") || value.hasPrefix("#") { return true }
+        if value.isEmpty {
+            return true
+        }
+        if value.first == " " || value.last == " " {
+            return true
+        }
+        if value == "true" || value == "false" || value == "null" {
+            return true
+        }
+        if self.looksNumeric(value) {
+            return true
+        }
+        if value.hasPrefix("-") || value.hasPrefix("#") {
+            return true
+        }
         for scalar in value.unicodeScalars {
             switch scalar {
             case ":", "\"", "\\", "[", "]", "{", "}", ",":
                 return true
             default:
-                if scalar.value < 0x20 { return true }
+                if scalar.value < 0x20 {
+                    return true
+                }
             }
         }
         return false

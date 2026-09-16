@@ -156,7 +156,9 @@ public actor FactorySessionStore {
         self.sessionCookies = cookieArray.compactMap { props in
             var cookieProps: [HTTPCookiePropertyKey: Any] = [:]
             for (key, value) in props {
-                if key.hasSuffix("_isDate") || key.hasSuffix("_isURL") { continue }
+                if key.hasSuffix("_isDate") || key.hasSuffix("_isURL") {
+                    continue
+                }
 
                 let propKey = HTTPCookiePropertyKey(key)
 

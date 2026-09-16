@@ -89,7 +89,9 @@ public enum ClaudeOAuthDelegatedRefreshCoordinator {
             let result = await task.value
             self.clearInFlightTaskIfStillCurrent(id: id, state: state)
             // Retrying cannot make an unreadable refresh readable, so reuse the joined verdict.
-            if result.isUnreadableAfterRefresh { return result }
+            if result.isUnreadableAfterRefresh {
+                return result
+            }
             switch result.outcome {
             case .attemptedFailed, .skippedByCooldown, .skippedByPromptPolicy, .cliUnavailable:
                 return await self.attemptDetailed(now: now, timeout: timeout, environment: environment)
@@ -426,7 +428,9 @@ public enum ClaudeOAuthDelegatedRefreshCoordinator {
         // Prefer correctness but bound the delay. Keychain writes can be slightly delayed after the CLI touch.
         // Keep this short to avoid "prompt storms" on configurations where "no UI" queries can still surface UI.
         let clampedTimeout = max(0, min(timeout, 2))
-        if clampedTimeout == 0 { return false }
+        if clampedTimeout == 0 {
+            return false
+        }
 
         let delays: [TimeInterval] = [0.2, 0.5, 0.8].filter { $0 <= clampedTimeout }
         let deadline = Date().addingTimeInterval(clampedTimeout)
@@ -461,7 +465,9 @@ public enum ClaudeOAuthDelegatedRefreshCoordinator {
         }
 
         for delay in delays {
-            if Date() >= deadline { break }
+            if Date() >= deadline {
+                break
+            }
             do {
                 try Task.checkCancellation()
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))

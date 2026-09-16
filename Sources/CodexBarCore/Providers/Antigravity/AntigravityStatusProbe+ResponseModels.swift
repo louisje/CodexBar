@@ -51,7 +51,9 @@ struct PlanInfo: Decodable {
         ]
         for candidate in candidates {
             guard let value = candidate?.trimmingCharacters(in: .whitespacesAndNewlines) else { continue }
-            if !value.isEmpty { return value }
+            if !value.isEmpty {
+                return value
+            }
         }
         return nil
     }

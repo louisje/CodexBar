@@ -20,7 +20,9 @@ struct DeepSeekUsageFetcherTests {
         }
 
         func waitUntilStarted() async {
-            if self.started { return }
+            if self.started {
+                return
+            }
             await withCheckedContinuation { continuation in
                 self.startedWaiters.append(continuation)
             }
@@ -35,7 +37,9 @@ struct DeepSeekUsageFetcherTests {
         }
 
         func waitUntilCancelled() async {
-            if self.cancelled { return }
+            if self.cancelled {
+                return
+            }
             await withCheckedContinuation { continuation in
                 self.cancelledWaiters.append(continuation)
             }
@@ -96,7 +100,9 @@ struct DeepSeekUsageFetcherTests {
 
     private static func waitForCancellation(_ probe: SummaryCancellationProbe) async -> Bool {
         for _ in 0..<100 {
-            if await probe.wasCancelled() { return true }
+            if await probe.wasCancelled() {
+                return true
+            }
             try? await Task.sleep(for: .milliseconds(20))
         }
         return await probe.wasCancelled()

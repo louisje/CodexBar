@@ -11,7 +11,9 @@ enum PlaceholderSettingsWindowDecision {
     /// A window CodexBar never wants onscreen: SwiftUI's placeholder Settings window.
     static func shouldClose(identifier: String?, frameAutosaveName: String, isKnownSettingsWindow: Bool) -> Bool {
         guard !isKnownSettingsWindow, identifier != SettingsWindowIdentity.identifier else { return false }
-        if let identifier, identifier.contains(self.swiftUISettingsNameFragment) { return true }
+        if let identifier, identifier.contains(self.swiftUISettingsNameFragment) {
+            return true
+        }
         return frameAutosaveName.contains(self.swiftUISettingsNameFragment)
     }
 }

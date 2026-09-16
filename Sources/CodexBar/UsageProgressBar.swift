@@ -219,8 +219,12 @@ struct UsageProgressBar: View {
     nonisolated static func renderedFillPercent(_ percent: Double) -> Double {
         let clamped = Self.clampedPercent(percent)
         let displayPercent = Self.displayPercent(clamped)
-        if displayPercent <= 0 { return 0 }
-        if displayPercent >= 100 { return 100 }
+        if displayPercent <= 0 {
+            return 0
+        }
+        if displayPercent >= 100 {
+            return 100
+        }
         return clamped
     }
 

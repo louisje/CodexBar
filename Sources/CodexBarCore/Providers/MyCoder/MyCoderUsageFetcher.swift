@@ -30,7 +30,7 @@ public enum MyCoderUsageFetcher {
         now: Date = Date(),
         timeout: TimeInterval = 15) async throws -> MyCoderUsageSnapshot
     {
-        guard let token = Self.ssoToken(fromCredentials: cookieHeader) else {
+        guard let token = ssoToken(fromCredentials: cookieHeader) else {
             throw MyCoderUsageError.missingCredentials
         }
         guard let userId = Self.userId(fromSSOToken: token) else {
@@ -177,7 +177,7 @@ public enum MyCoderUsageFetcher {
     }
 
     private static func payloadContainsQuotaField(_ payload: [String: Any]) -> Bool {
-        !Self.expectedQuotaKeys.isDisjoint(with: payload.keys)
+        !self.expectedQuotaKeys.isDisjoint(with: payload.keys)
     }
 
     private static func double(from value: Any?) -> Double? {
@@ -242,7 +242,12 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
 
 private final class MyCoderTrustDelegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, @unchecked Sendable {
     private static let trustedHosts: Set<String> = ["afs-mycoder.asus.com", "afs-mycoder-api.asus.com"]
+}
 
+/// Delegate callbacks live in an extension so their signatures do not
+/// "nearly match" the optional URLSession(Delegate) requirements and trigger
+/// near-miss diagnostics.
+extension MyCoderTrustDelegate {
     func urlSession(
         _: URLSession,
         didReceive challenge: URLAuthenticationChallenge,

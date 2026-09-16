@@ -363,9 +363,15 @@ public struct WarpUsageFetcher: Sendable {
     }
 
     private static func intValue(_ value: Any?) -> Int {
-        if let int = value as? Int { return int }
-        if let num = value as? NSNumber { return num.intValue }
-        if let text = value as? String, let int = Int(text) { return int }
+        if let int = value as? Int {
+            return int
+        }
+        if let num = value as? NSNumber {
+            return num.intValue
+        }
+        if let text = value as? String, let int = Int(text) {
+            return int
+        }
         return 0
     }
 

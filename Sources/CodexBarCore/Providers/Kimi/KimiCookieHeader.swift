@@ -74,7 +74,9 @@ public enum KimiCookieHeader {
                 continue
             }
             let token = String(raw[captureRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-            if !token.isEmpty { return token }
+            if !token.isEmpty {
+                return token
+            }
         }
 
         return nil
@@ -91,7 +93,9 @@ public enum KimiCookieHeader {
                 continue
             }
             let captured = String(raw[captureRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-            if !captured.isEmpty { return captured }
+            if !captured.isEmpty {
+                return captured
+            }
         }
         return nil
     }

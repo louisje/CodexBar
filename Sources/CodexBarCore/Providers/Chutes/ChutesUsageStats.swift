@@ -72,7 +72,9 @@ public struct ChutesQuotaWindow: Sendable, Equatable {
     }
 
     public var usagePercent: Double? {
-        if let usedPercent { return max(0, min(usedPercent, 100)) }
+        if let usedPercent {
+            return max(0, min(usedPercent, 100))
+        }
 
         var used = self.used
         var limit = self.limit
@@ -385,7 +387,9 @@ public struct ChutesUsageFetcher: Sendable {
         for key in ["chute_id", "chuteId", "id"] {
             if let value = definition[key] as? String {
                 let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !trimmed.isEmpty { return trimmed }
+                if !trimmed.isEmpty {
+                    return trimmed
+                }
             }
             if let value = definition[key] as? NSNumber {
                 return value.stringValue
@@ -468,8 +472,12 @@ enum ChutesUsageParser {
 
     private static func parse(object: Any, now: Date) -> ChutesUsageSnapshot {
         let root: [String: Any] = {
-            if let dict = object as? [String: Any] { return dict }
-            if let array = object as? [Any] { return ["quotas": array] }
+            if let dict = object as? [String: Any] {
+                return dict
+            }
+            if let array = object as? [Any] {
+                return ["quotas": array]
+            }
             return [:]
         }()
         let dataRoot = self.dictionaryValue(self.value(in: root, keys: ["data", "result"])) ?? root
@@ -762,8 +770,12 @@ enum ChutesUsageParser {
 
     private static func firstBool(in dict: [String: Any], keys: [String]) -> Bool? {
         guard let value = self.value(in: dict, keys: keys) else { return nil }
-        if let bool = value as? Bool { return bool }
-        if let number = value as? NSNumber { return number.boolValue }
+        if let bool = value as? Bool {
+            return bool
+        }
+        if let number = value as? NSNumber {
+            return number.boolValue
+        }
         if let string = value as? String {
             switch string.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
             case "true", "1", "yes", "active":

@@ -89,8 +89,12 @@ public enum CodexTokenRefresher {
 
     private static func extractErrorCode(from data: Data) -> String? {
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
-        if let error = json["error"] as? [String: Any], let code = error["code"] as? String { return code }
-        if let error = json["error"] as? String { return error }
+        if let error = json["error"] as? [String: Any], let code = error["code"] as? String {
+            return code
+        }
+        if let error = json["error"] as? String {
+            return error
+        }
         return json["code"] as? String
     }
 

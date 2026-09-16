@@ -42,7 +42,9 @@ enum CodexBarClaudeWebProbe {
         let status = result.statusCode.map(String.init) ?? "error"
         print("==> \(result.url)")
         print("status: \(status)")
-        if let contentType = result.contentType { print("content-type: \(contentType)") }
+        if let contentType = result.contentType {
+            print("content-type: \(contentType)")
+        }
         if !result.topLevelKeys.isEmpty {
             print("keys: \(result.topLevelKeys.joined(separator: ", "))")
         }

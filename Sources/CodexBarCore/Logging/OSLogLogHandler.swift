@@ -62,7 +62,9 @@ struct OSLogLogHandler: LogHandler {
         -> String
     {
         var merged = metadata
-        if let extraMetadata { merged.merge(extraMetadata, uniquingKeysWith: { _, new in new }) }
+        if let extraMetadata {
+            merged.merge(extraMetadata, uniquingKeysWith: { _, new in new })
+        }
         guard !merged.isEmpty else { return message }
 
         let suffix = merged

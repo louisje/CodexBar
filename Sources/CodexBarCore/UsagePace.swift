@@ -255,9 +255,15 @@ public struct UsagePace: Sendable {
 
     private static func stage(for delta: Double) -> Stage {
         let absDelta = abs(delta)
-        if absDelta <= 2 { return .onTrack }
-        if absDelta <= 6 { return delta >= 0 ? .slightlyAhead : .slightlyBehind }
-        if absDelta <= 12 { return delta >= 0 ? .ahead : .behind }
+        if absDelta <= 2 {
+            return .onTrack
+        }
+        if absDelta <= 6 {
+            return delta >= 0 ? .slightlyAhead : .slightlyBehind
+        }
+        if absDelta <= 12 {
+            return delta >= 0 ? .ahead : .behind
+        }
         return delta >= 0 ? .farAhead : .farBehind
     }
 }

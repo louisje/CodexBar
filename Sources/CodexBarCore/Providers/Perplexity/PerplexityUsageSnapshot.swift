@@ -54,8 +54,12 @@ public struct PerplexityUsageSnapshot: Sendable {
     /// Infer plan name from recurring credit allotment.
     /// Free = 0, Pro = small pool (~500–1000), Max = 10,000+.
     public var planName: String? {
-        if self.recurringTotal <= 0 { return nil }
-        if self.recurringTotal < 5000 { return "Pro" }
+        if self.recurringTotal <= 0 {
+            return nil
+        }
+        if self.recurringTotal < 5000 {
+            return "Pro"
+        }
         return "Max"
     }
 

@@ -210,7 +210,7 @@ struct OpenCodeGoUsageFetcherCLIWaitTests {
     }
 }
 
-private final class OpenCodeGoCLIWaitStubURLProtocol: URLProtocol, @unchecked Sendable {
+private final class OpenCodeGoCLIWaitStubURLProtocol: URLProtocol {
     private static let handlerBox = LockIsolated<((URLRequest) throws -> (HTTPURLResponse, Data))?>(nil)
     static var handler: ((URLRequest) throws -> (HTTPURLResponse, Data))? {
         get { Self.handlerBox.value }
@@ -246,6 +246,9 @@ private final class OpenCodeGoCLIWaitStubURLProtocol: URLProtocol, @unchecked Se
             return
         }
         let delay = Self.delayedPaths[url.path] ?? 0
+        // URLProtocol and its client are not Sendable, so this closure cannot be
+        // marked @Sendable under Swift 6.2; the deferred delivery warning is
+        // inherent to stubbing URLProtocol this way.
         let deliver: () -> Void = { [weak self] in
             guard let self else { return }
             do {

@@ -234,7 +234,9 @@ extension CodexBarCLI {
     /// Coarse, non-secret category for a refresh failure, mirroring the app's
     /// classification. Never forwards the raw error description.
     static func hookRefreshFailureStatus(_ error: Error) -> String {
-        if error is CancellationError { return "cancelled" }
+        if error is CancellationError {
+            return "cancelled"
+        }
         let nsError = error as NSError
         guard nsError.domain == NSURLErrorDomain else { return "error" }
         switch nsError.code {
@@ -280,11 +282,15 @@ extension CodexBarCLI {
             return
         }
         var line = "\(event.event.rawValue) \(event.provider)"
-        if let window = event.window { line += " window=\(window)" }
+        if let window = event.window {
+            line += " window=\(window)"
+        }
         if let usage = event.usagePercent {
             line += String(format: " usage=%.0f%%", usage * 100)
         }
-        if let status = event.status { line += " status=\(status)" }
+        if let status = event.status {
+            line += " status=\(status)"
+        }
         print(line)
     }
 
@@ -343,7 +349,9 @@ extension CodexBarCLI {
         explicit: [UsageProvider]?,
         config: CodexBarConfig) -> Result<[UsageProvider], CLIArgumentError>
     {
-        if let explicit { return .success(explicit) }
+        if let explicit {
+            return .success(explicit)
+        }
         let enabled = config.enabledProviders()
         guard !enabled.isEmpty else {
             return .failure(CLIArgumentError("No providers are enabled."))

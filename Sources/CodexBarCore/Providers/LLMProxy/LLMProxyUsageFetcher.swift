@@ -256,7 +256,9 @@ public struct LLMProxyUsageFetcher: Sendable {
                     tokens: Self.tokenTotal(stats.tokens),
                     approximateCostUSD: stats.approximateCost)
             }.sorted { lhs, rhs in
-                if lhs.requests != rhs.requests { return lhs.requests > rhs.requests }
+                if lhs.requests != rhs.requests {
+                    return lhs.requests > rhs.requests
+                }
                 return lhs.name < rhs.name
             }
             let requests = decoded.summary?.totalRequests ?? summaries.reduce(0) { $0 + $1.requests }

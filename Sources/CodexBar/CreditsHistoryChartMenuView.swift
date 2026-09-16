@@ -170,7 +170,9 @@ struct CreditsHistoryChartMenuView: View {
                 pointsByDayKey[day.day] = point
                 selectableDayDates.append((dayKey: day.day, date: date))
                 if let cur = peak {
-                    if day.totalCreditsUsed > cur.creditsUsed { peak = (day.day, day.totalCreditsUsed) }
+                    if day.totalCreditsUsed > cur.creditsUsed {
+                        peak = (day.day, day.totalCreditsUsed)
+                    }
                 } else {
                     peak = (day.day, day.totalCreditsUsed)
                 }
@@ -180,7 +182,9 @@ struct CreditsHistoryChartMenuView: View {
 
         let axisDates: [Date] = {
             guard let first = dayDates.first?.date, let last = dayDates.last?.date else { return [] }
-            if Calendar.current.isDate(first, inSameDayAs: last) { return [first] }
+            if Calendar.current.isDate(first, inSameDayAs: last) {
+                return [first]
+            }
             return [first, last]
         }()
 
@@ -235,7 +239,9 @@ struct CreditsHistoryChartMenuView: View {
         geo: GeometryProxy)
     {
         guard let location else {
-            if self.selectedDayKey != nil { self.selectedDayKey = nil }
+            if self.selectedDayKey != nil {
+                self.selectedDayKey = nil
+            }
             return
         }
 
@@ -287,7 +293,9 @@ struct CreditsHistoryChartMenuView: View {
 
         let services = day.services
             .sorted { lhs, rhs in
-                if lhs.creditsUsed == rhs.creditsUsed { return lhs.service < rhs.service }
+                if lhs.creditsUsed == rhs.creditsUsed {
+                    return lhs.service < rhs.service
+                }
                 return lhs.creditsUsed > rhs.creditsUsed
             }
             .prefix(3)

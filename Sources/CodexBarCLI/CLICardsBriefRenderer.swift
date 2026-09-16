@@ -106,7 +106,9 @@ enum CLICardsBriefRenderer {
         }
         let timestamp = Self.timestampString(now: now)
         guard Self.visibleLength(left) + timestamp.count + 1 <= terminalWidth else {
-            if Self.visibleLength(left) <= terminalWidth { return left }
+            if Self.visibleLength(left) <= terminalWidth {
+                return left
+            }
             return Self.truncatePlain(TextParsing.stripANSICodes(left), width: terminalWidth)
         }
         let gap = max(1, terminalWidth - Self.visibleLength(left) - timestamp.count)
@@ -583,7 +585,9 @@ enum CLICardsBriefRenderer {
 
     private static func pad(_ text: String, width: Int, alignRight: Bool = false) -> String {
         let visible = Self.visibleLength(text)
-        if visible >= width { return text }
+        if visible >= width {
+            return text
+        }
         let padding = String(repeating: " ", count: width - visible)
         return alignRight ? padding + text : text + padding
     }
@@ -600,7 +604,9 @@ enum CLICardsBriefRenderer {
 
     private static func truncatePlain(_ text: String, width: Int) -> String {
         guard width > 0 else { return "" }
-        if text.count <= width { return text }
+        if text.count <= width {
+            return text
+        }
         guard width > 1 else { return String(text.prefix(width)) }
         return String(text.prefix(width - 1)) + "…"
     }

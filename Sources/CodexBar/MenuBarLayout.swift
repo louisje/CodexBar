@@ -273,7 +273,9 @@ enum MenuBarLayoutToken: Codable, Hashable, Sendable {
     case conditional(id: UUID)
 
     var selectedLane: MenuBarLayoutLane? {
-        if case let .lanePercent(lane) = self { return lane }
+        if case let .lanePercent(lane) = self {
+            return lane
+        }
         return nil
     }
 
@@ -742,7 +744,9 @@ extension MenuBarLayoutToken {
         conditionals: [UUID: MenuBarLayoutConditional],
         depth: Int)
     {
-        if self == .hidden { return }
+        if self == .hidden {
+            return
+        }
         tokens.append(self)
         guard depth < Self.maxConditionalDepth,
               case let .conditional(id) = self,

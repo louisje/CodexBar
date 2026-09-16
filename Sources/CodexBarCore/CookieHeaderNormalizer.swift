@@ -68,7 +68,9 @@ public enum CookieHeaderNormalizer {
                 continue
             }
             let captured = raw[captureRange].trimmingCharacters(in: .whitespacesAndNewlines)
-            if !captured.isEmpty { return String(captured) }
+            if !captured.isEmpty {
+                return String(captured)
+            }
         }
         return nil
     }

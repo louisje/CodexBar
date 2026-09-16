@@ -176,7 +176,9 @@ enum FactoryLocalStorageImporter {
             case let .safariSQLite(url):
                 url.path
             }
-            if seen.contains(key) { return false }
+            if seen.contains(key) {
+                return false
+            }
             seen.insert(key)
             return true
         }

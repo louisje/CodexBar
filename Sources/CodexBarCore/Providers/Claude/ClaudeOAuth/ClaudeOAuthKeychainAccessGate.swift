@@ -26,7 +26,9 @@ public enum ClaudeOAuthKeychainAccessGate {
 
     public static func shouldAllowPrompt(now: Date = Date()) -> Bool {
         guard !KeychainAccessGate.isDisabled else { return false }
-        if let override = self.taskOverrideShouldAllowPromptForTesting { return override }
+        if let override = self.taskOverrideShouldAllowPromptForTesting {
+            return override
+        }
         #if DEBUG
         if let store = self.taskDeniedUntilStoreOverrideForTesting {
             if let deniedUntil = store.deniedUntil, deniedUntil > now {

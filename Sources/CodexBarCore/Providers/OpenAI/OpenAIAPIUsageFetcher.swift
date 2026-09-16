@@ -412,13 +412,17 @@ private struct DailyAccumulator {
             lineItems: self.lineItems
                 .map { OpenAIAPIUsageSnapshot.LineItemBreakdown(name: $0.key, costUSD: $0.value) }
                 .sorted {
-                    if $0.costUSD == $1.costUSD { return $0.name < $1.name }
+                    if $0.costUSD == $1.costUSD {
+                        return $0.name < $1.name
+                    }
                     return $0.costUSD > $1.costUSD
                 },
             models: self.models
                 .map { $0.value.makeModel(name: $0.key) }
                 .sorted {
-                    if $0.totalTokens == $1.totalTokens { return $0.name < $1.name }
+                    if $0.totalTokens == $1.totalTokens {
+                        return $0.name < $1.name
+                    }
                     return $0.totalTokens > $1.totalTokens
                 })
     }

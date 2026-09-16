@@ -17,7 +17,7 @@ import Testing
 struct UsageStorePlanUtilizationAsyncLoadTests {
     @MainActor
     @Test
-    func `testing startup without an injected history store skips disk loading`() {
+    func `ing startup without an injected history store skips disk loading`() {
         let suiteName = "UsageStorePlanUtilizationAsyncLoad-default-test-\(UUID().uuidString)"
         let settings = Self.makeSettings(suiteName: suiteName)
         defer { UserDefaults().removePersistentDomain(forName: suiteName) }
@@ -36,7 +36,7 @@ struct UsageStorePlanUtilizationAsyncLoadTests {
 
     @MainActor
     @Test
-    func `testing startup without an explicit gate skips background load`() {
+    func `ing startup without an explicit gate skips background load`() {
         let suiteName = "UsageStorePlanUtilizationAsyncLoad-testing-\(UUID().uuidString)"
         let historyStore = testPlanUtilizationHistoryStore(suiteName: suiteName, reset: true)
         historyStore.save([.codex: PlanUtilizationHistoryBuckets(
@@ -316,7 +316,9 @@ struct UsageStorePlanUtilizationAsyncLoadTests {
                 historyStore.load()[.claude]?.unscoped ?? [],
                 name: .session,
                 windowMinutes: 300)
-            if persisted == inMemory { break }
+            if persisted == inMemory {
+                break
+            }
             try? await Task.sleep(for: .milliseconds(10))
         }
         #expect(inMemory?.entries.map(\.capturedAt) == [oldCapture, newCapture])

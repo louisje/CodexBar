@@ -141,8 +141,12 @@ struct StatuspageSummaryTests {
         let stub = ProviderHTTPTransportStub { request in
             guard let url = request.url else { throw URLError(.badURL) }
             let ok = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!
-            if url.path.contains("/proxy/") { return (proxyJSON, ok) }
-            if url.path.hasSuffix("status.json") { return (statusJSON, ok) }
+            if url.path.contains("/proxy/") {
+                return (proxyJSON, ok)
+            }
+            if url.path.hasSuffix("status.json") {
+                return (statusJSON, ok)
+            }
             throw URLError(.notConnectedToInternet)
         }
 

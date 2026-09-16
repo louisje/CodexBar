@@ -61,7 +61,9 @@ final class AppNotifications {
     // MARK: - Private
 
     private func ensureAuthorizationTask() -> Task<Bool, Never> {
-        if let authorizationTask { return authorizationTask }
+        if let authorizationTask {
+            return authorizationTask
+        }
         let task = Task { @MainActor in
             await self.requestAuthorization()
         }
@@ -105,11 +107,19 @@ final class AppNotifications {
         // the test target can make NSClassFromString("XCTestCase") return nil. If we're not
         // running inside an app bundle, treat it as "tests/headless" to avoid crashes when
         // accessing UNUserNotificationCenter.
-        if Bundle.main.bundleURL.pathExtension != "app" { return true }
+        if Bundle.main.bundleURL.pathExtension != "app" {
+            return true
+        }
         let env = ProcessInfo.processInfo.environment
-        if env["XCTestConfigurationFilePath"] != nil { return true }
-        if env["TESTING_LIBRARY_VERSION"] != nil { return true }
-        if env["SWIFT_TESTING"] != nil { return true }
+        if env["XCTestConfigurationFilePath"] != nil {
+            return true
+        }
+        if env["TESTING_LIBRARY_VERSION"] != nil {
+            return true
+        }
+        if env["SWIFT_TESTING"] != nil {
+            return true
+        }
         return NSClassFromString("XCTestCase") != nil
     }
 }

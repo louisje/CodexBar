@@ -171,10 +171,18 @@ public enum OneConsoleJSON {
     /// and numeric strings.
     public static func int(_ value: Any?) -> Int? {
         guard let value else { return nil }
-        if let intValue = value as? Int { return intValue }
-        if let int64Value = value as? Int64 { return Int(int64Value) }
-        if let number = value as? NSNumber { return number.intValue }
-        if let doubleValue = value as? Double { return Int(doubleValue) }
+        if let intValue = value as? Int {
+            return intValue
+        }
+        if let int64Value = value as? Int64 {
+            return Int(int64Value)
+        }
+        if let number = value as? NSNumber {
+            return number.intValue
+        }
+        if let doubleValue = value as? Double {
+            return Int(doubleValue)
+        }
         if let string = value as? String {
             return Int(string.trimmingCharacters(in: .whitespacesAndNewlines))
         }

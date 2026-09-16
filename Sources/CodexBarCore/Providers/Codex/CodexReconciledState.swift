@@ -175,12 +175,16 @@ public struct CodexReconciledState: Sendable {
     }
 
     private static func resolvePATPlan(response: CodexUsageResponse, whoami: CodexPATWhoami?) -> String? {
-        if let plan = response.planType?.rawValue, !plan.isEmpty { return plan }
+        if let plan = response.planType?.rawValue, !plan.isEmpty {
+            return plan
+        }
         return whoami?.planType
     }
 
     private static func resolvePlan(response: CodexUsageResponse, credentials: CodexOAuthCredentials) -> String? {
-        if let plan = response.planType?.rawValue, !plan.isEmpty { return plan }
+        if let plan = response.planType?.rawValue, !plan.isEmpty {
+            return plan
+        }
         guard let idToken = credentials.idToken,
               let payload = UsageFetcher.parseJWT(idToken)
         else {

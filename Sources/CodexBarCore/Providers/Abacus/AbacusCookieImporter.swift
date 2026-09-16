@@ -120,8 +120,12 @@ public enum AbacusCookieImporter {
     private static func containsSessionCookie(_ cookies: [HTTPCookie]) -> Bool {
         cookies.contains { cookie in
             let lower = cookie.name.lowercased()
-            if self.knownSessionCookieNames.contains(lower) { return true }
-            if self.excludedCookiePrefixes.contains(where: { lower.hasPrefix($0) }) { return false }
+            if self.knownSessionCookieNames.contains(lower) {
+                return true
+            }
+            if self.excludedCookiePrefixes.contains(where: { lower.hasPrefix($0) }) {
+                return false
+            }
             return self.sessionCookieSubstrings.contains { lower.contains($0) }
         }
     }

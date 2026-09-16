@@ -151,7 +151,9 @@ final class GrokRPCClient: @unchecked Sendable {
             while true {
                 let message = try await self.readNextMessage()
                 // Skip notifications (no id) or unrelated responses.
-                if message["id"] == nil { continue }
+                if message["id"] == nil {
+                    continue
+                }
                 guard let messageID = self.jsonID(message["id"]), messageID == id else { continue }
                 if let error = message["error"] as? [String: Any] {
                     let messageText = (error["message"] as? String) ?? "unknown JSON-RPC error"
@@ -231,7 +233,9 @@ final class GrokRPCClient: @unchecked Sendable {
 
     private func readNextMessage() async throws -> [String: Any] {
         for await lineData in self.stdoutLineStream {
-            if lineData.isEmpty { continue }
+            if lineData.isEmpty {
+                continue
+            }
             if let preview = String(data: lineData.prefix(300), encoding: .utf8) {
                 Self.log.debug("grok rpc <- \(preview)")
             }
@@ -359,7 +363,9 @@ extension GrokBillingResponse {
     private static func parseISO8601(_ raw: String) -> Date? {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: raw) { return date }
+        if let date = formatter.date(from: raw) {
+            return date
+        }
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: raw)
     }

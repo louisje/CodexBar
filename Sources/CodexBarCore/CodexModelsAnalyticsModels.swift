@@ -50,9 +50,15 @@ public enum CodexModelsComparison: Codable, Equatable, Sendable {
 
     public static func make(current: Double, previous: Double, previousIsComplete: Bool = true) -> Self {
         guard previousIsComplete else { return .unavailable }
-        if current == 0, previous == 0 { return .unchanged }
-        if previous == 0 { return .new }
-        if current == 0 { return .ended }
+        if current == 0, previous == 0 {
+            return .unchanged
+        }
+        if previous == 0 {
+            return .new
+        }
+        if current == 0 {
+            return .ended
+        }
         let value = (current - previous) / previous
         return value == 0 ? .unchanged : .percent(value)
     }
@@ -389,8 +395,12 @@ public struct CodexModelsAnalyticsSnapshot: Codable, Equatable, Sendable {
             failures.append("summary_tokens")
         }
         let rowCost = self.rows.reduce(CodexModelsCost.zero) { $0.adding($1.cost) }
-        if rowCost != self.cost { failures.append("cost_coverage") }
-        if self.rows.count != self.activeModelCount { failures.append("active_models") }
+        if rowCost != self.cost {
+            failures.append("cost_coverage")
+        }
+        if self.rows.count != self.activeModelCount {
+            failures.append("active_models")
+        }
         if self.rows.reduce(0, { $0 + $1.sessionReferences }) != self.sessionReferenceTotal {
             failures.append("session_references")
         }
@@ -685,8 +695,12 @@ public struct CodexModelsAnalyticsBuilder: Sendable {
                     previousIsComplete: comparisonIsComplete))
         }
         .sorted {
-            if $0.totalTokens != $1.totalTokens { return $0.totalTokens > $1.totalTokens }
-            if $0.sessionReferences != $1.sessionReferences { return $0.sessionReferences > $1.sessionReferences }
+            if $0.totalTokens != $1.totalTokens {
+                return $0.totalTokens > $1.totalTokens
+            }
+            if $0.sessionReferences != $1.sessionReferences {
+                return $0.sessionReferences > $1.sessionReferences
+            }
             return $0.id < $1.id
         }
     }
@@ -708,9 +722,13 @@ public struct CodexModelsAnalyticsBuilder: Sendable {
     private func parityMismatches(_ inputs: ParityInputs) -> [CodexModelsParityDimension] {
         var dimensions: [CodexModelsParityDimension] = []
         let request = inputs.request
-        if request.legacy.totalTokens != inputs.totalTokens { dimensions.append(.totalTokens) }
+        if request.legacy.totalTokens != inputs.totalTokens {
+            dimensions.append(.totalTokens)
+        }
         let legacyIDs = Array(Set(request.legacy.modelIDs.map { self.canonicalID($0) })).sorted()
-        if legacyIDs != inputs.rows.map(\.id).sorted() { dimensions.append(.modelIdentities) }
+        if legacyIDs != inputs.rows.map(\.id).sorted() {
+            dimensions.append(.modelIdentities)
+        }
         if let knownCost = request.legacy.knownCost, knownCost != inputs.totalCost.knownAmount {
             dimensions.append(.knownCost)
         }

@@ -613,7 +613,9 @@ struct CookieHeaderCacheTests {
             var retried: CookieHeaderCache.Entry?
             for _ in 0..<500 {
                 retried = CookieHeaderCache.loadForDisplay(provider: provider)
-                if retried != nil { break }
+                if retried != nil {
+                    break
+                }
                 try await Task.sleep(for: .milliseconds(10))
             }
             #expect(retried?.cookieHeader == "auth=available-after-retry")

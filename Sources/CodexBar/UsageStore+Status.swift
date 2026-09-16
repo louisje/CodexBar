@@ -340,7 +340,9 @@ extension UsageStore {
                 return makeRow(component, children: childrenByGroup[component.id] ?? [])
             }
             // Skip leaves that belong to a group; they are rendered inside the group's dropdown.
-            if component.groupID != nil { return nil }
+            if component.groupID != nil {
+                return nil
+            }
             return makeRow(component, children: [])
         }
     }
@@ -389,7 +391,9 @@ extension UsageStore {
             let indicator = Self.workspaceIndicator(
                 status: update?.status ?? incident.statusImpact,
                 severity: incident.severity)
-            if Self.indicatorRank(indicator) <= Self.indicatorRank(best.indicator) { continue }
+            if Self.indicatorRank(indicator) <= Self.indicatorRank(best.indicator) {
+                continue
+            }
             best = (indicator: indicator, incident: incident, update: update)
         }
 
@@ -435,7 +439,9 @@ extension UsageStore {
         let lines = normalized.split(separator: "\n", omittingEmptySubsequences: true)
         for rawLine in lines {
             let trimmed = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty { continue }
+            if trimmed.isEmpty {
+                continue
+            }
             let lower = trimmed.lowercased()
             if lower.hasPrefix("**summary") || lower.hasPrefix("**description") || lower == "summary" {
                 continue
@@ -449,7 +455,9 @@ extension UsageStore {
                 cleaned.removeFirst(2)
             }
             cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !cleaned.isEmpty { return cleaned }
+            if !cleaned.isEmpty {
+                return cleaned
+            }
         }
         return nil
     }

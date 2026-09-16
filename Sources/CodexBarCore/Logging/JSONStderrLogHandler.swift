@@ -30,7 +30,9 @@ struct JSONStderrLogHandler: LogHandler {
     func log(event: LogEvent) {
         let ts = Date()
         var combined = self.metadata
-        if let metadata = event.metadata { combined.merge(metadata, uniquingKeysWith: { _, new in new }) }
+        if let metadata = event.metadata {
+            combined.merge(metadata, uniquingKeysWith: { _, new in new })
+        }
 
         let payload = JSONLogLine(
             timestamp: ts,

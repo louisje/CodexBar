@@ -88,7 +88,9 @@ actor CodexCLISession {
                 let dst = dest.bindMemory(to: UInt8.self)
                 for idx in 0..<src.count {
                     var byte = src[idx]
-                    if byte >= 65, byte <= 90 { byte += 32 }
+                    if byte >= 65, byte <= 90 {
+                        byte += 32
+                    }
                     dst[idx] = byte
                 }
             }
@@ -230,7 +232,9 @@ actor CodexCLISession {
                     continue
                 }
             }
-            if sawCodexStatus { break }
+            if sawCodexStatus {
+                break
+            }
             if let proc = self.process, !proc.isRunning {
                 throw SessionError.processExited
             }

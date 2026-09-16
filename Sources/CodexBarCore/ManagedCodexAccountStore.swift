@@ -56,7 +56,9 @@ public struct FileManagedCodexAccountStore: ManagedCodexAccountStoring, @uncheck
     }
 
     public func ensureFileExists() throws -> URL {
-        if self.fileManager.fileExists(atPath: self.fileURL.path) { return self.fileURL }
+        if self.fileManager.fileExists(atPath: self.fileURL.path) {
+            return self.fileURL
+        }
         try self.storeAccounts(Self.emptyAccountSet())
         return self.fileURL
     }

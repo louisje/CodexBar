@@ -29,9 +29,13 @@ struct MiniMaxProviderImplementation: ProviderImplementation {
     @MainActor
     func tokenAccountsVisibility(context: ProviderSettingsContext, support: TokenAccountSupport) -> Bool {
         guard support.requiresManualCookieSource else { return true }
-        if !context.settings.tokenAccounts(for: context.provider).isEmpty { return true }
+        if !context.settings.tokenAccounts(for: context.provider).isEmpty {
+            return true
+        }
         context.settings.ensureMiniMaxAPITokenLoaded()
-        if context.settings.minimaxAuthMode().usesAPIToken { return false }
+        if context.settings.minimaxAuthMode().usesAPIToken {
+            return false
+        }
         return context.settings.minimaxCookieSource == .manual
     }
 

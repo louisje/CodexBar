@@ -31,7 +31,9 @@ public struct AlibabaCodingPlanSettingsReader: Sendable {
         environment: [String: String] = ProcessInfo.processInfo.environment) -> String?
     {
         for key in self.apiTokenEnvironmentKeys {
-            if let token = self.cleaned(environment[key]) { return token }
+            if let token = self.cleaned(environment[key]) {
+                return token
+            }
         }
         return nil
     }
