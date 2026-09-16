@@ -32,12 +32,27 @@ delete_keychain_service_items() {
 # Ensure Swift >= 5.5 (required for --arch flag in swift build)
 ensure_swift_version() {
   local swift_output
-  local swift_ver
+  local swift_ver=""
   swift_output=$(swift --version 2>&1 || true)
   if [[ "$swift_output" =~ (Apple[[:space:]]+)?Swift[[:space:]]+version[[:space:]]+([0-9]+)\.([0-9]+)(\.[0-9]+)? ]]; then
     swift_ver="${BASH_REMATCH[2]}.${BASH_REMATCH[3]}${BASH_REMATCH[4]}"
   else
-    fail "Swift >= 5.5 required (found ${swift_output:-none}). Install Xcode or update swiftly."
+    # PATH swift failed entirely (e.g. swiftly's .swift-version pins a toolchain
+    # that isn't installed). Fall back to the Xcode toolchain and re-validate.
+    local xcrun_swift
+    xcrun_swift=$(xcrun --find swift 2>/dev/null || true)
+    if [[ -n "$xcrun_swift" && -x "$xcrun_swift" ]]; then
+      log "WARN: PATH swift unusable ($(echo "$swift_output" | head -n 1)); switching to Xcode toolchain at $(dirname "$xcrun_swift")"
+      export PATH="$(dirname "$xcrun_swift"):$PATH"
+      swift_output=$(swift --version 2>&1 || true)
+      if [[ "$swift_output" =~ (Apple[[:space:]]+)?Swift[[:space:]]+version[[:space:]]+([0-9]+)\.([0-9]+)(\.[0-9]+)? ]]; then
+        swift_ver="${BASH_REMATCH[2]}.${BASH_REMATCH[3]}${BASH_REMATCH[4]}"
+      else
+        fail "Swift >= 5.5 required (found ${swift_output:-none}). Install Xcode or update swiftly."
+      fi
+    else
+      fail "Swift >= 5.5 required (found ${swift_output:-none}). Install Xcode or update swiftly."
+    fi
   fi
   local major minor
   major=$(echo "$swift_ver" | cut -d. -f1)
