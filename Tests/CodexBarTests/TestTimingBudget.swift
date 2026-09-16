@@ -8,11 +8,21 @@ import Foundation
 enum TestTimingBudget {
     /// `3` is empirical headroom: the workspace-snapshot budget has been observed at ~1.1x its
     /// limit on a loaded machine, and process-teardown budgets fare worse under contention.
-    static let slowdownFactor: Double = isLoadedRunner ? 3 : 1
+    /// x86_64 hosts run these workloads roughly 2x slower than the Apple Silicon hosts the
+    /// budgets were calibrated on, so they get the same accommodation CI runners get.
+    static let slowdownFactor: Double = (isLoadedRunner ? 3 : 1) * (isIntelHost ? 2 : 1)
 
     static var isLoadedRunner: Bool {
         let environment = ProcessInfo.processInfo.environment
         return environment["CI"] != nil || environment["GITHUB_ACTIONS"] != nil
+    }
+
+    static var isIntelHost: Bool {
+        #if arch(x86_64)
+        true
+        #else
+        false
+        #endif
     }
 
     static func scaled(_ budget: Duration) -> Duration {

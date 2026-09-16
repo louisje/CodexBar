@@ -361,7 +361,7 @@ struct CostUsagePerformanceGateTests {
         // Equality is intentionally O(cache rows), not O(files): current main's stable full
         // save already reuses row payloads, so the semantic comparison can cost more CPU while
         // still eliminating almost all writes. Keep that cost bounded without claiming it is free.
-        #expect(noOpTiming.elapsed < 3)
+        #expect(Duration.seconds(noOpTiming.elapsed) < TestTimingBudget.scaled(.seconds(3)))
         #expect(noOpTiming.cpu < 3)
         #expect(noOpAfter.databaseBytes == noOpBefore.databaseBytes)
         #expect(noOpAfter.walBytes > 0)
