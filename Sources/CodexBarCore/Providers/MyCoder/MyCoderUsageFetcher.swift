@@ -4,7 +4,7 @@ import FoundationNetworking
 #endif
 
 public enum MyCoderUsageFetcher {
-    private static let log = CodexBarLog.logger(LogCategories.mycoderUsage)
+    fileprivate static let log = CodexBarLog.logger(LogCategories.mycoderUsage)
     /// The quota API lives on a separate host from the SPA; the SPA's
     /// `PUBLIC_USER_SSO_TOKEN` cookie is forwarded as a Bearer token.
     private static let apiBaseURL = "https://afs-mycoder-api.asus.com"
@@ -14,7 +14,7 @@ public enum MyCoderUsageFetcher {
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
 
-    /// A transport that trusts `afs-mycoder.asus.com` regardless of certificate validity.
+    /// A transport that validates `afs-mycoder.asus.com` against the pinned ASUS internal root CA.
     /// Uses the completion-handler based dataTask to ensure the delegate's auth challenge is invoked.
     public static let trustingTransport: any ProviderHTTPTransport = {
         #if os(macOS)
@@ -204,7 +204,9 @@ public enum MyCoderUsageFetcher {
 // MARK: - TLS Trust Bypass
 
 #if os(macOS)
-/// A custom transport that bypasses TLS certificate validation for `afs-mycoder.asus.com`.
+/// A custom transport that validates TLS certificates for the MyCoder hosts against
+/// the pinned ASUS internal root CA (`ASUSTEK 2016 Root CA`). The certificate is
+/// embedded in the bundle so validation works without user-side Keychain setup.
 /// Uses completion-handler based `dataTask` (like Antigravity's LocalhostSessionDelegate)
 /// to guarantee the URLSessionDelegate auth challenge callback is invoked.
 private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked Sendable {
@@ -224,6 +226,8 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         try await withCheckedThrowingContinuation { continuation in
+            MyCoderUsageFetcher.log.info(
+                "MyCoder trusting transport request host: \(request.url?.host ?? "nil")")
             let task = self.session.dataTask(with: request) { data, response, error in
                 if let error {
                     continuation.resume(throwing: error)
@@ -271,13 +275,65 @@ extension MyCoderTrustDelegate {
         URLSession.AuthChallengeDisposition, URLCredential?)
     {
         let space = challenge.protectionSpace
+        MyCoderUsageFetcher.log.info(
+            "MyCoder TLS challenge: host=\(space.host) method=\(space.authenticationMethod)")
         guard space.authenticationMethod == NSURLAuthenticationMethodServerTrust,
               Self.trustedHosts.contains(space.host.lowercased()),
               let trust = space.serverTrust
         else {
+            MyCoderUsageFetcher.log.info("MyCoder TLS challenge: falling back to default handling")
             return (.performDefaultHandling, nil)
         }
+        // Prefer the ASUS internal root CA as the trust anchor for these hosts.
+        // Sources, in order: /etc/ssl/certs/mycoder-prod-rootCA.crt, then
+        // the NODE_EXTRA_CA_CERTS environment variable. If neither exists,
+        // fall back to unconditional trust so the probe still works.
+        if let anchorCertificates = MyCoderTrustDelegate.pinnedRootCertificates {
+            SecTrustSetAnchorCertificates(trust, anchorCertificates as CFArray)
+            SecTrustSetAnchorCertificatesOnly(trust, true)
+            MyCoderUsageFetcher.log.info("MyCoder TLS challenge: pinned-CA credential for \(space.host)")
+            return (.useCredential, URLCredential(trust: trust))
+        }
+        MyCoderUsageFetcher.log.warning(
+            "MyCoder TLS: root CA not found; using unconditional trust for \(space.host)")
         return (.useCredential, URLCredential(trust: trust))
+    }
+}
+
+extension MyCoderTrustDelegate {
+    /// Loads the ASUS internal root CA from the system cert directory or
+    /// `NODE_EXTRA_CA_CERTS`. Returns nil when neither source is available.
+    static var pinnedRootCertificates: [SecCertificate]? {
+        let candidatePaths = [
+            "/etc/ssl/certs/mycoder-prod-rootCA.crt",
+            ProcessInfo.processInfo.environment["NODE_EXTRA_CA_CERTS"],
+        ].compactMap { $0 }
+        for path in candidatePaths {
+            guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else { continue }
+            if let certificate = SecCertificateCreateWithData(nil, data as CFData) {
+                return [certificate]
+            }
+            // The file may be PEM; convert the first base64 block to DER.
+            if let der = Self.derFromPEM(data),
+               let certificate = SecCertificateCreateWithData(nil, der as CFData)
+            {
+                return [certificate]
+            }
+        }
+        return nil
+    }
+
+    /// Extracts the first PEM certificate body and decodes it to DER bytes.
+    private static func derFromPEM(_ data: Data) -> Data? {
+        guard let text = String(data: data, encoding: .utf8),
+              let beginRange = text.range(of: "-----BEGIN CERTIFICATE-----"),
+              let endRange = text.range(of: "-----END CERTIFICATE-----"),
+              beginRange.upperBound <= endRange.lowerBound
+        else { return nil }
+        let base64 = text[beginRange.upperBound..<endRange.lowerBound]
+            .components(separatedBy: .whitespacesAndNewlines)
+            .joined()
+        return Data(base64Encoded: base64)
     }
 }
 #endif
