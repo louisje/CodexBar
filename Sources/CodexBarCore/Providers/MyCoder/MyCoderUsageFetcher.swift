@@ -36,6 +36,7 @@ public enum MyCoderUsageFetcher {
         guard let userId = Self.userId(fromSSOToken: token) else {
             throw MyCoderUsageError.invalidCredentials
         }
+        Self.logTokenDiagnostics(token)
         let quotaData = try await self.sendRequest(
             path: "/mycoder-quota/api/v1/user/\(userId)/quota",
             token: token,
@@ -47,19 +48,51 @@ public enum MyCoderUsageFetcher {
     /// Extracts the SSO token from a browser cookie header (or accepts a raw JWT).
     static func ssoToken(fromCredentials credentials: String) -> String? {
         let trimmedCredentials = credentials.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedCredentials.hasPrefix("\(Self.ssoCookieName)=") {
+            let value = trimmedCredentials.dropFirst(Self.ssoCookieName.count + 1)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return value.isEmpty ? nil : value
+        }
         if trimmedCredentials.contains("="), trimmedCredentials.contains(";") || trimmedCredentials.contains(" ") {
             for pair in trimmedCredentials.split(separator: ";") {
                 let keyValue = pair.split(separator: "=", maxSplits: 1)
                 guard keyValue.count == 2 else { continue }
-                let name = keyValue[0].trimmingCharacters(in: .whitespaces)
+                let name = keyValue[0].trimmingCharacters(in: .whitespacesAndNewlines)
                 guard name == Self.ssoCookieName else { continue }
-                let value = keyValue[1].trimmingCharacters(in: .whitespaces)
+                let value = keyValue[1].trimmingCharacters(in: .whitespacesAndNewlines)
                 return value.isEmpty ? nil : value
             }
             return nil
         }
         // A pasted manual credential may be the raw token itself.
         return trimmedCredentials.isEmpty ? nil : trimmedCredentials
+    }
+
+    /// Logs the JWT exp/iat claims for credential diagnostics (never the token itself).
+    static func logTokenDiagnostics(_ token: String) {
+        let parts = token.split(separator: ".")
+        guard parts.count == 3 else {
+            Self.log.info("MyCoder token diagnostics: not a 3-part JWT (parts=\(parts.count))")
+            return
+        }
+        var payload = String(parts[1])
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        while payload.count % 4 != 0 { payload += "=" }
+        guard let data = Data(base64Encoded: payload),
+              let claims = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else {
+            Self.log.info("MyCoder token diagnostics: payload not decodable")
+            return
+        }
+        let exp = claims["exp"] as? TimeInterval
+        let iat = claims["iat"] as? TimeInterval
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        formatter.timeZone = TimeZone.current
+        let expText = exp.map { formatter.string(from: Date(timeIntervalSince1970: $0)) } ?? "nil"
+        let iatText = iat.map { formatter.string(from: Date(timeIntervalSince1970: $0)) } ?? "nil"
+        Self.log.info("MyCoder token diagnostics: iat=\(iatText) exp=\(expText) now=\(formatter.string(from: Date()))")
     }
 
     /// Decodes the JWT payload and returns the user id from its `aud` claim.
@@ -111,9 +144,12 @@ public enum MyCoderUsageFetcher {
         } catch let error as URLError where error.code == .cancelled {
             throw CancellationError()
         } catch {
+            Self.log.error("MyCoder request failed: \(error.localizedDescription)")
             throw MyCoderUsageError.networkError(error.localizedDescription)
         }
         if response.statusCode == 401 || response.statusCode == 403 {
+            Self.log.error(
+                "MyCoder API rejected credentials (\(response.statusCode); token subject/aud may be expired)")
             throw MyCoderUsageError.invalidCredentials
         }
         guard (200..<300).contains(response.statusCode) else {
@@ -201,139 +237,125 @@ public enum MyCoderUsageFetcher {
     }
 }
 
-// MARK: - TLS Trust Bypass
+// MARK: - TLS via curl subprocess
 
 #if os(macOS)
-/// A custom transport that validates TLS certificates for the MyCoder hosts against
-/// the pinned ASUS internal root CA (`ASUSTEK 2016 Root CA`). The certificate is
-/// embedded in the bundle so validation works without user-side Keychain setup.
-/// Uses completion-handler based `dataTask` (like Antigravity's LocalhostSessionDelegate)
-/// to guarantee the URLSessionDelegate auth challenge callback is invoked.
+/// MyCoder's API host uses the ASUS internal CA, which macOS trust evaluation
+/// rejects ("certificate exceeds maximum temporal validity period" — the leaf
+/// is valid ~4 years, beyond the 398-day policy cap). URLSession delegate
+/// bypasses proved unreliable in the CLI process (the auth challenge callback
+/// is never invoked there), so this transport shells out to `/usr/bin/curl`
+/// with `--cacert`, which validates the chain against the pinned ASUS root CA
+/// directly and is immune to CFNetwork's QUIC/trust-evaluation behavior.
 private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked Sendable {
-    private static let trustedHosts: Set<String> = ["afs-mycoder.asus.com", "afs-mycoder-api.asus.com"]
+    /// Candidate PEM root-CA paths, in priority order.
+    private static let caCandidatePaths: [String?] = [
+        "/etc/ssl/certs/mycoder-prod-rootCA.crt",
+        ProcessInfo.processInfo.environment["NODE_EXTRA_CA_CERTS"],
+    ]
 
-    private let session: URLSession
-    private let delegate: MyCoderTrustDelegate
+    private let curlPath: String
 
     init() {
-        let delegate = MyCoderTrustDelegate()
-        self.delegate = delegate
-        self.session = URLSession(
-            configuration: ProviderHTTPClient.defaultConfiguration(),
-            delegate: delegate,
-            delegateQueue: nil)
+        self.curlPath = Self.locateCurl()
     }
 
-    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        try await withCheckedThrowingContinuation { continuation in
-            MyCoderUsageFetcher.log.info(
-                "MyCoder trusting transport request host: \(request.url?.host ?? "nil")")
-            let task = self.session.dataTask(with: request) { data, response, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                    return
-                }
-                guard let data, let response else {
-                    continuation.resume(throwing: URLError(.badServerResponse))
-                    return
-                }
-                continuation.resume(returning: (data, response))
+    private static func locateCurl() -> String {
+        for candidate in ["/usr/bin/curl", "/usr/local/bin/curl", "/opt/homebrew/bin/curl"] {
+            if FileManager.default.isExecutableFile(atPath: candidate) {
+                return candidate
             }
-            task.resume()
         }
-    }
-}
-
-private final class MyCoderTrustDelegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, @unchecked Sendable {
-    private static let trustedHosts: Set<String> = ["afs-mycoder.asus.com", "afs-mycoder-api.asus.com"]
-}
-
-/// Delegate callbacks live in an extension so their signatures do not
-/// "nearly match" the optional URLSession(Delegate) requirements and trigger
-/// near-miss diagnostics.
-extension MyCoderTrustDelegate {
-    func urlSession(
-        _: URLSession,
-        didReceive challenge: URLAuthenticationChallenge,
-        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
-    {
-        let (disposition, credential) = self.evaluate(challenge)
-        completionHandler(disposition, credential)
+        return "/usr/bin/curl"
     }
 
-    func urlSession(
-        _: URLSession,
-        task _: URLSessionTask,
-        didReceive challenge: URLAuthenticationChallenge,
-        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
-    {
-        let (disposition, credential) = self.evaluate(challenge)
-        completionHandler(disposition, credential)
-    }
-
-    private func evaluate(_ challenge: URLAuthenticationChallenge) -> (
-        URLSession.AuthChallengeDisposition, URLCredential?)
-    {
-        let space = challenge.protectionSpace
-        MyCoderUsageFetcher.log.info(
-            "MyCoder TLS challenge: host=\(space.host) method=\(space.authenticationMethod)")
-        guard space.authenticationMethod == NSURLAuthenticationMethodServerTrust,
-              Self.trustedHosts.contains(space.host.lowercased()),
-              let trust = space.serverTrust
-        else {
-            MyCoderUsageFetcher.log.info("MyCoder TLS challenge: falling back to default handling")
-            return (.performDefaultHandling, nil)
-        }
-        // Prefer the ASUS internal root CA as the trust anchor for these hosts.
-        // Sources, in order: /etc/ssl/certs/mycoder-prod-rootCA.crt, then
-        // the NODE_EXTRA_CA_CERTS environment variable. If neither exists,
-        // fall back to unconditional trust so the probe still works.
-        if let anchorCertificates = MyCoderTrustDelegate.pinnedRootCertificates {
-            SecTrustSetAnchorCertificates(trust, anchorCertificates as CFArray)
-            SecTrustSetAnchorCertificatesOnly(trust, true)
-            MyCoderUsageFetcher.log.info("MyCoder TLS challenge: pinned-CA credential for \(space.host)")
-            return (.useCredential, URLCredential(trust: trust))
-        }
-        MyCoderUsageFetcher.log.warning(
-            "MyCoder TLS: root CA not found; using unconditional trust for \(space.host)")
-        return (.useCredential, URLCredential(trust: trust))
-    }
-}
-
-extension MyCoderTrustDelegate {
-    /// Loads the ASUS internal root CA from the system cert directory or
-    /// `NODE_EXTRA_CA_CERTS`. Returns nil when neither source is available.
-    static var pinnedRootCertificates: [SecCertificate]? {
-        let candidatePaths = [
-            "/etc/ssl/certs/mycoder-prod-rootCA.crt",
-            ProcessInfo.processInfo.environment["NODE_EXTRA_CA_CERTS"],
-        ].compactMap { $0 }
-        for path in candidatePaths {
-            guard let data = try? Data(contentsOf: URL(fileURLWithPath: path)) else { continue }
-            if let certificate = SecCertificateCreateWithData(nil, data as CFData) {
-                return [certificate]
-            }
-            // The file may be PEM; convert the first base64 block to DER.
-            if let der = Self.derFromPEM(data),
-               let certificate = SecCertificateCreateWithData(nil, der as CFData)
-            {
-                return [certificate]
+    /// Returns the first existing PEM CA path, or nil when none is available.
+    private static func resolvedCAPath() -> String? {
+        for path in caCandidatePaths.compactMap({ $0 }) {
+            if FileManager.default.fileExists(atPath: path) {
+                return path
             }
         }
         return nil
     }
 
-    /// Extracts the first PEM certificate body and decodes it to DER bytes.
-    private static func derFromPEM(_ data: Data) -> Data? {
-        guard let text = String(data: data, encoding: .utf8),
-              let beginRange = text.range(of: "-----BEGIN CERTIFICATE-----"),
-              let endRange = text.range(of: "-----END CERTIFICATE-----"),
-              beginRange.upperBound <= endRange.lowerBound
-        else { return nil }
-        let base64 = text[beginRange.upperBound..<endRange.lowerBound]
-            .components(separatedBy: .whitespacesAndNewlines)
-            .joined()
-        return Data(base64Encoded: base64)
+    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        guard let url = request.url else {
+            throw URLError(.badURL)
+        }
+        MyCoderUsageFetcher.log.info("MyCoder curl transport request host: \(url.host ?? "nil")")
+
+        var arguments = [
+            "-sS",
+            "--max-time", String(format: "%.0f", request.timeoutInterval),
+            "-w", "\n%{http_code}",
+        ]
+        if let caPath = Self.resolvedCAPath() {
+            arguments.append("--cacert")
+            arguments.append(caPath)
+        } else {
+            MyCoderUsageFetcher.log.warning(
+                "MyCoder curl transport: no pinned CA found; using -k (insecure)")
+            arguments.append("-k")
+        }
+        for (field, value) in request.allHTTPHeaderFields ?? [:] {
+            arguments.append("-H")
+            arguments.append("\(field): \(value)")
+        }
+        MyCoderUsageFetcher.log.info(
+            "MyCoder curl transport headers: \((request.allHTTPHeaderFields ?? [:]).keys.sorted().joined(separator: ","))")
+        if request.httpMethod != "GET", let body = request.httpBody {
+            arguments.append("--data-binary")
+            arguments.append("@-")
+        }
+        arguments.append("--")
+        arguments.append(url.absoluteString)
+
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: self.curlPath)
+        process.arguments = arguments
+
+        let stdoutPipe = Pipe()
+        let stderrPipe = Pipe()
+        process.standardOutput = stdoutPipe
+        process.standardError = stderrPipe
+
+        if request.httpMethod != "GET", let body = request.httpBody {
+            let stdinPipe = Pipe()
+            process.standardInput = stdinPipe
+            try process.run()
+            stdinPipe.fileHandleForWriting.write(body)
+            stdinPipe.fileHandleForWriting.closeFile()
+        } else {
+            try process.run()
+        }
+
+        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+
+        guard process.terminationStatus == 0 else {
+            let stderr = String(data: stderrData, encoding: .utf8) ?? ""
+            MyCoderUsageFetcher.log.error("MyCoder curl transport failed: \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))")
+            throw MyCoderUsageError.networkError(
+                "curl exited \(process.terminationStatus): \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))")
+        }
+
+        // Split the trailing status code line from the body.
+        guard let stdout = String(data: stdoutData, encoding: .utf8),
+              let lastNewline = stdout.lastIndex(of: "\n"),
+              lastNewline > stdout.startIndex,
+              let statusCode = Int(stdout[stdout.index(after: lastNewline)...].trimmingCharacters(in: .whitespacesAndNewlines))
+        else {
+            throw MyCoderUsageError.networkError("curl produced no parseable HTTP response")
+        }
+        let body = Data(stdout[..<lastNewline].utf8)
+        let response = HTTPURLResponse(
+            url: url,
+            statusCode: statusCode,
+            httpVersion: "HTTP/1.1",
+            headerFields: nil) ?? URLResponse(url: url, mimeType: nil, expectedContentLength: body.count, textEncodingName: nil)
+        return (body, response)
     }
 }
 #endif
