@@ -246,18 +246,19 @@ private final class OpenCodeGoCLIWaitStubURLProtocol: URLProtocol {
             return
         }
         let delay = Self.delayedPaths[url.path] ?? 0
-        // URLProtocol and its client are not Sendable, so this closure cannot be
-        // marked @Sendable under Swift 6.2; the deferred delivery warning is
-        // inherent to stubbing URLProtocol this way.
-        let deliver: () -> Void = { [weak self] in
-            guard let self else { return }
+        // URLProtocol is not Sendable; box it (reusing the existing LockIsolated helper)
+        // so the deferred-delivery closure can cross the @Sendable boundary without a
+        // data-race warning. Safe here: only one delivery path runs per stubbed request.
+        let box = LockIsolated(self)
+        let deliver: @Sendable () -> Void = {
+            let this = box.value
             do {
-                let (response, data) = try Self.response(for: self.request)
-                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-                self.client?.urlProtocol(self, didLoad: data)
-                self.client?.urlProtocolDidFinishLoading(self)
+                let (response, data) = try Self.response(for: this.request)
+                this.client?.urlProtocol(this, didReceive: response, cacheStoragePolicy: .notAllowed)
+                this.client?.urlProtocol(this, didLoad: data)
+                this.client?.urlProtocolDidFinishLoading(this)
             } catch {
-                self.client?.urlProtocol(self, didFailWithError: error)
+                this.client?.urlProtocol(this, didFailWithError: error)
             }
         }
         if delay > 0 {
