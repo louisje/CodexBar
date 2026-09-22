@@ -7,6 +7,9 @@ public enum KeychainAccessGate {
     private static let flagKey = "debugDisableKeychainAccess"
     static let disableAccessEnvironmentKey = "CODEXBAR_DISABLE_KEYCHAIN_ACCESS"
     @TaskLocal private static var taskOverrideValue: Bool?
+    #if DEBUG
+    @TaskLocal private static var storedOverrideForTesting: Bool?
+    #endif
     // All mutable gate state and mirror writes share this lock. Resolve the effective value with
     // `isDisabledLocked()` instead of recursively entering through the public getter.
     private static let stateLock = NSLock()
@@ -43,18 +46,13 @@ public enum KeychainAccessGate {
             return true
         }
         #endif
-        if self.processForceDisabledReason != nil {
-            return true
-        }
-        if let overrideValue {
-            return overrideValue
-        }
-        if UserDefaults.standard.bool(forKey: Self.flagKey) {
-            return true
-        }
-        if let shared = AppGroupSupport.sharedDefaults(), shared.bool(forKey: Self.flagKey) {
-            return true
-        }
+        if self.processForceDisabledReason != nil { return true }
+        #if DEBUG
+        if let storedOverrideForTesting { return storedOverrideForTesting }
+        #endif
+        if let overrideValue { return overrideValue }
+        if UserDefaults.standard.bool(forKey: Self.flagKey) { return true }
+        if let shared = AppGroupSupport.sharedDefaults(), shared.bool(forKey: Self.flagKey) { return true }
         return false
     }
 
@@ -66,24 +64,15 @@ public enum KeychainAccessGate {
     }
 
     private static func isExplicitlyDisabledLocked() -> Bool {
-        if let taskOverrideValue {
-            return taskOverrideValue
-        }
-        if self.isDisabledByEnvironment() {
-            return true
-        }
-        if self.processForceDisabledReason != nil {
-            return true
-        }
-        if let overrideValue {
-            return overrideValue
-        }
-        if UserDefaults.standard.bool(forKey: Self.flagKey) {
-            return true
-        }
-        if let shared = AppGroupSupport.sharedDefaults(), shared.bool(forKey: Self.flagKey) {
-            return true
-        }
+        if let taskOverrideValue { return taskOverrideValue }
+        if self.isDisabledByEnvironment() { return true }
+        if self.processForceDisabledReason != nil { return true }
+        #if DEBUG
+        if let storedOverrideForTesting { return storedOverrideForTesting }
+        #endif
+        if let overrideValue { return overrideValue }
+        if UserDefaults.standard.bool(forKey: Self.flagKey) { return true }
+        if let shared = AppGroupSupport.sharedDefaults(), shared.bool(forKey: Self.flagKey) { return true }
         return false
     }
 
@@ -141,8 +130,25 @@ public enum KeychainAccessGate {
         }
     }
 
+    #if DEBUG
+    static func withStoredOverrideForTesting<T>(
+        _ disabled: Bool?,
+        operation: () throws -> T) rethrows -> T
+    {
+        try self.$storedOverrideForTesting.withValue(disabled) {
+            try operation()
+        }
+    }
+    #endif
+
     static var currentOverrideForTesting: Bool? {
+        #if DEBUG
+        self.taskOverrideValue
+            ?? self.storedOverrideForTesting
+            ?? self.stateLock.withLock { self.overrideValue }
+        #else
         self.taskOverrideValue ?? self.stateLock.withLock { self.overrideValue }
+        #endif
     }
 
     #if DEBUG
