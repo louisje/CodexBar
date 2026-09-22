@@ -47,6 +47,10 @@ public enum MyCoderProviderDescriptor {
             tokenCost: ProviderTokenCostConfig(
                 supportsTokenCost: false,
                 noDataMessage: { "MyCoder cost summary is not supported." }),
+            presentation: ProviderUsagePresentation(
+                planUtilizationSeriesResolver: { snapshot in
+                    snapshot.primary != nil ? [.monthly] : nil
+                }),
             fetchPlan: ProviderFetchPlan(
                 sourceModes: [.auto, .web],
                 pipeline: ProviderFetchPipeline(resolveStrategies: { _ in [MyCoderWebFetchStrategy()] })),
