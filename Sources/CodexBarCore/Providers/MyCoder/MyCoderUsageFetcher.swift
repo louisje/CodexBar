@@ -42,7 +42,48 @@ public enum MyCoderUsageFetcher {
             token: token,
             transport: transport,
             timeout: timeout)
-        return try self.parseQuota(data: quotaData, now: now)
+        var snapshot = try self.parseQuota(data: quotaData, now: now)
+        // Model usage breakdown is a nice-to-have; never let it fail the whole fetch.
+        if let modelUsageData = try? await self.sendRequest(
+            path: self.modelUsagePath(userId: userId, now: now),
+            token: token,
+            transport: transport,
+            timeout: timeout),
+            let rows = try? self.parseModelUsage(data: modelUsageData)
+        {
+            snapshot.modelUsageRows = rows
+        }
+        return snapshot
+    }
+
+    private static func modelUsagePath(userId: String, now: Date) -> String {
+        let calendar = Calendar(identifier: .gregorian)
+        let from = calendar.date(byAdding: .day, value: -30, to: now) ?? now
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let fromParam = formatter.string(from: from).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let toParam = formatter.string(from: now).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return "/mycoder-quota/api/v1/user/\(userId)/usage?from=\(fromParam)&to=\(toParam)"
+    }
+
+    /// Parses the per-model token usage/cost breakdown, sorted by total cost descending.
+    static func parseModelUsage(data: Data) throws -> [MyCoderUsageSnapshot.ModelUsageRow] {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let entries = root["tokenUsage"] as? [[String: Any]]
+        else {
+            throw MyCoderUsageError.parseFailed("missing tokenUsage array")
+        }
+        let rows = entries.compactMap { entry -> MyCoderUsageSnapshot.ModelUsageRow? in
+            guard let model = self.string(from: entry["model"]) else { return nil }
+            let cost = (self.double(from: entry["priceInputTokens"]) ?? 0)
+                + (self.double(from: entry["priceOutputTokens"]) ?? 0)
+                + (self.double(from: entry["priceCacheReadTokens"]) ?? 0)
+                + (self.double(from: entry["priceCacheWriteTokens"]) ?? 0)
+            let tokens = (self.double(from: entry["inputTokens"]) ?? 0)
+                + (self.double(from: entry["outputTokens"]) ?? 0)
+            return MyCoderUsageSnapshot.ModelUsageRow(model: model, costUSD: cost, totalTokens: tokens)
+        }
+        return rows.sorted { $0.costUSD > $1.costUSD }
     }
 
     /// Extracts the SSO token from a browser cookie header (or accepts a raw JWT).

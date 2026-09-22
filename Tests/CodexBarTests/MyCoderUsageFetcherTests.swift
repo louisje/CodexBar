@@ -133,4 +133,47 @@ struct MyCoderUsageFetcherTests {
         #expect(MyCoderUsageFetcher.userId(fromSSOToken: token) == "test-user-id")
         #expect(MyCoderUsageFetcher.userId(fromSSOToken: "not.a-jwt") == nil)
     }
+
+    @Test
+    func `parses model usage rows sorted by cost descending`() throws {
+        let data = Data("""
+        {
+          "tokenUsage": [
+            {
+              "model": "openSourceModel/deepseek/deepseek-v4-flash-0731",
+              "inputTokens": 301691,
+              "outputTokens": 12567,
+              "priceInputTokens": 0.024135280000000002,
+              "priceOutputTokens": 0.003166884,
+              "priceCacheReadTokens": 0.0566802432,
+              "priceCacheWriteTokens": 0
+            },
+            {
+              "model": "openSourceModel/z-ai/glm-5.3-flash",
+              "inputTokens": 115628083,
+              "outputTokens": 1441383,
+              "priceInputTokens": 14.54880873,
+              "priceOutputTokens": 0.41928925,
+              "priceCacheReadTokens": 5.0223504,
+              "priceCacheWriteTokens": 0
+            }
+          ]
+        }
+        """.utf8)
+
+        let rows = try MyCoderUsageFetcher.parseModelUsage(data: data)
+
+        #expect(rows.count == 2)
+        #expect(rows[0].model == "openSourceModel/z-ai/glm-5.3-flash")
+        #expect(abs(rows[0].costUSD - 19.99044838) < 0.000001)
+        #expect(rows[1].model == "openSourceModel/deepseek/deepseek-v4-flash-0731")
+    }
+
+    @Test
+    func `parseModelUsage throws when tokenUsage array is missing`() {
+        let data = Data(#"{"foo": "bar"}"#.utf8)
+        #expect(throws: MyCoderUsageError.self) {
+            try MyCoderUsageFetcher.parseModelUsage(data: data)
+        }
+    }
 }
