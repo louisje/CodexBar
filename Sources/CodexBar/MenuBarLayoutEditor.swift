@@ -974,6 +974,7 @@ struct MenuBarLayoutPreview: View {
             self.store.weeklyPace(
                 provider: provider,
                 window: $0,
+                dataConfidence: snapshot.dataConfidence,
                 now: now)
         }
         let runsOut = pace
@@ -1007,17 +1008,26 @@ struct MenuBarLayoutPreview: View {
             scopedWeekly: MenuBarLayoutRenderWindow(scopedNamed?.window),
             scopedWeeklyTitle: scopedNamed?.title,
             automatic: automaticRenderWindow,
-            // Provider-specific by design: Mistral uses spend text when its automatic lane has no percentage window.
-            automaticText: provider == .mistral && automaticRenderWindow == nil
-                ? StatusItemController.mistralSpendDisplayText(snapshot: snapshot)
-                : nil,
-            sessionPace: self.store.menuBarLayoutPaceText(provider: provider, window: session, now: now),
+            automaticText: StatusItemController.menuBarLayoutAutomaticText(
+                provider: provider,
+                snapshot: snapshot,
+                automatic: automaticRenderWindow),
+            sessionPace: self.store.menuBarLayoutPaceText(
+                provider: provider,
+                window: session,
+                dataConfidence: snapshot.dataConfidence,
+                now: now),
             weeklyPace: self.store.menuBarLayoutPaceText(
                 provider: provider,
                 window: weekly,
+                dataConfidence: snapshot.dataConfidence,
                 now: now,
                 minimumElapsedPercent: 1),
-            automaticPace: self.store.menuBarLayoutPaceText(provider: provider, window: automatic, now: now),
+            automaticPace: self.store.menuBarLayoutPaceText(
+                provider: provider,
+                window: automatic,
+                dataConfidence: snapshot.dataConfidence,
+                now: now),
             runsOut: runsOut,
             balance: MenuBarLayoutBalanceResolver.balance(provider: provider, snapshot: snapshot),
             costToday: costToday.map {
@@ -1030,15 +1040,18 @@ struct MenuBarLayoutPreview: View {
                 sessionPaceDelta: self.store.menuBarLayoutPaceDelta(
                     provider: provider,
                     window: session,
+                    dataConfidence: snapshot.dataConfidence,
                     now: now),
                 weeklyPaceDelta: self.store.menuBarLayoutPaceDelta(
                     provider: provider,
                     window: weekly,
+                    dataConfidence: snapshot.dataConfidence,
                     now: now,
                     minimumElapsedPercent: 1),
                 automaticPaceDelta: self.store.menuBarLayoutPaceDelta(
                     provider: provider,
                     window: automatic,
+                    dataConfidence: snapshot.dataConfidence,
                     now: now),
                 runsOutMinutes: pace?.etaSeconds.map { Int(($0 / 60).rounded()) },
                 balanceRemainingUSD: balanceAmounts.remaining,

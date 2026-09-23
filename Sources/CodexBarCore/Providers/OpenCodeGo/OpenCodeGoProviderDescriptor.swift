@@ -80,7 +80,9 @@ public enum OpenCodeGoProviderDescriptor {
                 resetWindowPace: .windowDuration(minutes: ProviderPaceCapability.monthlyWindowSentinelMinutes),
                 inferredMonthlyDuration: .windowDuration(minutes: ProviderPaceCapability.monthlyWindowSentinelMinutes),
                 primary: .session(maximumMinutes: 300),
-                secondary: .weekly),
+                secondary: .weekly,
+                // Device-local costs cannot establish the account's quota usage or billing-cycle boundaries.
+                allowsEstimatedUsage: false),
             history: .alwaysTracked,
             presentation: ProviderUsagePresentation(
                 costPresenter: { snapshot in

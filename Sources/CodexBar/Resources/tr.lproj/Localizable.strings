@@ -224,6 +224,7 @@
 "No cost history data." = "Maliyet geçmişi verisi yok.";
 "No data available" = "Kullanılabilir veri yok";
 "No data yet" = "Henüz veri yok";
+"Workspaces" = "Çalışma Alanları";
 "No enabled providers available for Overview." = "Genel Bakış için etkin sağlayıcı yok.";
 "No providers selected" = "Sağlayıcı seçilmedi";
 "No token accounts yet." = "Henüz token hesabı yok.";
@@ -499,7 +500,6 @@
 "provider_accent_color_reset" = "Varsayılanı kullan";
 "quota_warnings_title" = "Kota uyarıları";
 "quota_warning_session" = "oturum";
-"quota_warning_session_capitalized" = "Oturum";
 "quota_warning_weekly" = "haftalık";
 "quota_warning_weekly_capitalized" = "Haftalık";
 "quota_warning_notification_title" = "%1$@ %2$@ kotası düşük";
@@ -564,6 +564,7 @@
 "hooks_any_provider" = "Herhangi bir sağlayıcı";
 "hooks_threshold" = "Şu kullanım düzeyinde tetikle: ≥";
 "hooks_threshold_placeholder" = "90";
+"hooks_executable" = "Çalıştırılabilir dosya";
 "hooks_executable_placeholder" = "/usr/local/bin/my-command";
 "hooks_arguments_placeholder" = "Argümanlar";
 "hooks_argument_placeholder" = "Argüman";
@@ -673,6 +674,9 @@
 "surprise_me_subtitle" = "Ajanlarınızın yukarıda biraz eğlenmesini istiyorsanız işaretleyin.";
 "hide_personal_info_title" = "Kişisel bilgileri gizle";
 "hide_personal_info_subtitle" = "Menü çubuğu ve menü arayüzünde e-posta adreslerini gizle.";
+"hide_cost_history_identity_subtitle" = "Kaydedilen verileri değiştirmeden maliyet geçmişindeki proje ve kaynak adlarını ve yollarını da gizler.";
+"Project %d" = "Proje %d";
+"Source %d" = "Kaynak %d";
 "show_provider_storage_usage_title" = "Sağlayıcı depolama kullanımını göster";
 "show_provider_storage_usage_subtitle" = "Menülerde yerel disk kullanımını göster. Bilinen sağlayıcıya ait yolları arka planda tarar.";
 "section_keychain_access" = "Anahtar Zinciri erişimi";
@@ -1441,6 +1445,7 @@
 "More" = "Daha fazla";
 
 /* Provider Plugins */
+"Plugins" = "Plugins";
 "Install…" = "Yükle…";
 "Install plugin" = "Eklenti yükle";
 "Copies a JavaScript or TypeScript file into the plugins directory." = "Bir JavaScript veya TypeScript dosyasını eklentiler dizinine kopyalar.";
@@ -1482,6 +1487,7 @@
 "Total usage" = "Toplam kullanım";
 "claude_oauth_keychain_access_revoked" = "Claude Anahtar Zinciri erişimi, Claude Code'un token yenilemesi nedeniyle iptal edildi. Erişimi yeniden vermek için Yenile'ye tıklayın veya Claude kullanım kaynağını CLI/Web olarak değiştirin.";
 "claude_showing_last_known_usage" = "Bilinen son kullanım gösteriliyor (yakalanma zamanı: %@).";
+"claude_limited_usage_detail" = "Kullanım ayrıntıları sınırlı";
 /* Spend dashboard cost analysis */
 "90d" = "90d";
 "Input" = "Girdi";
@@ -1538,3 +1544,4 @@
 "menu_bar_layout_conditional_default_either_high" = "Oturum veya haftalık kullanım yükseldi";
 "menu_bar_layout_conditional_default_scoped_weekly" = "Model haftasının %60'ından fazlası kullanıldı";
 "Spending cap, not balance" = "Harcama sınırı, bakiye değil";
+"%@ weekly" = "%@ haftalık";

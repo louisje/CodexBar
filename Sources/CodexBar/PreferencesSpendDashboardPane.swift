@@ -165,6 +165,7 @@ struct SpendDashboardPane: View {
         .onAppear {
             self.isVisible = true
             self.controller.update(configuration: self.configuration)
+            self.controller.refreshIfStale()
             if !self.controller.isRefreshing {
                 self.synchronizeCodexCostCatchUp()
             }
@@ -199,6 +200,7 @@ struct SpendDashboardPane: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             self.controller.refreshDateWindow()
+            self.controller.refreshIfStale()
         }
     }
 
@@ -231,7 +233,7 @@ struct SpendDashboardPane: View {
             .frame(width: 248)
 
             Button {
-                self.controller.refresh()
+                self.store.refreshSpendDashboard(accounts: self.codexSpendScanRequests)
             } label: {
                 if self.controller.isRefreshing {
                     ProgressView().controlSize(.small)
@@ -406,7 +408,8 @@ struct SpendDashboardPane: View {
             ForEach(self.controller.model.groups) { group in
                 SpendDashboardCurrencySection(
                     group: group,
-                    requestedDays: self.controller.model.requestedDays)
+                    requestedDays: self.controller.model.requestedDays,
+                    hidePersonalInfo: self.settings.hidePersonalInfo)
             }
         }
 
@@ -558,6 +561,7 @@ struct SpendDashboardEmptyState: Equatable {
 struct SpendDashboardCurrencySection: View {
     let group: SpendDashboardModel.CurrencyGroup
     let requestedDays: Int
+    var hidePersonalInfo: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -629,7 +633,7 @@ struct SpendDashboardCurrencySection: View {
             SpendModelPanel(group: self.group)
             SpendSessionPanel(group: self.group)
             if !self.group.projects.isEmpty {
-                SpendProjectPanel(group: self.group)
+                SpendProjectPanel(group: self.group, hidePersonalInfo: self.hidePersonalInfo)
             }
             SpendDailyChart(group: self.group)
             if !self.group.hourlyPoints.isEmpty {
@@ -761,6 +765,7 @@ private struct SpendModelPanel: View {
 
 private struct SpendProjectPanel: View {
     let group: SpendDashboardModel.CurrencyGroup
+    let hidePersonalInfo: Bool
     @State private var showsAllRows = false
 
     private static let collapsedRowCount = 8
@@ -782,7 +787,7 @@ private struct SpendProjectPanel: View {
                             .font(.caption)
                             .foregroundStyle(.tertiary)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(row.projectName).lineLimit(1)
+                            Text(row.displayIdentity(hidePersonalInfo: self.hidePersonalInfo).name).lineLimit(1)
                             Text(row.providerName).font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
@@ -875,6 +880,11 @@ private struct SpendDailyChart: View {
                     ContentUnavailableView(L("Spend unavailable"), systemImage: "chart.bar.xaxis")
                         .frame(maxWidth: .infinity, minHeight: 170)
                 } else {
+                    let topStackIDs = spendTopOfStackIDs(
+                        for: self.group.dailyPoints,
+                        key: \.day,
+                        id: \.id,
+                        stackEnd: \.stackEnd)
                     Chart(self.group.dailyPoints) { point in
                         BarMark(
                             x: .value(L("Day"), point.day, unit: .day),
@@ -882,6 +892,9 @@ private struct SpendDailyChart: View {
                             yEnd: .value(L("Estimated spend"), point.stackEnd),
                             width: .ratio(0.72))
                             .foregroundStyle(by: .value(L("Provider"), point.providerName))
+                            // A clip cannot restore corners already removed by the native mark rounding.
+                            .cornerRadius(0)
+                            .clipShape(spendStackedBarSegmentShape(isTopOfStack: topStackIDs.contains(point.id)))
                             .accessibilityLabel(Text(self.pointAccessibilityLabel(point)))
                             .accessibilityValue(Text(UsageFormatter.currencyString(
                                 point.cost,
@@ -922,6 +935,37 @@ private struct SpendDailyChart: View {
         let color = ProviderAccentPalette.color(for: provider)
         return Color(red: color.red, green: color.green, blue: color.blue)
     }
+}
+
+/// Finds the id of the highest-`stackEnd` point per grouping key (day/hour), regardless of how
+/// many providers are stacked in that group. Only that point's bar should render a rounded top.
+func spendTopOfStackIDs<Point, Key: Hashable>(
+    for points: [Point],
+    key: (Point) -> Key,
+    id: (Point) -> String,
+    stackEnd: (Point) -> Double) -> Set<String>
+{
+    var bestByKey: [Key: (id: String, stackEnd: Double)] = [:]
+    for point in points {
+        let pointKey = key(point)
+        let pointStackEnd = stackEnd(point)
+        if let existing = bestByKey[pointKey], existing.stackEnd >= pointStackEnd {
+            continue
+        }
+        bestByKey[pointKey] = (id(point), pointStackEnd)
+    }
+    return Set(bestByKey.values.map(\.id))
+}
+
+/// Only the outer top of a stacked bar should round; every seam and the baseline must stay flush.
+private func spendStackedBarSegmentShape(isTopOfStack: Bool) -> UnevenRoundedRectangle {
+    let topRadius: CGFloat = isTopOfStack ? 4 : 0
+    return UnevenRoundedRectangle(
+        topLeadingRadius: topRadius,
+        bottomLeadingRadius: 0,
+        bottomTrailingRadius: 0,
+        topTrailingRadius: topRadius,
+        style: .continuous)
 }
 
 struct SpendHourlyChartPresentation: Equatable {
@@ -973,6 +1017,11 @@ private struct SpendHourlyChart: View {
                     ContentUnavailableView(L("Spend unavailable"), systemImage: "chart.bar.xaxis")
                         .frame(maxWidth: .infinity, minHeight: 170)
                 } else {
+                    let topStackIDs = spendTopOfStackIDs(
+                        for: self.group.hourlyPoints,
+                        key: \.hour,
+                        id: \.id,
+                        stackEnd: \.stackEnd)
                     Chart(self.group.hourlyPoints) { point in
                         BarMark(
                             x: .value(L("Hour"), point.hour, unit: .hour),
@@ -980,6 +1029,8 @@ private struct SpendHourlyChart: View {
                             yEnd: .value(L("Estimated spend"), point.stackEnd),
                             width: .ratio(0.72))
                             .foregroundStyle(by: .value(L("Provider"), point.providerName))
+                            .cornerRadius(0)
+                            .clipShape(spendStackedBarSegmentShape(isTopOfStack: topStackIDs.contains(point.id)))
                             .accessibilityLabel(Text(self.pointAccessibilityLabel(
                                 point,
                                 includeDate: presentation.includeDateInPointLabels)))
