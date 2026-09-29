@@ -506,10 +506,12 @@ extension UsageStore {
             break
         }
         guard self.isCurrentProviderRefreshGeneration(provider, generation: context.generation) else { return nil }
-        await self.applyProviderRefreshOutcome(
+        await self.applyProviderRefreshOutcome(provider: provider, outcome: outcome, context: context)
+        self.scheduleSupplementalUsageUpdate(
             provider: provider,
             outcome: outcome,
-            context: context)
+            generation: context.generation,
+            accountID: context.tokenAccount?.id)
         return nil
     }
 
@@ -676,7 +678,7 @@ extension UsageStore {
             return
         }
         let accountScoped = if let tokenAccount = currentTokenAccount {
-            self.applyAccountLabel(scoped, provider: provider, account: tokenAccount)
+            scoped.withAccountLabel(tokenAccount.label, for: provider)
         } else {
             scoped
         }
@@ -823,7 +825,7 @@ extension UsageStore {
             return
         }
         // Credential-change cleanup already ran above; cancellation is now safe to suppress.
-        if Self.errorIsCancellation(error) {
+        if Self.shouldSuppressProviderCancellation(error, priorSnapshot: self.snapshots[provider.instanceID]) {
             if provider == .deepseek,
                self.isCurrentProviderRefreshGeneration(provider, generation: context.generation)
             {
@@ -1428,7 +1430,8 @@ extension UsageStore {
                 Self.isClaudeCLIUsageParseFailure(error)
             let preservesPriorData = Self.shouldPreservePriorSnapshot(
                 after: error,
-                hadPriorData: hadPriorData) ||
+                hadPriorData: hadPriorData,
+                priorSnapshot: self.snapshots[provider.instanceID]) ||
                 (provider == .claude &&
                     hadPriorData &&
                     (context.claudeUsesConsumerAutoPipeline ||
@@ -1521,7 +1524,7 @@ extension UsageStore {
     }
 
     nonisolated static func isPreservableNetworkTransportError(_ error: Error) -> Bool {
-        let nsError = error as NSError
+        let nsError = self.underlyingProviderTransportError(error) as NSError
         guard nsError.domain == NSURLErrorDomain else { return false }
         switch nsError.code {
         case NSURLErrorTimedOut,
@@ -1544,11 +1547,12 @@ extension UsageStore {
     }
 
     static func isStartupConnectivityRetryableError(_ error: Error) -> Bool {
-        if error is CancellationError {
+        let transportError = self.underlyingProviderTransportError(error)
+        if transportError is CancellationError {
             return false
         }
 
-        let nsError = error as NSError
+        let nsError = transportError as NSError
         if nsError.domain == NSURLErrorDomain {
             switch nsError.code {
             case NSURLErrorTimedOut,
