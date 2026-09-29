@@ -53,8 +53,8 @@ Usage source picker:
 - `additional_rate_limits[]` (model-specific limits such as GPT-5.3-Codex-Spark) map to named
   `UsageSnapshot.extraRateWindows` entries. Spark uses stable `codex-spark` / `codex-spark-weekly` ids and
   `Codex Spark 5-hour` / `Codex Spark Weekly` titles. When the field is absent, the snapshot is unchanged.
-- Preferences → Providers → Codex → Show Codex Spark usage hides only the Spark rows in menus and the provider
-  preview. It does not change fetching, history, notifications, widgets, credits, or other extra limits.
+- Preferences → Providers → Codex → Visible usage items lets you hide individual Spark rows in menus, the Settings
+  preview, and Overview. It does not change fetching, history, notifications, widgets, credits, or other extra limits.
 
 ### Optional external OAuth sources (off by default)
 - **External Codex OAuth sources** is a provider setting that must be enabled explicitly before CodexBar reads
@@ -68,6 +68,9 @@ Usage source picker:
   Automatic mode also suppresses unscoped CLI fallback whenever a managed workspace is selected. Explicit
   managed-account workspace selection is stored in CodexBar's private managed-account metadata; it never edits the
   source `auth.json` or publishes an `account_id` change back to another application's credential file.
+- If native credentials need renewal, use **Reauthenticate** for the affected account in Settings → Providers → Codex.
+  For CLI recovery, run `codex login` with that account's existing `CODEX_HOME` and select the intended workspace.
+  The refresh error describes this manual recovery without promising automatic CLI fallback for managed workspaces.
 - Stacked account refreshes retain each managed account's selected workspace through usage publication and menu
   matching, even when its auth file names a different default workspace. Changing the selected workspace while a
   refresh is running discards the old workspace's result.
@@ -197,6 +200,8 @@ is limited, using additional rows when needed.
   - By default, a selected managed account keeps its own `CODEX_HOME` session history.
   - **Local session cost estimates** is a Codex-only opt-in that instead scans this Mac's ambient `$CODEX_HOME`
     (or `~/.codex`) independently of quota, OAuth, web-dashboard, and administrator access.
+  - Multi-account menus show an ambient ledger once under **This Mac**, honoring inline, submenu, or combined display.
+    Managed-account and profile-home history is never promoted to this shared section.
   - Regular menu cost refreshes publish local session estimates even when global cost tracking is off. This does not
     enable other providers' cost scans; results still require the same provider configuration and history/account scope.
   - The local-only mode never makes a network request or uploads session content. It uses an existing local models.dev
@@ -236,7 +241,9 @@ is limited, using additional rows when needed.
   - Native session store: `~/Library/Caches/CodexBar/cost-usage/cost-usage.sqlite`
   - pi-compatible session cache: `~/Library/Caches/CodexBar/cost-usage/pi-sessions-v8.json`
     is replaced atomically on macOS and Linux, retaining complete cached scan state across refreshes.
-  - Catch-up status reads progress metadata without loading historical usage JSON or replay bodies. Cached reports
+  - Catch-up status reads progress metadata without loading historical usage JSON or replay bodies. Cached token
+    activity reads scoped daily aggregates without decoding individual usage events, retaining account, time zone,
+    coverage, and incomplete-scan checks. Cached reports
     retain row-level pricing evidence and project/session details, but omit raw token snapshots, accumulator state,
     and replay bodies. File cursor metadata, including JSONL resume state, remains available for progress tracking.
     A native scan loads exact usage rows once, deferring raw token history and checkpoints until a file changes

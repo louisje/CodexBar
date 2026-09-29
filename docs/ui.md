@@ -14,6 +14,7 @@ read_when:
 
 ## Menu bar
 - LSUIElement app: no Dock icon; status item uses custom NSImage.
+- Cached status menus and previously opened submenus follow macOS appearance changes before reopening, preserving the effective Light/Dark and accessibility appearance.
 - Merge Icons toggle combines providers into one status item with a switcher.
 - With the automatic metric selected, switcher progress honors a provider's exhausted-quota selection before
   showing normal weekly progress. Healthy allowances, explicit metric choices, and separate provider pools
@@ -57,6 +58,12 @@ behind it, `0%` on pace. Each pace token reads its own window, so `Weekly pace` 
 `Runs out`, which always estimates from the weekly (or automatic) lane. A pace token renders an en dash while pace is
 unavailable, including the first 3% of a window. The weekly menu-bar pace token may appear after 1% of its weekly
 window has elapsed; session, automatic, and Runs out tokens keep the 3% threshold. See [Pace tracking](#pace-tracking).
+
+Enable **Color Pace Indicator** under **Menu Bar → Icon** to show usage behind pace (reserve) in green and usage ahead
+of pace (risk of running out early) in red. The option defaults off, applies to all three pace tokens and the layout
+preview, and keeps the signed percentages. Zero and unavailable pace stay neutral; stale pace colors are dimmed unless high-contrast rendering is active.
+It colors **Session pace**, **Weekly pace**, and **Auto pace** in the layout editor. Enabling it does not add tokens,
+rewrite stored layouts, or migrate legacy display modes. Existing installs stay monochrome until the option is enabled.
 
 Balance is available only for OpenRouter and renders the same remaining-credit value shown in its menu card. Auto %
 uses the same provider-aware automatic-window resolution as the legacy menu bar metric setting. For balance-only
