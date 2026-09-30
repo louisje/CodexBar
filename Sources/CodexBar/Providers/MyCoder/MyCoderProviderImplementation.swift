@@ -80,7 +80,7 @@ struct MyCoderProviderImplementation: ProviderImplementation {
                 subtitle: "",
                 kind: .secure,
                 placeholder: "Cookie: \u{2026}\n\nor paste a Cookie header from the MyCoder billing page",
-                binding: context.stringBinding(\.mycoderCookieHeader),
+                binding: context.binding(\.mycoderCookieHeader),
                 actions: [
                     ProviderSettingsActionDescriptor(
                         id: "mycoder-open-billing",
@@ -93,8 +93,7 @@ struct MyCoderProviderImplementation: ProviderImplementation {
                             }
                         }),
                 ],
-                isVisible: { context.settings.mycoderCookieSource == .manual },
-                onActivate: { context.settings.ensureMyCoderCookieLoaded() }),
+                isVisible: { context.settings.mycoderCookieSource == .manual }),
         ]
     }
 }

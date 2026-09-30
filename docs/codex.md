@@ -206,6 +206,11 @@ and stable account numbers distinguish rows while usable workspace labels remain
 - CLI PTY diagnostics can still parse `Credits:` from saved/manual `/status` output.
 
 ## Cost usage (local log scan)
+
+For a manual comparison with another development machine, run `codexbar cost --provider codex --remote <ssh-host>`.
+Both hosts scan their own native Codex logs once and return separate summaries, retaining their own day boundaries,
+pricing provenance, missing values, and incomplete-request counts. Only bounded totals cross SSH. A remote error keeps
+the local result and returns a nonzero exit code. See [CLI host reporting](cli.md) for the versioned summary contract.
 - Menu source selection:
   - By default, a selected managed account keeps its own `CODEX_HOME` session history.
   - **Local session cost estimates** is a Codex-only opt-in that instead scans this Mac's ambient `$CODEX_HOME`
@@ -273,6 +278,13 @@ and stable account numbers distinguish rows while usable workspace labels remain
     remains transient. Scanner and writer connections keep separate ownership.
   - Saved day/model aggregates group each file's usage rows in one pass per aggregate build. Packed token totals,
     authoritative costs (including zero), and standard/priority estimation buckets retain their existing meanings.
+  - Excess cached request rows trigger bounded revalidation of readable, unchanged session files. Ordered source
+    replay determines the request sequence; matching token totals alone cannot establish a request partition.
+    Unanimous saved pricing survives partial scans and restarts. Files with authoritative monetary amounts, existing
+    unpriced markers, or conflicting saved pricing retain their rows without automatic rewriting. Recovered requests
+    without matching historical pricing remain unpriced. The repair retains the existing database and scan checkpoints.
+    Resumes retain the original target anchor alongside the parsed-prefix anchor and follow the scanner's existing
+    append-only log contract; identity changes, anchor mismatches, and unexplained same-size large-file edits invalidate pricing.
   - Fully read empty session fragments retain completion records even when another file contributes the same session.
     They contribute no usage and reparse from the start if they grow. Usage-bearing duplicates and incomplete fragments
     keep their existing accounting and retry rules. Existing 0.56.4 cost caches are adopted without rebuilding
