@@ -48,8 +48,15 @@
       （重跑即過）；`AlibabaTokenPlanProviderTests` 的 Cookie/`X-Anonymous-Id` 斷言穩定失敗，
       但 HEAD 與 `v0.61.0` 在該測試與 source 的 diff 為 0——**upstream 既有問題**
       （e1d208b02 "preserve Alibaba and Qwen form values" 改完後測試仍失敗），非 merge 造成。
-  - `git push origin main`：`5aa5e6286..86b9ba3c6`。
-- **下一步**：繼續 `v0.62.0 → v0.63.0 → v0.64.1`。
+  - `v0.62.0` merge commit `676690967`。1 個衝突：`HookEvent.swift`（fork swiftformat 多行
+    vs upstream 單行 + 新增 `windowMinutes`/`secondary*` 欄位），採 upstream。
+    - `swift build` 乾淨（463.78s），但 `swift build --build-tests` 失敗：v0.62.0 新檔
+      `TestsLinux/CostUsageQuotaWeekLinuxTests.swift` 的 `#expect((a ?? 0) + (b ?? 0) == 6)`
+      在 Intel 機器型別檢查逾時（upstream Apple Silicon CI 可過）。拆開成
+      `let combinedCost = ...; #expect(combinedCost == 6)` 修復（commit `446284198`）。
+    - 驗證：hooks 焦點測試 + `CostUsageQuotaWeekLinuxTests` 共 54 個全過。
+  - `git push origin main`：`86b9ba3c6..676690967..446284198`。
+- **下一步**：繼續 `v0.63.0 → v0.64.1`。
   - 提醒：每次 merge 後務必用 `grep -rl '^<<<<<<<' --include='*.swift' Sources Tests` 全域確認
     沒有殘留衝突標記，再進 build，避免像 `v0.57.0` 那次漏掉一個檔案。
     **merge 輸出不要用 `tail` 截斷**——v0.61.0 那次因此漏看 20 個衝突檔案。
