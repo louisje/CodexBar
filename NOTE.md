@@ -63,8 +63,18 @@
     - 驗證：`swift build` 乾淨（944.68s）。首次焦點測試 `SpendDashboardSourceConcurrencyTests`
       多個 timedOut（119s），單獨重跑 20/20 全過（5.3s）——並行負載造成 flaky；
       `SpendDashboardPublicationTests` 18/18、其餘 151 個全過。
-  - `git push origin main`：`446284198..2d9c43d7a`。
-- **下一步**：繼續 `v0.64.1`。
+  - `v0.64.1` merge commit `2043fed99`。4 個衝突：
+    - `LLMProxyUsageFetcher.swift` / `NeuralWattUsageFetcher.swift`：modify/delete——upstream
+      把這兩個 provider 重構成 bundled plugin（`llmproxy.js/ts`、`neuralwatt.js`），接受刪除。
+    - `KimiCookieHeader.swift`：upstream 移除 private `extractHeader` helper（改用共用
+      `CookieHeaderNormalizer`），採 upstream。
+    - `provider-ids.md`：upstream 新增 `helmcode`/`v0`/`typesafe`，採 upstream 後補回 `mycoder`。
+    - 驗證：`swift build` 乾淨（948.60s）；焦點測試 180 個僅 1 個 Kimi 時間斷言 flaky
+      （重跑 76/76 全過）。
+  - `git push origin main`：`2d9c43d7a..2043fed99`。
+- **✅ 全部完成**：`v0.56.0 → v0.57.0 → v0.58.0 → v0.59.0 → v0.60.0 → v0.61.0 → v0.62.0 →
+  v0.63.0 → v0.64.1` 已全部合併並 push 到 origin/main。fork 現在與 upstream 同步，
+  MyCoder provider 保留完好（manifest + provider-ids.md + MyCoder 目錄）。
   - 提醒：每次 merge 後務必用 `grep -rl '^<<<<<<<' --include='*.swift' Sources Tests` 全域確認
     沒有殘留衝突標記，再進 build，避免像 `v0.57.0` 那次漏掉一個檔案。
     **merge 輸出不要用 `tail` 截斷**——v0.61.0 那次因此漏看 20 個衝突檔案。
