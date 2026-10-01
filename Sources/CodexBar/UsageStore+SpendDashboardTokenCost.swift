@@ -127,7 +127,8 @@ extension UsageStore {
                 codexHomePath: costScope.codexHomePath,
                 historyDays: historyDays,
                 cursorCookieHeaderOverride: cursorCookieHeaderOverride,
-                includePiSessions: self.shouldIncludePiSessionsInTokenSnapshot(for: provider))
+                includePiSessions: self.shouldIncludePiSessionsInTokenSnapshot(for: provider),
+                reportContext: .spendDashboard)
             let snapshot = result.snapshot
             try Task.checkCancellation()
             guard self.tokenAccountingScopeIsCurrent(result.accounting, for: provider) else {
@@ -155,6 +156,14 @@ extension UsageStore {
             let hasUsage = !snapshot.daily.isEmpty || snapshot.meteredCostUSD != nil
             guard hasUsage || snapshot.historyCoverageIsEstablished else {
                 throw TokenSnapshotError.historyUnavailable
+            }
+            // Provider-specific by design: partial Antigravity scans cannot replace this scope's complete history.
+            if provider == .antigravity, snapshot.historyScanIsPartial,
+               self.spendDashboardTokenSnapshotPublicationForCurrentConfig(for: provider)?
+                   .snapshot?.historyCoverageIsEstablished == true
+            {
+                self.spendDashboardTokenFailedTriggers[provider.instanceID] = trigger
+                return
             }
             self.lastSpendDashboardTokenFetchScope[provider.instanceID] = completedCostScopeSignature
             self.spendDashboardTokenIncorporatedTriggers[provider.instanceID] = SpendDashboardTokenRefreshTrigger(

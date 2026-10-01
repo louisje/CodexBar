@@ -50,7 +50,6 @@ enum ProviderImplementationManifest {
         DeepSeekProviderImplementation(),
         DeepInfraProviderImplementation(),
         CodebuffProviderImplementation(),
-        CrofProviderImplementation(),
         VeniceProviderImplementation(),
         CommandCodeProviderImplementation(),
         QoderProviderImplementation(),
@@ -65,6 +64,7 @@ enum ProviderImplementationManifest {
         PoeProviderImplementation(),
         ChutesProviderImplementation(),
         NeuralWattProviderImplementation(),
+        HelmcodeProviderImplementation(),
         ClawRouterProviderImplementation(),
         LongCatProviderImplementation(),
         Sub2APIProviderImplementation(),
@@ -81,5 +81,7 @@ enum ProviderImplementationManifest {
         ReplicateProviderImplementation(),
         HuggingFaceProviderImplementation(),
         PiProviderImplementation(),
+        V0ProviderImplementation(),
+        TypeSafeProviderImplementation(),
     ]
 }

@@ -622,6 +622,12 @@
 "cost_summary_off" = "خاموش";
 "merge_icons_title" = "آیکون های ادغام";
 "merge_icons_subtitle" = "از یک آیکون نوار منو با یک تغییر دهنده ارائه دهنده استفاده کنید.";
+"merged_icon_style_title" = "سبک نماد ترکیبی";
+"merged_icon_style_subtitle" = "تعویض‌گر بین ارائه‌دهنده‌ها یکی‌یکی می‌چرخد؛ پشته‌ای دو ارائه‌دهنده را همزمان، هرکدام در یک ردیف، نمایش می‌دهد.";
+"merged_icon_style_switcher" = "تعویض‌گر";
+"merged_icon_style_stacked" = "پشته‌ای";
+"merge_icon_stacked_top_provider_title" = "ردیف بالا";
+"merge_icon_stacked_bottom_provider_title" = "ردیف پایین";
 "show_most_used_provider_title" = "نمایش ارائه دهنده پرکاربرد";
 "show_most_used_provider_subtitle" = "نوار منو به طور خودکار ارائه دهنده ای را نشان می دهد که به محدودیت نرخ خود نزدیک تر است.";
 "display_mode_title" = "حالت نمایش";
@@ -1179,7 +1185,6 @@
 "Open Augment (Log Out & Back In)" = "Augment باز (خروج و ورود دوباره)";
 "Open Codebuff Dashboard" = "داشبورد Open Codebuff";
 "Open Command Code Settings" = "تنظیمات باز Command Code";
-"Open Crof dashboard" = "داشبورد Open Crof";
 "Open Manus" = "Manus باز";
 "Open MiMo Balance" = "تعادل باز MiMo";
 "Open Moonshot Console" = "کنسول Moonshot باز";
@@ -1247,7 +1252,6 @@
 "Stored in ~/.codexbar/config.json. Requires an Anthropic Admin API key." = "ذخیره سازی در ~/.codexbar/config.json. نیاز به کلید API مدیریت انسان شناسی دارد.";
 "Stored in ~/.codexbar/config.json. Used for /v1/quota-stats." = "ذخیره شده در ~/.codexbar/config.json. برای /v1/quota-stats.";
 "Stored in ~/.codexbar/config.json. You can also provide CODEBUFF_API_KEY or let CodexBar read ~/.config/manicode/credentials.json (created by `codebuff login`)." = "ذخیره شده در ~/.codexbar/config.json. همچنین می توانید CODEBUFF_API_KEY ارائه دهید یا اجازه دهید CodexBar ~/.config/manicode/credentials.json (ایجاد شده توسط `codebuff login`) را بخوانند.";
-"Stored in ~/.codexbar/config.json. You can also provide CROF_API_KEY." = "ذخیره شده در ~/.codexbar/config.json. همچنین می توانید CROF_API_KEY ارائه دهید.";
 "Stored in ~/.codexbar/config.json. You can also provide KILO_API_KEY or ~/.local/share/kilo/auth.json (kilo.access)." = "ذخیره شده در ~/.codexbar/config.json. همچنین می توانید KILO_API_KEY یا ~/.local/share/kilo/auth.json (kilo.access) ارائه دهید.";
 "T3 Chat cookie" = "T3 Chat کوکی";
 "Team mode" = "حالت تیم";
@@ -1615,3 +1619,8 @@
 "section_widgets" = "ویجت‌ها";
 "account_widgets_title" = "حساب‌ها را برای ویجت‌ها به‌روز نگه دارید";
 "account_widgets_description" = "در هر ویجت Account Usage یک حساب انتخاب کنید. حداکثر شش حساب برای هر ارائه‌دهنده به‌روز می‌شود.";
+
+/* Antigravity local cost estimates */
+"antigravity_cost_estimate_hint" = "مصرف محلی × قیمت‌های عمومی API · هزینه یا اعتبار Antigravity نیست";
+"antigravity_quota_window_note" = "هزینهٔ بازه همهٔ مدل‌ها را دربر می‌گیرد · بازهٔ نمایش‌داده‌شده محدودترین خانواده است";
+"antigravity_no_priced_token_history" = "تاریخچهٔ قیمت‌گذاری‌شدهٔ توکن Antigravity موجود نیست.";

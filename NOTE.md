@@ -55,8 +55,16 @@
       在 Intel 機器型別檢查逾時（upstream Apple Silicon CI 可過）。拆開成
       `let combinedCost = ...; #expect(combinedCost == 6)` 修復（commit `446284198`）。
     - 驗證：hooks 焦點測試 + `CostUsageQuotaWeekLinuxTests` 共 54 個全過。
-  - `git push origin main`：`86b9ba3c6..676690967..446284198`。
-- **下一步**：繼續 `v0.63.0 → v0.64.1`。
+  - `v0.63.0` merge commit `2d9c43d7a`。6 個衝突，全部同模式（fork swiftformat 格式 vs
+    upstream 功能變更）：`SpendDashboardController`、`LongCatUsageSnapshot`（回傳 `Double?`）、
+    `MiniMaxUsageFetcher`（`Int(exactly:)`）、`UsageFormatter`（`resetCountdownMinutes`）、
+    `UsageStorePlanUtilizationAsyncLoadTests`（新增 backfill 測試）、`provider-ids.md`
+    （upstream 新增 `pi`）。5 檔採 upstream，`provider-ids.md` 採 upstream 後補回 `mycoder`。
+    - 驗證：`swift build` 乾淨（944.68s）。首次焦點測試 `SpendDashboardSourceConcurrencyTests`
+      多個 timedOut（119s），單獨重跑 20/20 全過（5.3s）——並行負載造成 flaky；
+      `SpendDashboardPublicationTests` 18/18、其餘 151 個全過。
+  - `git push origin main`：`446284198..2d9c43d7a`。
+- **下一步**：繼續 `v0.64.1`。
   - 提醒：每次 merge 後務必用 `grep -rl '^<<<<<<<' --include='*.swift' Sources Tests` 全域確認
     沒有殘留衝突標記，再進 build，避免像 `v0.57.0` 那次漏掉一個檔案。
     **merge 輸出不要用 `tail` 截斷**——v0.61.0 那次因此漏看 20 個衝突檔案。
