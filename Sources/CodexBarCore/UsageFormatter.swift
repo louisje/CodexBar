@@ -55,14 +55,10 @@ public enum UsageFormatter {
         // fallback below; app localization is injected through localizationProvider.
         let coreBundle = Bundle(for: BundleToken.self)
         let coreValue = NSLocalizedString(key, tableName: "Localizable", bundle: coreBundle, value: key, comment: "")
-        if coreValue != key {
-            return coreValue
-        }
+        if coreValue != key { return coreValue }
 
         let mainValue = NSLocalizedString(key, tableName: "Localizable", bundle: .main, value: key, comment: "")
-        if mainValue != key {
-            return mainValue
-        }
+        if mainValue != key { return mainValue }
         #endif
 
         switch key {
@@ -106,39 +102,35 @@ public enum UsageFormatter {
 
     public static func percentString(_ percent: Double) -> String {
         let clamped = min(100, max(0, percent))
-        if clamped > 0, clamped < 1 {
-            return "<1%"
-        }
+        if clamped > 0, clamped < 1 { return "<1%" }
         return String(format: "%.0f%%", clamped)
     }
 
     public static func resetCountdownDescription(from date: Date, now: Date = .init()) -> String {
-        let seconds = max(0, date.timeIntervalSince(now))
-        if seconds < 1 {
-            return "now"
+        guard let totalMinutes = self.resetCountdownMinutes(from: date, now: now) else {
+            return self.localized("Unknown")
         }
-
-        let totalMinutes = max(1, Int(ceil(seconds / 60.0)))
+        if totalMinutes == 0 { return "now" }
         let days = totalMinutes / (24 * 60)
         let hours = (totalMinutes / 60) % 24
         let minutes = totalMinutes % 60
 
         if days > 0 {
-            if hours > 0 {
-                return "in \(days)d \(hours)h"
-            }
-            if minutes > 0 {
-                return "in \(days)d \(minutes)m"
-            }
+            if hours > 0 { return "in \(days)d \(hours)h" }
+            if minutes > 0 { return "in \(days)d \(minutes)m" }
             return "in \(days)d"
         }
         if hours > 0 {
-            if minutes > 0 {
-                return "in \(hours)h \(minutes)m"
-            }
+            if minutes > 0 { return "in \(hours)h \(minutes)m" }
             return "in \(hours)h"
         }
         return "in \(totalMinutes)m"
+    }
+
+    private static func resetCountdownMinutes(from date: Date, now: Date) -> Int? {
+        let seconds = date.timeIntervalSince(now)
+        guard let minutes = Int(exactly: ceil(seconds / 60)) else { return nil }
+        return seconds < 1 ? 0 : max(1, minutes)
     }
 
     public static func resetDescription(from date: Date, now: Date = .init()) -> String {
@@ -161,7 +153,7 @@ public enum UsageFormatter {
         style: ResetTimeDisplayStyle,
         now: Date = .init()) -> String?
     {
-        if let date = window.resetsAt {
+        if let date = window.resetsAt, self.resetCountdownMinutes(from: date, now: now) != nil {
             if style == .countdown {
                 let countdown = self.resetCountdownDescription(from: date, now: now)
                 if countdown == "now" {
@@ -193,7 +185,10 @@ public enum UsageFormatter {
 
     public static func updatedString(from date: Date, now: Date = .init()) -> String {
         let delta = now.timeIntervalSince(date)
-        if abs(delta) < 60 {
+        guard let elapsedSeconds = Int(exactly: delta.rounded(.towardZero)) else {
+            return self.localized("Updated absolute %@", self.localized("Unknown"))
+        }
+        if elapsedSeconds > -60, elapsedSeconds < 60 {
             return self.localized("Updated just now")
         }
         if let hours = Calendar.current.dateComponents([.hour], from: date, to: now).hour, hours < 24 {
@@ -203,7 +198,7 @@ public enum UsageFormatter {
             rel.unitsStyle = .abbreviated
             return self.localized("Updated relative %@", rel.localizedString(for: date, relativeTo: now))
             #else
-            let seconds = max(0, Int(now.timeIntervalSince(date)))
+            let seconds = max(0, elapsedSeconds)
             if seconds < 3600 {
                 let minutes = max(1, seconds / 60)
                 return self.localized("Updated %@m ago", String(minutes))
@@ -367,9 +362,7 @@ public enum UsageFormatter {
                 formatted = String(format: "%.0f", scaled)
             } else {
                 var s = String(format: "%.1f", scaled)
-                if s.hasSuffix(".0") {
-                    s.removeLast(2)
-                }
+                if s.hasSuffix(".0") { s.removeLast(2) }
                 formatted = s
             }
             return "\(sign)\(formatted)\(unit.suffix)"
@@ -461,12 +454,8 @@ public enum UsageFormatter {
     public static func modelDisplayName(_ raw: String) -> String {
         var cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleaned.isEmpty else { return raw }
-        if cleaned == "codex-auto-review" {
-            return "Codex Auto Review"
-        }
-        if CostUsagePricing.isCodexUnattributedModel(cleaned) {
-            return "Unknown model"
-        }
+        if cleaned == "codex-auto-review" { return "Codex Auto Review" }
+        if CostUsagePricing.isCodexUnattributedModel(cleaned) { return "Unknown model" }
 
         let patterns = [
             #"(?:-|\s)\d{8}$"#,

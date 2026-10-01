@@ -951,6 +951,8 @@
 "Overage" = "Overschot";
 "Activity" = "Activiteit";
 "Copied" = "Gekopieerd";
+"Managed by Homebrew" = "Beheerd door Homebrew";
+"Copy update command" = "Updatecommando kopiëren";
 "Copy error" = "Kopieerfout";
 "Copy path" = "Kopieer pad";
 "Extra usage spent" = "Extra gebruik besteed";
@@ -1346,6 +1348,8 @@
 "Tracked tokens" = "Bijgehouden tokens";
 "Subscriptions" = "Abonnementen";
 "By subscription" = "Per abonnement";
+"By source" = "By source";
+"%d of %d sources have spend" = "%d of %d sources have spend";
 "No model-level history" = "Geen geschiedenis op modelniveau";
 "Daily estimated spend" = "Geschatte dagelijkse uitgaven";
 "Hourly estimated spend" = "Geschatte uitgaven per uur";

@@ -948,6 +948,8 @@
 "Overage" = "Excedente";
 "Activity" = "Atividade";
 "Copied" = "Copiado";
+"Managed by Homebrew" = "Gerenciado pelo Homebrew";
+"Copy update command" = "Copiar comando de atualização";
 "Copy error" = "Erro ao copiar";
 "Copy path" = "Copiar caminho";
 "Extra usage spent" = "Gasto de uso extra";
@@ -1347,6 +1349,8 @@
 "Tracked tokens" = "Tokens acompanhados";
 "Subscriptions" = "Assinaturas";
 "By subscription" = "Por assinatura";
+"By source" = "By source";
+"%d of %d sources have spend" = "%d of %d sources have spend";
 "No model-level history" = "Sem histórico por modelo";
 "Daily estimated spend" = "Gasto diário estimado";
 "Hourly estimated spend" = "Gasto horário estimado";

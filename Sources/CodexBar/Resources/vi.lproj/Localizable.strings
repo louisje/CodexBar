@@ -947,6 +947,8 @@
 "Overage" = "Vượt mức";
 "Activity" = "Hoạt động";
 "Copied" = "Đã sao chép";
+"Managed by Homebrew" = "Được quản lý bằng Homebrew";
+"Copy update command" = "Sao chép lệnh cập nhật";
 "Copy error" = "Lỗi sao chép";
 "Copy path" = "Sao chép đường dẫn";
 "Extra usage spent" = "Thêm Mức sử dụng đã chi tiêu";
@@ -1347,6 +1349,8 @@
 "Tracked tokens" = "Token được theo dõi";
 "Subscriptions" = "Gói đăng ký";
 "By subscription" = "Theo gói đăng ký";
+"By source" = "By source";
+"%d of %d sources have spend" = "%d of %d sources have spend";
 "No model-level history" = "Không có lịch sử theo mô hình";
 "Daily estimated spend" = "Chi tiêu ước tính hằng ngày";
 "Hourly estimated spend" = "Chi tiêu ước tính theo giờ";

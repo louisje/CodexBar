@@ -958,6 +958,8 @@
 "Overage" = "ส่วนเกิน";
 "Activity" = "กิจกรรม";
 "Copied" = "คัดลอกแล้ว";
+"Managed by Homebrew" = "จัดการโดย Homebrew";
+"Copy update command" = "คัดลอกคำสั่งอัปเดต";
 "Copy error" = "ข้อผิดพลาดในการคัดลอก";
 "Copy path" = "คัดลอกเส้นทาง";
 "Extra usage spent" = "การใช้จ่ายเพิ่มเติม";
@@ -1350,6 +1352,8 @@
 "Tracked tokens" = "โทเค็นที่ติดตาม";
 "Subscriptions" = "การสมัครสมาชิก";
 "By subscription" = "แยกตามการสมัครสมาชิก";
+"By source" = "By source";
+"%d of %d sources have spend" = "%d of %d sources have spend";
 "No model-level history" = "ไม่มีประวัติระดับโมเดล";
 "Daily estimated spend" = "ค่าใช้จ่ายรายวันโดยประมาณ";
 "Hourly estimated spend" = "ค่าใช้จ่ายรายชั่วโมงโดยประมาณ";

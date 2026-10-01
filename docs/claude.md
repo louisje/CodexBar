@@ -64,9 +64,12 @@ Admin API key setup:
 ### Debug selection (debug menu enabled)
 - The Debug pane can force OAuth / Web / CLI.
 - Web extras are internal-only (not exposed in the Providers pane).
+- CLI Web enrichment requires matching nonempty account emails; an organization display name alone cannot authorize
+  merging another session's optional usage or spend. OAuth enrichment retains verified organization-UUID matching.
 
 ## OAuth API (preferred)
 - OAuth refresh form-encodes credential values, preserving literal plus signs and other reserved characters.
+- Expiry values outside the diagnostic integer range are reported as `out_of_range` without changing credential expiry or refresh decisions.
 - Credentials:
   - CodexBar OAuth cache when available.
   - File fallback: `~/.claude/.credentials.json`.
@@ -306,7 +309,7 @@ Model-scoped weekly-window proof (synthetic data, no real accounts or credential
   - Report memo: `~/Library/Caches/CodexBar/cost-usage/claude-v6.report-memo.json` stores source stamps and the daily report across launches. It is reused only while transcript inventory, cache/pricing artifacts, requested window, and report-semantics revision still match.
   - The Claude/Vertex cache artifact retains source file identities independently of the shared Codex parser fingerprint. Replacing a transcript rebuilds its rows rather than merging an old prefix into a new suffix; genuine appends still use the saved parse offset. Older entries without identity are rebuilt once before reuse, including during the normal refresh debounce.
   - Older Claude/Vertex native caches and report memos are rebuilt once from unchanged transcripts to apply the corrected response deduplication. Corrected reports remain eligible for memo reuse across launches.
-  - pi-compatible session cache: `~/Library/Caches/CodexBar/cost-usage/pi-sessions-v8.json`
+  - pi-compatible session cache: `~/Library/Caches/CodexBar/cost-usage/pi-sessions-v9.json`. Version 8 rebuilds once from transcripts to establish source scope and completeness. Enabling the standalone [Pi provider](pi.md) keeps Claude history native-only in combined views.
 
 ## Key files
 - OAuth: `Sources/CodexBarCore/Providers/Claude/ClaudeOAuth/*`
