@@ -15,13 +15,14 @@ public enum CodexProviderDescriptor {
     private static let credentials = ProviderCredentialAdapter(
         requiresAPIKeyForAPISource: false)
 
-    /// Preserve the legacy prompt behavior before probing Chromium variants that may trigger Safe Storage prompts.
+    /// Restrict to mainstream browsers the user is likely signed into ChatGPT with. Probing every
+    /// Chromium variant triggers a Safe Storage Keychain prompt per browser even when it holds no
+    /// relevant cookies, so niche variants are reserved for explicit user action elsewhere.
     private static var browserCookieOrder: BrowserCookieImportOrder? {
         #if os(macOS)
-        let preferredPrefix: [Browser] = [.safari, .chrome, .firefox]
-        return preferredPrefix + Browser.defaultImportOrder.filter { !preferredPrefix.contains($0) }
+        [.chrome, .edge, .safari, .firefox]
         #else
-        return nil
+        nil
         #endif
     }
 

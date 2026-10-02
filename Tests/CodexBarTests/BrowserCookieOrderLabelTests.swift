@@ -5,9 +5,9 @@ import Testing
 struct BrowserCookieOrderStatusStringTests {
     #if os(macOS)
     @Test
-    func `codex cookie import order keeps firefox ahead of extra chromium browsers`() {
+    func `codex cookie import order is chrome edge safari firefox`() {
         let order = ProviderDefaults.metadata[.codex]?.browserCookieOrder ?? Browser.defaultImportOrder
-        #expect(Array(order.prefix(3)) == [.safari, .chrome, .firefox])
+        #expect(order == [.chrome, .edge, .safari, .firefox])
     }
 
     @Test

@@ -49,7 +49,7 @@ struct MyCoderProviderImplementation: ProviderImplementation {
                 source: context.settings.mycoderCookieSource,
                 keychainDisabled: context.settings.debugDisableKeychainAccess,
                 auto: "Automatic imports browser cookies from afs-mycoder.asus.com.",
-                manual: "Paste a Cookie header from a MyCoder billing request.",
+                manual: "Paste a Cookie header from a MyCoder dashboard request.",
                 off: "MyCoder cookies are disabled.")
         }
 
@@ -79,16 +79,16 @@ struct MyCoderProviderImplementation: ProviderImplementation {
                 title: "",
                 subtitle: "",
                 kind: .secure,
-                placeholder: "Cookie: \u{2026}\n\nor paste a Cookie header from the MyCoder billing page",
+                placeholder: "Cookie: \u{2026}\n\nor paste a Cookie header from the MyCoder dashboard page",
                 binding: context.binding(\.mycoderCookieHeader),
                 actions: [
                     ProviderSettingsActionDescriptor(
-                        id: "mycoder-open-billing",
-                        title: "Open MyCoder Billing",
+                        id: "mycoder-open-dashboard",
+                        title: "Open MyCoder Dashboard",
                         style: .link,
                         isVisible: nil,
                         perform: {
-                            if let url = URL(string: "https://afs-mycoder.asus.com/billing") {
+                            if let url = URL(string: "https://afs-mycoder.asus.com/token_usage/usages") {
                                 NSWorkspace.shared.open(url)
                             }
                         }),
