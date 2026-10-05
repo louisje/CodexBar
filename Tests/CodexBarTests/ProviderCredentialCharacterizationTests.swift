@@ -39,12 +39,14 @@ struct ProviderCredentialCharacterizationTests {
             .init(provider: .chutes, environmentKey: "CHUTES_API_KEY"),
             .init(provider: .poe, environmentKey: "POE_API_KEY"),
             .init(provider: .litellm, environmentKey: "LITELLM_API_KEY"),
+            .init(provider: .bifrost, environmentKey: "BIFROST_API_KEY"),
             .init(provider: .clawrouter, environmentKey: "CLAWROUTER_API_KEY"),
             .init(provider: .factory, environmentKey: "FACTORY_API_KEY"),
             .init(provider: .sub2api, environmentKey: "SUB2API_API_KEY"),
             .init(provider: .neuralwatt, environmentKey: "NEURALWATT_API_KEY"),
             .init(provider: .zenmux, environmentKey: "ZENMUX_MANAGEMENT_API_KEY"),
             .init(provider: .deepinfra, environmentKey: "DEEPINFRA_API_KEY"),
+            .init(provider: .hyper, environmentKey: "HYPER_API_KEY"),
             .init(provider: .aiand, environmentKey: "AIAND_API_KEY"),
             .init(provider: .xai, environmentKey: "XAI_MANAGEMENT_API_KEY"),
             .init(provider: .copilot, environmentKey: "COPILOT_API_TOKEN"),
@@ -145,6 +147,7 @@ struct ProviderCredentialCharacterizationTests {
         let endpointFixtures: [(UsageProvider, String, String)] = [
             (.llmproxy, "LLM_PROXY_API_KEY", "LLM_PROXY_BASE_URL"),
             (.litellm, "LITELLM_API_KEY", "LITELLM_BASE_URL"),
+            (.bifrost, "BIFROST_API_KEY", "BIFROST_BASE_URL"),
             (.clawrouter, "CLAWROUTER_API_KEY", "CLAWROUTER_BASE_URL"),
             (.sub2api, "SUB2API_API_KEY", "SUB2API_BASE_URL"),
         ]
@@ -199,6 +202,7 @@ struct ProviderCredentialCharacterizationTests {
             (.openrouter, "OPENROUTER_API_KEY"),
             (.deepseek, "DEEPSEEK_API_KEY"),
             (.deepinfra, "DEEPINFRA_API_KEY"),
+            (.hyper, "HYPER_API_KEY"),
             (.antigravity, "ANTIGRAVITY_OAUTH_CREDENTIALS_JSON"),
             (.zai, "Z_AI_API_KEY"),
             (.copilot, "COPILOT_API_TOKEN"),
@@ -208,14 +212,16 @@ struct ProviderCredentialCharacterizationTests {
             (.groq, "GROQ_API_KEY"),
             (.llmproxy, "LLM_PROXY_API_KEY"),
             (.litellm, "LITELLM_API_KEY"),
+            (.bifrost, "BIFROST_API_KEY"),
             (.sub2api, "SUB2API_API_KEY"),
             (.ibmbob, "BOBSHELL_API_KEY"),
             (.grok, "GROK_OAUTH_TOKEN"),
             (.huggingface, "CODEXBAR_HUGGINGFACE_API_KEY"),
+            (.doubao, "ARK_API_KEY"),
         ]
         let cookieProviders: [UsageProvider] = [
             .claude, .cursor, .opencode, .opencodego, .factory, .minimax, .manus,
-            .augment, .ollama, .abacus, .mistral, .qoder, .stepfun, .replicate, .typesafe,
+            .augment, .ollama, .abacus, .mistral, .qoder, .stepfun, .replicate, .typesafe, .kimi,
         ]
 
         for (provider, key) in environmentProviders {
@@ -254,6 +260,7 @@ struct ProviderCredentialCharacterizationTests {
             .stepfun: "account-token",
             .replicate: "account-token",
             .typesafe: "account-token",
+            .kimi: "kimi-auth=account-token",
         ]
         for provider in cookieProviders {
             #expect(TokenAccountSupportCatalog.normalizedCookieHeader(
@@ -280,10 +287,12 @@ struct ProviderCredentialCharacterizationTests {
         let fixtures: [(UsageProvider, String)] = [
             (.openai, "OPENAI_ADMIN_KEY"), (.openrouter, "OPENROUTER_API_KEY"),
             (.deepseek, "DEEPSEEK_API_KEY"), (.deepinfra, "DEEPINFRA_API_KEY"),
+            (.hyper, "HYPER_API_KEY"),
             (.zai, "Z_AI_API_KEY"), (.copilot, "COPILOT_API_TOKEN"),
             (.venice, "VENICE_API_KEY"), (.elevenlabs, "ELEVENLABS_API_KEY"),
             (.neuralwatt, "NEURALWATT_API_KEY"), (.groq, "GROQ_API_KEY"),
             (.llmproxy, "LLM_PROXY_API_KEY"), (.litellm, "LITELLM_API_KEY"),
+            (.bifrost, "BIFROST_API_KEY"),
             (.sub2api, "SUB2API_API_KEY"), (.antigravity, "ANTIGRAVITY_OAUTH_CREDENTIALS_JSON"),
             (.ibmbob, "BOBSHELL_API_KEY"),
             (.huggingface, "CODEXBAR_HUGGINGFACE_API_KEY"),
@@ -298,6 +307,10 @@ struct ProviderCredentialCharacterizationTests {
                 selectedAccount: account)
             #expect(environment[key] == "account-token", Comment(rawValue: provider.rawValue))
         }
+        let hyper = HyperProviderDescriptor.descriptor.credentials
+        #expect(hyper?.selectedAccountSourceMode(base: .auto, account: nil, config: nil) == .auto)
+        #expect(hyper?.selectedAccountSourceMode(base: .auto, account: account, config: nil) == .api)
+        #expect(hyper?.selectedAccountSourceMode(base: .web, account: account, config: nil) == .web)
     }
 
     @Test
@@ -346,6 +359,10 @@ struct ProviderCredentialCharacterizationTests {
             .init(
                 provider: .bedrock,
                 environment: ["AWS_ACCESS_KEY_ID": "id", "AWS_SECRET_ACCESS_KEY": "secret"],
+                mode: "api"),
+            .init(
+                provider: .bifrost,
+                environment: ["BIFROST_API_KEY": "token", "BIFROST_BASE_URL": "https://bifrost.example.com"],
                 mode: "api"),
             .init(provider: .claude, environment: ["ANTHROPIC_ADMIN_KEY": "token"], mode: "api"),
             .init(provider: .clinepass, environment: ["CLINE_API_KEY": "token"], mode: "api"),

@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.65.0 — 2026-09-22
+
+### Highlights
+
+- **Three new providers:** track Charm Hyper credits, GitKraken AI weekly credits, and Bifrost gateway budgets and rate limits, bringing the catalog to 80 providers.
+- **More flexible accounts:** save labeled Kimi web sessions and Doubao Ark API keys, and use per-account OpenCode Go API keys without changing cookie preferences.
+- **Zed spending:** opt in to browser billing for token spend and remaining budget while keeping the editor login as the default.
+- **Faster, more accurate history:** reuse quota charts and Codex scans, include claude-swap homes without duplicates, and preserve Linux Priority pricing.
+- **More reliable refreshes:** preserve Claude quotas through CLI redraws, confirm Codex weekly resets, and explain Antigravity offline fallbacks.
+
+### Added
+
+- Doubao: save labeled Ark API-key accounts in the shared account editor and select them in the app or CLI without inheriting another account's credentials (#3192).
+- Zed: opt in to browser-session billing for token spend, limits, and remaining budget while keeping the editor login as the default (#3172). Thanks @shuuul!
+- Kimi: save labeled web accounts in the shared account editor, with isolated cookies and region-aware app and CLI usage (including Linux) while preserving source preferences (#2937). Thanks @jky1314!
+- Charm Hyper: track Hypercredit balance with a bundled provider plugin, Chrome/manual sessions, and API-key fallback (#2502, #2318). Thanks @steipete, @JavaGT, and @akshayprabhu200!
+- Omarchy: identify providers with theme-tinted logos in the compact bar, retaining text fallback for missing logos and older backends (#3795). Thanks @jsonMartin!
+- GitKraken AI: track personal weekly credits and organization pool sharing through a bundled provider plugin (#3842). Thanks @RyanTheTechMan!
+- Bifrost: track self-hosted gateway budgets, rate limits, and model spend using a virtual key and a bundled provider plugin (#3843). Thanks @diegocuehdz-lab49!
+
+### Fixed
+
+- Menu bar: keep layout palette token names readable by wrapping natural-width chips instead of truncating them into equal-width columns (#3782). Thanks @mattab178!
+- Browser sessions: discover Devin sessions in Brave, Edge, Arc, and other supported Chromium browsers, and keep Windsurf localStorage discovery aligned with the shared browser catalog (#3862).
+- Help: open the CodexBar documentation from the Help menu (#3878). Thanks @elijahfriedman!
+- Antigravity: keep saved Google accounts passive in Local API / agy CLI mode, reject incompatible CLI account selectors, and skip the readiness wait for a different identified account (#3873). Thanks @oldcai!
+- Accounts: remember expanded compact account cards across menu opens and app restarts (#3870). Thanks @clain23!
+- Claude: preserve model-specific weekly quotas and account identity when CLI panels redraw with cursor jumps (#3822, fixes #3746). Thanks @fanwenlin!
+- Moonshot: use the bundled provider plugin on both engines while preserving regional API-key binding, USD/CNY balances, and deficit formatting (#3836).
+- Antigravity: explain failed live fetches when falling back to offline history, keep diagnostics free of raw process and account details, and show the active source in settings instead of misleading detection warnings (#3865, fixes #3861). Thanks @vincent-peng!
+- Bifrost: preserve component rate-limit usage without duplicating the aggregate or showing unconfigured token/request windows (#3843).
+- Provider plugins: preserve unknown usage on named quota windows and numeric progress in detail rows.
+- Claude: dismiss open CLI panels before reading account identity or refreshing usage in a reused session (#3821). Thanks @sczhui!
+- Performance: coalesce concurrent code-signature checks across browser-cookie preflights and cache confirmed rejections, while revalidating completed successes so sealed-resource changes preserve no-UI Keychain protection (#3837, #3838). Thanks @jeffloo886!
+- Cost history: reuse quota-week projections across menu card builds and warm them off the main thread (#3831, fixes #3827). Thanks @giuseppebisemi!
+- Codex costs: reuse decoded scan baselines while the local database is unchanged, avoiding repeated usage-row decoding on warm refreshes (#3840). Thanks @CodingCanuck!
+- Antigravity: retain account-scoped quota observations without a reset duration, including replenishment within an hour, and avoid assuming a five-hour pace (#3619). Thanks @hhh2210!
+- Antigravity: honor unusable `ANTIGRAVITY_CLI_PATH` overrides instead of discovering another CLI that could start interactive login during background refresh (#3689). Thanks @hhh2210!
+- Claude: respect read-only account adapters, preserving usage and account details while hiding switching and re-authentication actions (#3658). Thanks @benedictfrancis!
+- OpenCode Go: use per-account API keys for multi-account usage, preserving Cookie accounts and saved cookie-source preferences while isolating selected credentials from provider-wide keys (#3841).
+- Claude: include claude-swap session homes in local Usage & Spend totals without counting shared or copied history twice (#2954). Thanks @Newarr!
+- LiteLLM: show clearly scoped month-to-date spend when management routes are disabled, without inventing budgets or account identity (#3834). Thanks @xiaoxianma!
+- Codex: confirm unused weekly resets across normal refresh intervals when the provider advances the reset date with each zero-use observation, preventing stale pre-reset usage from persisting (#3248). Thanks @kcharlan!
+- Codex costs: read local Priority/Fast trace evidence on Linux so supported usage retains Priority pricing, including after refreshing existing history (#3820). Thanks @A-l-an!
+- CLI: keep `last30DaysTokens` and `last30DaysCostUSD` scoped to 30 local calendar days when requesting longer cost histories, while retaining full-window totals (#3824). Thanks @tillstriegel!
+
 ## 0.64.1 — 2026-09-22
 
 ### Highlights
