@@ -17,11 +17,16 @@ struct ProviderPluginParityTests {
             (.poe, "POE_API_KEY"),
             (.llmproxy, "LLM_PROXY_API_KEY"),
             (.litellm, "LITELLM_API_KEY"),
+            (.llmman, "LLMMAN_API_KEY"),
             (.neuralwatt, "NEURALWATT_API_KEY"),
             (.sub2api, "SUB2API_API_KEY"),
             (.synthetic, "SYNTHETIC_API_KEY"),
             (.xai, "XAI_MANAGEMENT_API_KEY"),
             (.zai, "Z_AI_API_KEY"),
+            (.perplexity, "PERPLEXITY_SESSION_TOKEN"),
+            (.qoder, "FIXTURE_COOKIE"),
+            (.openai, "OPENAI_API_KEY"),
+            (.fireworks, "FIREWORKS_API_KEY"),
         ] {
             let descriptor = ProviderDescriptorRegistry.descriptor(for: provider)
             var environment = [key: "fixture-key"]

@@ -86,5 +86,9 @@ public enum ProviderManifest {
         TypeSafeProviderDescriptor.descriptor,
         HyperProviderDescriptor.descriptor,
         GitKrakenProviderDescriptor.descriptor,
+        DevPassProviderDescriptor.descriptor,
+        AtlasCloudProviderDescriptor.descriptor,
+        VercelProviderDescriptor.descriptor,
+        LLMManProviderDescriptor.descriptor,
     ]
 }

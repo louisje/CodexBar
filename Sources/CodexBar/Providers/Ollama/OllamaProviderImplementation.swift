@@ -46,6 +46,12 @@ struct OllamaProviderImplementation: ProviderImplementation {
 
     @MainActor
     func settingsPickers(context: ProviderSettingsContext) -> [ProviderSettingsPickerDescriptor] {
+        let manualCookieMissing = {
+            context.settings.ollamaUsageDataSource != .api
+                && context.settings.ollamaCookieSource == .manual
+                && context.settings.ollamaCookieHeader.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                && context.settings.tokenAccounts(for: .ollama).isEmpty
+        }
         let sourceBinding = context.rawValueBinding(\.ollamaUsageDataSource, fallback: .auto)
         let sourceOptions: [ProviderSettingsPickerOption] = [
             ProviderSettingsPickerOption(id: ProviderSourceMode.auto.rawValue, title: "Auto"),
@@ -74,6 +80,9 @@ struct OllamaProviderImplementation: ProviderImplementation {
                 },
                 trailingText: {
                     guard context.settings.ollamaUsageDataSource != .api else { return nil }
+                    if manualCookieMissing() {
+                        return L("No cookie header pasted.")
+                    }
                     return ProviderCookieRefreshAction.trailingText(
                         provider: .ollama,
                         cookieSource: context.settings.ollamaCookieSource,
@@ -85,6 +94,12 @@ struct OllamaProviderImplementation: ProviderImplementation {
                         cookieSource: { context.settings.ollamaCookieSource },
                         additionalVisibility: { context.settings.ollamaUsageDataSource != .api },
                         context: context),
+                    ProviderSettingsActionDescriptor(
+                        id: "ollama-use-auto-cookie",
+                        title: "Use automatic cookies",
+                        style: .bordered,
+                        isVisible: { manualCookieMissing() && !context.settings.debugDisableKeychainAccess },
+                        perform: { context.settings.ollamaCookieSource = .auto }),
                 ]),
         ]
     }

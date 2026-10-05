@@ -8,6 +8,29 @@ import Testing
 @MainActor
 @Suite(.serialized)
 struct ProviderSettingsDescriptorTests {
+    @Test(arguments: [UsageProvider.atlascloud, .vercel])
+    func `balance providers keep API keys in their own config`(provider: UsageProvider) throws {
+        let fixture = try self.makeSettingsFixture(suite: "ProviderSettingsDescriptorTests-\(provider.rawValue)")
+        let implementation: any ProviderImplementation = provider == .atlascloud
+            ? AtlasCloudProviderImplementation() : VercelProviderImplementation()
+        let fields = implementation.settingsFields(context: fixture.settingsContext(provider: provider))
+        #expect(fields.map(\.id) == ["\(provider.rawValue)-api-key"])
+        #expect(fields.map(\.kind) == [.secure])
+        fields[0].binding.wrappedValue = "fixture-key"
+        #expect(fixture.settings.providerConfig(for: provider)?.apiKey == "fixture-key")
+    }
+
+    @Test
+    func `DevPass exposes a regular API key stored in provider config`() throws {
+        let fixture = try self.makeSettingsFixture(suite: "ProviderSettingsDescriptorTests-devpass")
+        let fields = DevPassProviderImplementation()
+            .settingsFields(context: fixture.settingsContext(provider: .devpass))
+        #expect(fields.map(\.id) == ["devpass-api-key"])
+        #expect(fields.map(\.kind) == [.secure])
+        fields[0].binding.wrappedValue = "fixture-key"
+        #expect(fixture.settings.providerConfig(for: .devpass)?.apiKey == "fixture-key")
+    }
+
     @Test
     func `Zed browser billing is opt in and manual cookies stay in Zed settings`() throws {
         let fixture = try self.makeSettingsFixture(suite: "ProviderSettingsDescriptorTests-zed")
@@ -276,12 +299,68 @@ struct ProviderSettingsDescriptorTests {
 
         fixture.settings.ollamaCookieSource = .manual
         #expect(action.isVisible?() == false)
-        #expect(picker.trailingText?() == nil)
+        #expect(picker.trailingText?() == "No cookie header pasted.")
 
         fixture.settings.ollamaCookieSource = .auto
         fixture.settings.ollamaUsageDataSource = .api
         #expect(action.isVisible?() == false)
         #expect(picker.trailingText?() == nil)
+    }
+
+    @Test
+    func `llmman exposes an optional key and a base URL stored in provider config`() throws {
+        let fixture = try self.makeSettingsFixture(suite: "ProviderSettingsDescriptorTests-llmman")
+        let fields = LLMManProviderImplementation()
+            .settingsFields(context: fixture.settingsContext(provider: .llmman))
+        #expect(fields.map(\.id) == ["llmman-api-key", "llmman-base-url"])
+        #expect(fields.map(\.kind) == [.secure, .plain])
+        #expect(fields[1].actions.map(\.id) == ["llmman-open-web-ui"])
+        fields[0].binding.wrappedValue = "fixture-key"
+        fields[1].binding.wrappedValue = "192.168.1.10:17434"
+        #expect(fixture.settings.providerConfig(for: .llmman)?.apiKey == "fixture-key")
+        #expect(fixture.settings.providerConfig(for: .llmman)?.enterpriseHost == "192.168.1.10:17434")
+    }
+
+    @Test
+    func `empty Ollama manual cookies offer an explicit automatic recovery action`() async throws {
+        let fixture = try self.makeSettingsFixture(suite: "ProviderSettingsDescriptorTests-ollama-manual-empty")
+        let picker = try #require(OllamaProviderImplementation()
+            .settingsPickers(context: fixture.settingsContext(provider: .ollama))
+            .first { $0.id == "ollama-cookie-source" })
+        let action = try #require(picker.trailingActions.first { $0.id == "ollama-use-auto-cookie" })
+        #expect(action.title == "Use automatic cookies")
+        #expect(action.isVisible?() == false)
+
+        fixture.settings.ollamaCookieSource = .manual
+        fixture.settings.ollamaCookieHeader = " \n\t"
+        #expect(picker.trailingText?() == "No cookie header pasted.")
+        #expect(action.isVisible?() == true)
+        #expect(fixture.settings.ollamaCookieSource == .manual)
+
+        fixture.settings.ollamaUsageDataSource = .api
+        #expect(action.isVisible?() == false)
+        #expect(picker.trailingText?() == nil)
+        fixture.settings.ollamaUsageDataSource = .web
+        fixture.settings.debugDisableKeychainAccess = true
+        #expect(action.isVisible?() == false)
+        fixture.settings.debugDisableKeychainAccess = false
+
+        fixture.settings.ollamaCookieHeader = "wos-session=fixture"
+        #expect(action.isVisible?() == false)
+        #expect(picker.trailingText?() == nil)
+        fixture.settings.ollamaCookieHeader = ""
+        fixture.settings.addTokenAccount(provider: .ollama, label: "Fixture", token: "wos-session=fixture")
+        #expect(action.isVisible?() == false)
+        #expect(picker.trailingText?() == nil)
+        let account = try #require(fixture.settings.tokenAccounts(for: .ollama).first)
+        fixture.settings.removeTokenAccount(provider: .ollama, accountID: account.id)
+        #expect(action.isVisible?() == true)
+
+        await action.perform()
+        #expect(fixture.settings.ollamaCookieSource == .auto)
+        #expect(fixture.settings.ollamaUsageDataSource == .web)
+        #expect(fixture.settings.ollamaCookieHeader.isEmpty)
+        #expect(action.isVisible?() == false)
     }
 
     @Test
