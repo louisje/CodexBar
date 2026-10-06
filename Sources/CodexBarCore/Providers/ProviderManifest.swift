@@ -61,6 +61,7 @@ public enum ProviderManifest {
         LLMProxyProviderDescriptor.descriptor,
         LiteLLMProviderDescriptor.descriptor,
         BifrostProviderDescriptor.descriptor,
+        AixyProviderDescriptor.descriptor,
         DeepgramProviderDescriptor.descriptor,
         PoeProviderDescriptor.descriptor,
         ChutesProviderDescriptor.descriptor,
@@ -81,6 +82,7 @@ public enum ProviderManifest {
         CodeRabbitProviderDescriptor.descriptor,
         ReplicateProviderDescriptor.descriptor,
         HuggingFaceProviderDescriptor.descriptor,
+        RaycastProviderDescriptor.descriptor,
         PiProviderDescriptor.descriptor,
         V0ProviderDescriptor.descriptor,
         TypeSafeProviderDescriptor.descriptor,
@@ -90,5 +92,6 @@ public enum ProviderManifest {
         AtlasCloudProviderDescriptor.descriptor,
         VercelProviderDescriptor.descriptor,
         LLMManProviderDescriptor.descriptor,
+        XKiroProviderDescriptor.descriptor,
     ]
 }

@@ -61,6 +61,7 @@ enum ProviderImplementationManifest {
         LLMProxyProviderImplementation(),
         LiteLLMProviderImplementation(),
         BifrostProviderImplementation(),
+        AixyProviderImplementation(),
         DeepgramProviderImplementation(),
         PoeProviderImplementation(),
         ChutesProviderImplementation(),
@@ -81,6 +82,7 @@ enum ProviderImplementationManifest {
         CodeRabbitProviderImplementation(),
         ReplicateProviderImplementation(),
         HuggingFaceProviderImplementation(),
+        RaycastProviderImplementation(),
         PiProviderImplementation(),
         V0ProviderImplementation(),
         TypeSafeProviderImplementation(),
@@ -90,5 +92,6 @@ enum ProviderImplementationManifest {
         AtlasCloudProviderImplementation(),
         VercelProviderImplementation(),
         LLMManProviderImplementation(),
+        XKiroProviderImplementation(),
     ]
 }
