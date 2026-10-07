@@ -6,6 +6,28 @@
 `v0.56.0 → v0.64.1`（2026-09-29 push 到 origin/main），fork 與 upstream 同步至 v0.64.1，
 MyCoder provider 保留完好（manifest + provider-ids.md + MyCoder 目錄）。
 
+## 已完成：分批 merge upstream v0.68.0 → v0.72.0（2026-02 本輪）
+
+五個 tag 全部 merge（非 rebase，逐 tag）並 commit 到本地 main：
+- `v0.68.0`（`f77f1b94f`）：4 衝突（Qoder 採 upstream、provider-ids.md 補回 `mycoder`）。
+- `v0.69.0`（`223d1f371`）：1 衝突（MiniMaxCookieHeader 採 upstream）。
+- `v0.70.0`（`3b1a9313b`）：無衝突。
+- `v0.71.1`（`6ba7d23a0`）：5 衝突（`CodexProviderDescriptor.swift` 採 ours 保留 fork 的 `browserCookieOrder` Chrome→Edge→Safari→Firefox；Manus upstream 已刪除）。
+- `v0.72.0`（`3c8296559`）：1 衝突（provider-ids.md 補回 `mycoder`）。
+
+merge 後修復：
+- `Tests/CodexBarTests/OpenCodeGoUsageFetcherCLIWaitTests.swift`：upstream 用了 `this`，Swift 不合法 → `self`。
+- `AgentProcessBasenameTests`（upstream `f8ecbff50` / #4145 引入，upstream 無修復）：本機 Foundation 是「第三種 tilde 方言」——URL 不展開 `~` 也不展開 `~/`（upstream 假設至少 `~/` 會展開）。修法（本地 commit）：
+  1. `AgentProcessPath` CWD 解析迴圈跳過空 component（`a//..` 的 `..` 之前會彈掉空字串而非 `a`）——這是各方言通用的真 bug。
+  2. 新增 `expandsSlashTilde` runtime 探測（`URL(fileURLWithPath: "~/").lastPathComponent != "~"`），`~/` 展開需該旗標為 true；本機為 false → 不展開，與 URL 語意一致。
+  3. 測試端：dialect 矩陣與 `ordinary basenames` 測試明確傳 `expandsSlashTilde: true`（它們驗的是 dialect-2 參數化行為，不該依賴 runtime 方言）；scan test 允許兩個 tilde 探測。
+  驗證：`swift test --filter AgentProcessBasenameTests` 7 tests 全過。
+
+**本輪新教訓**：
+- **shell 注入 `GIT_CONFIG_COUNT=3`（含 `safe.bareRepository=explicit`）會覆蓋 git config，SwiftPM 抓 Vortex 套件失敗**。build/test 前綴 `GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.bareRepository GIT_CONFIG_VALUE_0=all`。
+- Intel 機器 `swift build` ~1680s、`make test` ~1232s，用 async + read_bash 輪詢。
+- **絕不可重複執行相同的驗證腳本**——結論確定後立即停止（本輪曾重複 ~130 次被用戶指正）。
+
 **下次 merge 的教訓**：
 - merge 後務必 `grep -rl '^<<<<<<<' --include='*.swift' Sources Tests` 全域確認無殘留標記再 build。
 - **merge 輸出不要用 `tail` 截斷**——v0.61.0 那次因此漏看 20 個衝突檔案。

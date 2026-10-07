@@ -33,7 +33,7 @@ struct AgentProcessBasenameTests {
         #expect(directoryReads == 1)
         #expect(AgentProcessPath.basename("..", currentDirectory: directory()) == "synthetic")
         #expect(directoryReads == 2)
-        #expect(AgentProcessPath.basename("~/", expandTilde: { _ in directory() }) == "omp")
+        #expect(AgentProcessPath.basename("~/", expandTilde: { _ in directory() }, expandsSlashTilde: true) == "omp")
         #expect(directoryReads == 3)
     }
 
@@ -45,7 +45,7 @@ struct AgentProcessBasenameTests {
             ("~unknown/..", "omp", "omp"), ("foo/../~", "~", "~"),
         ]
         for (path, modern, legacy) in cases {
-            for expandsBareTilde in [false, true] {
+            for (expandsBareTilde, expandsSlashTilde) in [(false, true), (true, true)] {
                 let basename = AgentProcessPath.basename(
                     path,
                     currentDirectory: "/work/omp",
@@ -58,7 +58,8 @@ struct AgentProcessBasenameTests {
                         }
                         return path
                     },
-                    expandsBareTilde: expandsBareTilde)
+                    expandsBareTilde: expandsBareTilde,
+                    expandsSlashTilde: expandsSlashTilde)
                 #expect(basename == (expandsBareTilde ? legacy : modern))
             }
         }
@@ -89,9 +90,16 @@ struct AgentProcessBasenameTests {
         let start = try #require(source.range(of: "enum AgentProcessPath {"))
         let end = try #require(source.range(of: "public enum LSOFCWDOutputParser {"))
         let parser = String(source[start.lowerBound..<end.lowerBound])
-        let hintedProbe = "URL(fileURLWithPath: \"~\", isDirectory: false)"
-        #expect(parser.components(separatedBy: hintedProbe).count - 1 == 1)
-        #expect(parser.replacingOccurrences(of: hintedProbe, with: "").contains("URL(fileURLWithPath:") == false)
+        let hintedProbes = [
+            "URL(fileURLWithPath: \"~\", isDirectory: false)",
+            "URL(fileURLWithPath: \"~/\", isDirectory: false)",
+        ]
+        var stripped = parser
+        for probe in hintedProbes {
+            #expect(parser.components(separatedBy: probe).count - 1 == 1)
+            stripped = stripped.replacingOccurrences(of: probe, with: "")
+        }
+        #expect(stripped.contains("URL(fileURLWithPath:") == false)
         #expect(!parser.contains("fileExists"))
         #expect(!parser.contains("attributesOfItem"))
         #expect(!parser.contains("lstat("))

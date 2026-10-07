@@ -195,14 +195,18 @@ struct DirectoryMetadataScanBudget {
 enum AgentProcessPath {
     /// Foundation's tilde rules vary by runtime/SDK. An explicit directory hint avoids a metadata probe.
     static let expandsBareTilde = URL(fileURLWithPath: "~", isDirectory: false).relativePath != "~"
+    /// Some runtimes expand `~/` but not a bare `~`; older ones expand neither.
+    static let expandsSlashTilde = URL(fileURLWithPath: "~/", isDirectory: false).lastPathComponent != "~"
 
     static func basename(
         _ path: String,
         currentDirectory: @autoclosure () -> String = FileManager.default.currentDirectoryPath,
         expandTilde: (String) -> String = { ($0 as NSString).expandingTildeInPath },
-        expandsBareTilde: Bool = Self.expandsBareTilde) -> String
+        expandsBareTilde: Bool = Self.expandsBareTilde,
+        expandsSlashTilde: Bool = Self.expandsSlashTilde) -> String
     {
-        let path = path.hasPrefix("~") && (expandsBareTilde || path.hasPrefix("~/")) ? expandTilde(path) : path
+        let path = path.hasPrefix("~") && (expandsBareTilde || (path.hasPrefix("~/") && expandsSlashTilde))
+            ? expandTilde(path) : path
         let basename = (path as NSString).lastPathComponent
         if path.hasPrefix("/") { return basename }
         guard basename.isEmpty || basename == "." || basename == ".." else { return basename }
@@ -211,7 +215,7 @@ enum AgentProcessPath {
         for component in path.components(separatedBy: "/") {
             if component == ".." {
                 if components.count > 1 { components.removeLast() }
-            } else if component != "." {
+            } else if !component.isEmpty, component != "." {
                 components.append(component)
             }
         }

@@ -299,12 +299,12 @@ private final class OpenCodeGoCLIWaitStubURLProtocol: URLProtocol {
         let deliver: () -> Void = { [weak self] in
             guard let self else { return }
             do {
-                let (response, data) = try Self.response(for: this.request)
-                this.client?.urlProtocol(this, didReceive: response, cacheStoragePolicy: .notAllowed)
-                this.client?.urlProtocol(this, didLoad: data)
-                this.client?.urlProtocolDidFinishLoading(this)
+                let (response, data) = try Self.response(for: self.request)
+                self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+                self.client?.urlProtocol(self, didLoad: data)
+                self.client?.urlProtocolDidFinishLoading(self)
             } catch {
-                this.client?.urlProtocol(this, didFailWithError: error)
+                self.client?.urlProtocol(self, didFailWithError: error)
             }
         }
         if url.path == "/workspace/wrk_TEST123", let onHold = Self.onHold {
