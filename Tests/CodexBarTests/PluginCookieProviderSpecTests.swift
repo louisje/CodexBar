@@ -76,11 +76,17 @@ struct PluginCookieProviderSpecTests {
             let names = browsers.map(\.displayName).joined(separator: ", ")
             #expect(picker.subtitle.contains("Supported browsers: \(names). Use Manual for other browsers."))
             #expect(picker.dynamicSubtitle?()?.contains("Supported browsers: \(names).") == true)
+            if provider == .museai {
+                #expect(picker.subtitle.hasPrefix("Automatic imports browser cookies."))
+                for name in ["Aside", "Opera", "Opera Neon"] {
+                    #expect(browsers.map(\.displayName).contains(name))
+                }
+            }
         }
     }
 
     private static let providers: [UsageProvider] = [
-        .helmcode, .hyper, .manus, .perplexity, .qoder, .raycast, .sakana, .t3chat, .lithosai,
+        .helmcode, .hyper, .manus, .perplexity, .qoder, .raycast, .sakana, .t3chat, .lithosai, .workbuddy,
     ]
 
     @Test

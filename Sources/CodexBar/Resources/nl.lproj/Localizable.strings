@@ -100,6 +100,8 @@
 "Average (\\(metadata.sessionLabel) + \\(metadata.weeklyLabel))" = "Gemiddeld (\\(metadata.sessionLabel) + \\(metadata.weeklyLabel))";
 "Avoid Keychain prompts" = "Vermijd sleutelhangerprompts";
 "Balance" = "Saldo";
+"Cloud credits" = "Cloudtegoed";
+"Expired" = "Verlopen";
 "Battery Saver" = "Batterijbesparing";
 "Bordered" = "Omzoomd";
 "Build" = "Bouwen";
@@ -1551,6 +1553,10 @@
 "Cache write" = "Cache write";
 "Reasoning" = "Reasoning";
 "Sessions" = "Sessions";
+
+"Independent chat" = "Onafhankelijke chat";
+"Independent chats" = "Onafhankelijke chats";
+"Chat %d" = "Chat %d";
 "Projects" = "Projects";
 "Plan metered" = "Plan metered";
 "List-price equivalent" = "List-price equivalent";
@@ -1633,3 +1639,5 @@
 "antigravity_quota_window_note" = "Vensterkosten omvatten alle modellen · getoond venster is de meest beperkte familie";
 "antigravity_no_priced_token_history" = "Geen geprijsde Antigravity-tokengeschiedenis beschikbaar.";
 "Supported browsers: %@. Use Manual for other browsers." = "Ondersteunde browsers: %@. Gebruik Handmatig voor andere browsers.";
+"Paste the Cookie header from a Chrome request to www.workbuddy.cn/profile/plans-usage." = "Plak de Cookie-header van een Chrome-verzoek aan www.workbuddy.cn/profile/plans-usage.";
+"Reserved" = "Gereserveerd";

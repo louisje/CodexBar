@@ -95,5 +95,6 @@ public enum ProviderManifest {
         XKiroProviderDescriptor.descriptor,
         MuseAIProviderDescriptor.descriptor,
         LithosAIProviderDescriptor.descriptor,
+        WorkBuddyProviderDescriptor.descriptor,
     ]
 }

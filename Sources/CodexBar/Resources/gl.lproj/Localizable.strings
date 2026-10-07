@@ -79,6 +79,8 @@
 "Average (\\(metadata.sessionLabel) + \\(metadata.weeklyLabel))" = "Media (\\(metadata.sessionLabel) + \\(metadata.weeklyLabel))";
 "Avoid Keychain prompts" = "Evitar as solicitudes do Chaveiro";
 "Balance" = "Saldo";
+"Cloud credits" = "Créditos na nube";
+"Expired" = "Caducado";
 "Battery Saver" = "Aforro de batería";
 "Bordered" = "Con bordo";
 "Build" = "Compilación";
@@ -1551,6 +1553,10 @@
 "Cache write" = "Cache write";
 "Reasoning" = "Reasoning";
 "Sessions" = "Sessions";
+
+"Independent chat" = "Conversa independente";
+"Independent chats" = "Conversas independentes";
+"Chat %d" = "Conversa %d";
 "Projects" = "Projects";
 "Plan metered" = "Plan metered";
 "List-price equivalent" = "List-price equivalent";
@@ -1633,3 +1639,5 @@
 "antigravity_quota_window_note" = "O custo da xanela inclúe todos os modelos · a xanela amosada é a familia máis limitada";
 "antigravity_no_priced_token_history" = "Non hai historial de tokens de Antigravity con prezo dispoñible.";
 "Supported browsers: %@. Use Manual for other browsers." = "Navegadores compatibles: %@. Usa Manual para outros navegadores.";
+"Paste the Cookie header from a Chrome request to www.workbuddy.cn/profile/plans-usage." = "Pega a cabeceira Cookie dunha solicitude de Chrome a www.workbuddy.cn/profile/plans-usage.";
+"Reserved" = "Reservado";

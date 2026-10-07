@@ -100,6 +100,8 @@
 "Average (\\(metadata.sessionLabel) + \\(metadata.weeklyLabel))" = "평균 (\\(metadata.sessionLabel) + \\(metadata.weeklyLabel))";
 "Avoid Keychain prompts" = "키체인 프롬프트 방지";
 "Balance" = "잔액";
+"Cloud credits" = "클라우드 크레딧";
+"Expired" = "만료됨";
 "Battery Saver" = "배터리 절약";
 "Bordered" = "테두리 있음";
 "Build" = "빌드";
@@ -1521,6 +1523,10 @@
 "Cache write" = "Cache write";
 "Reasoning" = "Reasoning";
 "Sessions" = "Sessions";
+
+"Independent chat" = "독립 채팅";
+"Independent chats" = "독립 채팅";
+"Chat %d" = "채팅 %d";
 "Projects" = "Projects";
 "Plan metered" = "Plan metered";
 "List-price equivalent" = "List-price equivalent";
@@ -1603,3 +1609,5 @@
 "antigravity_quota_window_note" = "창 비용은 모든 모델을 포함합니다 · 표시된 창은 가장 제한적인 제품군입니다";
 "antigravity_no_priced_token_history" = "가격이 매겨진 Antigravity 토큰 기록이 없습니다.";
 "Supported browsers: %@. Use Manual for other browsers." = "지원되는 브라우저: %@. 다른 브라우저는 수동 모드를 사용하세요.";
+"Paste the Cookie header from a Chrome request to www.workbuddy.cn/profile/plans-usage." = "Chrome에서 www.workbuddy.cn/profile/plans-usage로 보낸 요청의 Cookie 헤더를 붙여넣으세요.";
+"Reserved" = "보류됨";
