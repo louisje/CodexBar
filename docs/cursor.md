@@ -97,6 +97,7 @@ Manual option:
 - Automatic usage (`codexbar usage --provider cursor`) supports the signed-in Cursor app on Linux after manual, cached, and
   stored sessions have been considered.
 - Authentication order: manual cookie header → cached session → stored session → Cursor app access token.
+- Linux requests use a reusable HTTP session with automatic cookie storage disabled, so a long-running `serve` process cannot replace the selected credential with cookies left by earlier responses.
 - The app token is read from absolute `$XDG_CONFIG_HOME/Cursor/User/globalStorage/state.vscdb`, then `$HOME/.config/...` when `HOME` is absolute, then the account home’s `.config/...`. Relative `XDG_CONFIG_HOME` / `HOME` values are ignored. The database is read-only; expired app tokens are not refreshed by CodexBar.
 - Cursor usage includes the Grok Bot weekly allowance and reset time when the account exposes it. Grok Bot endpoint failures do not hide Cursor usage.
 - Explicit `--source web` requires a manual cookie and never reads the app token.
@@ -149,7 +150,7 @@ If Auto fetches usage with a cookie that the app still cannot confirm for the cu
 - Primary: plan usage percent (included plan).
 - Secondary: Cursor (Cursor models) usage percent.
 - Tertiary: Third Party usage percent.
-- Extra: Grok Bot usage from `get-sand-usage-status` when the account has a paid allowance or an unexpired trial. The current `includedLimitZero` field takes precedence over the older allowance flag. Exhausted active trials remain visible; missing, malformed, or expired trial dates do not grant an allowance. Grok Bot is not the semantic weekly window, so monthly Cursor Auto pace stays on the Cursor bar when this extra 7-day window is present. Paid 7-day Grok Bot extras still show weekly pace on that extra bar; trial extras without a recurring reset do not.
+- Extra: Grok Bot usage from `get-sand-usage-status` when the account has a paid allowance or an unexpired trial. The current `includedLimitZero` field takes precedence over the older allowance flag. Exhausted active trials remain visible; missing, malformed, or expired trial dates do not grant an allowance. Grok Bot is not the semantic weekly window, so monthly Cursor Auto pace stays on the Cursor bar when this extra 7-day window is present. Paid 7-day Grok Bot extras still show weekly pace on that extra bar; trial extras without a recurring reset do not. Paid Grok Bot allowances with a valid reset use the documented 7-day cadence regardless of `currentPeriodStart`, so pace covers the full week even when that field starts mid-week or is missing. Missing or malformed reset dates leave pace unavailable.
 - Provider cost: Extra usage USD. A capped individual budget wins; team accounts without a user cap use the shared team on-demand budget.
 - Reset: billing cycle end date for monthly bars; paid Grok Bot uses `nextResetTimestampUtc`, even if a trial-expiry field is also present. Trial-only allowances have no recurring reset or duration because trial expiration does not replenish quota.
 

@@ -43,8 +43,10 @@ Browser discovery policy belongs to the provider. Use `ChromiumLocalStorageDisco
 catalog-derived Chromium storage discovery; the shared traversal handles localStorage, sessionStorage, and
 origin-filtered IndexedDB. For intentionally Chrome-only cookie imports, use
 `BrowserCookieImportSupport.chromeOnly(reason:)` with the provider's reason for avoiding unrelated browser prompts.
-Copilot budgets, Grok, Helmcode, Notion, Qoder, Replicate, TypeSafe, Venice, and ZoomMate retain this restricted
+Copilot budgets, Grok, Helmcode, Muse (muse.ai), Notion, Qoder, Replicate, TypeSafe, Venice, and ZoomMate retain this restricted
 default. A shared catalog is not permission to widen a provider's documented browser or credential scope.
+Plugin cookie settings display the provider's catalog-derived supported-browser names and a Manual fallback. Use the
+same `ctx.browser.supportedBrowsers` names in plugin sign-in guidance; never maintain a second browser-name list.
 
 Provider behavior is descriptor-driven. Two flat first-party manifests form the closed bootstrap boundary:
 `ProviderManifest` lists core descriptors and `ProviderImplementationManifest` lists app implementations. The registries
