@@ -504,6 +504,25 @@ build_widget_extension() {
     pkg_name=$(basename "$pkg_build_dir" .build)
     local lib="$ROOT/.build/$LOWER_CONF/lib${pkg_name}.a"
     local objs=("$pkg_build_dir"/*.o)
+    # Incremental builds leave orphaned .o files for sources deleted by
+    # upstream merges; packing them yields undefined-symbol link errors in
+    # the widget extension. Keep only objects whose source is still listed
+    # in SPM's per-target manifest (includes generated sources).
+    local manifest="$pkg_build_dir/sources"
+    if [[ -f "$manifest" && -f "${objs[0]}" ]]; then
+      local -a live=()
+      local obj_file obj_base
+      for obj_file in "${objs[@]}"; do
+        [[ -f "$obj_file" ]] || continue
+        obj_base=$(basename "$obj_file" .o)
+        if grep -qF "/$obj_base" "$manifest"; then
+          live+=("$obj_file")
+        else
+          echo "Skipping stale object ${pkg_name}/${obj_base} (source removed)" >&2
+        fi
+      done
+      objs=("${live[@]}")
+    fi
     if [[ ${#objs[@]} -gt 0 && -f "${objs[0]}" ]]; then
       echo "Creating lib${pkg_name}.a from object files..." >&2
       rm -f "$lib"

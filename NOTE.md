@@ -87,3 +87,4 @@ MyCoder provider 保留完好（manifest + provider-ids.md + MyCoder 目錄）�
 - **pyenv xattr shim**：`which xattr` 解析到 `~/.pyenv/shims/xattr`（不支援 `-r`），會讓 `package_app.sh` 的 quarantine 檢查誤判。已改用 `/usr/bin/xattr`。日後新腳本統一用絕對路徑或先 `command -v` 確認。
 - **toolchain**：Xcode 26.3（Swift 6.2.4）已可用，Swiftly 已退役（`.swift-version` 已刪；`compile_and_run.sh` 有 fallback 自動切 Xcode toolchain）。先前「Swiftly 6.3.3 編譯成功但執行檔 dyld crash」隨 Xcode 升級一併解決。
 - **MenuSwitchFlickerProbe**：`CGWindowListCreateImage` 已 deprecated（macOS 14），官方建議 ScreenCaptureKit 但需錄影權限 + 非同步遷移，暫不處理。
+- **SPM 孤立 .o 檔**：upstream merge 刪掉原始檔後，`.build/<triple>/release/<Target>.build/` 會殘留孤立 `.o`（SPM incremental build 不清）。`package_app.sh` 的 `ar rcs` 迴圈曾把它們全部打包進 `lib<Target>.a`，widget extension link 時拉進死物件 → 大量 undefined symbol（lazy init token / generic specialization）。2026-10-07 修復：打包前用 SPM 的 `<Target>.build/sources` manifest 過濾，只打包仍存在的 source 對應的 `.o`。日後 merge 刪檔後若 link 失敗，先想到這個。
