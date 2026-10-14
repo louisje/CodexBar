@@ -23,6 +23,16 @@ jobs:
           xcodebuild -version
           swift --version
           df -h .
+      - name: Install Swift 6.3.3 toolchain
+        run: |
+          set -euo pipefail
+          SWIFT_VERSION=6.3.3
+          SWIFT_TOOLCHAIN_URL="https://download.swift.org/swift-6.3.3-release/xcode/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE-osx.pkg"
+          curl --fail --location --retry 3 "$SWIFT_TOOLCHAIN_URL" -o "$RUNNER_TEMP/swift.pkg"
+          sudo installer -pkg "$RUNNER_TEMP/swift.pkg" -target /
+          echo "TOOLCHAINS=org.swift.633202606251a" >> "$GITHUB_ENV"
+          xcrun --toolchain org.swift.633202606251a swift --version
+          xcrun --toolchain org.swift.633202606251a swift package --version
       - name: Build and package Intel app
         run: |
           set -euo pipefail
