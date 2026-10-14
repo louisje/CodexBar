@@ -1,0 +1,45 @@
+name: Build Intel macOS App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  intel-app:
+    runs-on: macos-15-intel
+    timeout-minutes: 360
+    permissions:
+      contents: read
+    env:
+      ARCHES: x86_64
+      CODEXBAR_SIGNING: adhoc
+      CODEXBAR_ALLOW_LLDB: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect build environment
+        run: |
+          set -euo pipefail
+          uname -m
+          sw_vers
+          xcodebuild -version
+          swift --version
+          df -h .
+      - name: Build and package Intel app
+        run: |
+          set -euo pipefail
+          ./Scripts/package_app.sh release 2>&1 | tee "$RUNNER_TEMP/codexbar-build.log"
+      - name: Archive Intel app
+        run: |
+          set -euo pipefail
+          ditto -c -k --sequesterRsrc --keepParent CodexBar.app "$RUNNER_TEMP/CodexBar-macos-x86_64.zip"
+          file CodexBar.app/Contents/MacOS/CodexBar
+          lipo -archs CodexBar.app/Contents/MacOS/CodexBar
+      - name: Upload app and build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CodexBar-macos-x86_64
+          path: |
+            ${{ runner.temp }}/CodexBar-macos-x86_64.zip
+            ${{ runner.temp }}/codexbar-build.log
+          if-no-files-found: warn
+          retention-days: 14
