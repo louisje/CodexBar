@@ -538,12 +538,13 @@ build_widget_extension() {
   # widget extension is compiled with the same Swift version as CodexBarCore.
   local swift633_toolchain_id="org.swift.633202606251a"
   local toolchain_dir="$HOME/Library/Developer/Toolchains/swift-6.3.3-RELEASE.xctoolchain"
-  local xcodebuild_env=()
+  # An empty array expanded under 'set -u' fails on macOS Bash 3.2.
+  # The workflow already exports TOOLCHAINS, so invoke xcodebuild directly.
   if [[ -d "$toolchain_dir" ]]; then
-    xcodebuild_env=(env TOOLCHAINS="$swift633_toolchain_id")
+    export TOOLCHAINS="$swift633_toolchain_id"
   fi
 
-  "${xcodebuild_env[@]}" xcodebuild \
+  xcodebuild \
     -project "$project_dir" \
     -scheme CodexBarWidgetExtension \
     -configuration "$xcode_conf" \
