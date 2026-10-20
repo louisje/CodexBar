@@ -119,7 +119,9 @@ public enum MyCoderUsageFetcher {
         var payload = String(parts[1])
             .replacingOccurrences(of: "-", with: "+")
             .replacingOccurrences(of: "_", with: "/")
-        while payload.count % 4 != 0 { payload += "=" }
+        while payload.count % 4 != 0 {
+            payload += "="
+        }
         guard let data = Data(base64Encoded: payload),
               let claims = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else {
@@ -312,7 +314,7 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
 
     /// Returns the first existing PEM CA path, or nil when none is available.
     private static func resolvedCAPath() -> String? {
-        for path in caCandidatePaths.compactMap({ $0 }) {
+        for path in self.caCandidatePaths.compactMap(\.self) {
             if FileManager.default.fileExists(atPath: path) {
                 return path
             }
@@ -377,7 +379,8 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
 
         guard process.terminationStatus == 0 else {
             let stderr = String(data: stderrData, encoding: .utf8) ?? ""
-            MyCoderUsageFetcher.log.error("MyCoder curl transport failed: \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))")
+            MyCoderUsageFetcher.log
+                .error("MyCoder curl transport failed: \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))")
             throw MyCoderUsageError.networkError(
                 "curl exited \(process.terminationStatus): \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))")
         }
@@ -386,7 +389,8 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
         guard let stdout = String(data: stdoutData, encoding: .utf8),
               let lastNewline = stdout.lastIndex(of: "\n"),
               lastNewline > stdout.startIndex,
-              let statusCode = Int(stdout[stdout.index(after: lastNewline)...].trimmingCharacters(in: .whitespacesAndNewlines))
+              let statusCode = Int(stdout[stdout.index(after: lastNewline)...]
+                  .trimmingCharacters(in: .whitespacesAndNewlines))
         else {
             throw MyCoderUsageError.networkError("curl produced no parseable HTTP response")
         }
@@ -395,7 +399,11 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
             url: url,
             statusCode: statusCode,
             httpVersion: "HTTP/1.1",
-            headerFields: nil) ?? URLResponse(url: url, mimeType: nil, expectedContentLength: body.count, textEncodingName: nil)
+            headerFields: nil) ?? URLResponse(
+            url: url,
+            mimeType: nil,
+            expectedContentLength: body.count,
+            textEncodingName: nil)
         return (body, response)
     }
 }
