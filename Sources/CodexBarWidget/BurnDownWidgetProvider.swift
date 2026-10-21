@@ -29,6 +29,7 @@ enum BurnProviderChoice: String, AppEnum {
     case kilo
     case kiro
     case langdock
+    case mycoder
     case vertexai
     case augment
     case jetbrains
@@ -125,6 +126,7 @@ enum BurnProviderChoice: String, AppEnum {
         .kilo: DisplayRepresentation(title: "Kilo"),
         .kiro: DisplayRepresentation(title: "Kiro"),
         .langdock: DisplayRepresentation(title: "Langdock"),
+        .mycoder: DisplayRepresentation(title: "MyCoder"),
         .vertexai: DisplayRepresentation(title: "Vertex AI"),
         .augment: DisplayRepresentation(title: "Augment"),
         .jetbrains: DisplayRepresentation(title: "JetBrains AI"),
