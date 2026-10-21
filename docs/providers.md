@@ -165,6 +165,7 @@ complete when the available scan window covers fewer days.
 | Provider | Source |
 |---|---|
 | [Langdock](langdock.md) | Selected Microsoft Edge profile → personal included session and weekly limits (`web`, macOS). |
+| [MyCoder](mycoder.md) | ASUS MyCoder internal quota API, authenticated with a browser SSO cookie. |
 | [LithosAI](lithosai.md) | Chrome or manual console cookies for prepaid USD balance and optional UTC spend. |
 | [WorkBuddy](workbuddy.md) | Chrome or manual www.workbuddy.cn cookies for the monthly credits allowance, plan name, and cycle reset. |
 

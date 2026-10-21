@@ -130,7 +130,7 @@ for (const [, attrs, body] of providerCards) {
     listedProviderIDs.push(providerID);
     assert(!attrs.includes("hidden"), `registered provider ${providerID} must be visible`);
     const documentationPath = body.match(
-      /href="https:\/\/github\.com\/steipete\/CodexBar\/blob\/main\/(docs\/[^"#]+\.md)"/,
+      /href="https:\/\/github\.com\/(?:steipete|louisje)\/CodexBar\/blob\/main\/(docs\/[^"#]+\.md)"/,
     )?.[1];
     assert(documentationPath, `${providerID} must link to its provider documentation`);
     assert(
