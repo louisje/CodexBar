@@ -61,7 +61,8 @@ public enum MyCoderUsageFetcher {
         let from = calendar.date(byAdding: .day, value: -30, to: now) ?? now
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let fromParam = formatter.string(from: from).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let fromParam = formatter.string(from: from)
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let toParam = formatter.string(from: now).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         return "/mycoder-quota/api/v1/user/\(userId)/usage?from=\(fromParam)&to=\(toParam)"
     }
@@ -304,20 +305,20 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
     }
 
     private static func locateCurl() -> String {
-        for candidate in ["/usr/bin/curl", "/usr/local/bin/curl", "/opt/homebrew/bin/curl"] {
-            if FileManager.default.isExecutableFile(atPath: candidate) {
-                return candidate
-            }
+        for candidate in ["/usr/bin/curl", "/usr/local/bin/curl", "/opt/homebrew/bin/curl"]
+            where FileManager.default.isExecutableFile(atPath: candidate)
+        {
+            return candidate
         }
         return "/usr/bin/curl"
     }
 
     /// Returns the first existing PEM CA path, or nil when none is available.
     private static func resolvedCAPath() -> String? {
-        for path in self.caCandidatePaths.compactMap(\.self) {
-            if FileManager.default.fileExists(atPath: path) {
-                return path
-            }
+        for path in self.caCandidatePaths.compactMap(\.self)
+            where FileManager.default.fileExists(atPath: path)
+        {
+            return path
         }
         return nil
     }
@@ -345,8 +346,8 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
             arguments.append("-H")
             arguments.append("\(field): \(value)")
         }
-        MyCoderUsageFetcher.log.info(
-            "MyCoder curl transport headers: \((request.allHTTPHeaderFields ?? [:]).keys.sorted().joined(separator: ","))")
+        let headerNames = (request.allHTTPHeaderFields ?? [:]).keys.sorted().joined(separator: ",")
+        MyCoderUsageFetcher.log.info("MyCoder curl transport headers: \(headerNames)")
         if request.httpMethod != "GET", let body = request.httpBody {
             arguments.append("--data-binary")
             arguments.append("@-")

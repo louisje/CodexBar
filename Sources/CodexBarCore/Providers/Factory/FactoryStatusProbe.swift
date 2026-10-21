@@ -589,6 +589,7 @@ public struct FactoryStatusSnapshot: Sendable {
 
 // MARK: - Factory Status Probe
 
+// swiftlint:disable:next type_body_length
 public struct FactoryStatusProbe: Sendable {
     public let baseURL: URL
     public var timeout: TimeInterval = 15.0

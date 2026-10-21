@@ -142,8 +142,8 @@ enum BurnProviderChoice: String, AppEnum {
         .zed: DisplayRepresentation(title: "Zed"),
         .perplexity: DisplayRepresentation(title: "Perplexity"),
         .mimo: DisplayRepresentation(title: "Xiaomi MiMo"),
-        .doubao: DisplayRepresentation(title: "Doubao"),
         // Provider-specific by design: AppIntents requires literal catalog titles; snapshot data gates eligibility.
+        .doubao: DisplayRepresentation(title: "Doubao"),
         .sakana: DisplayRepresentation(title: "Sakana AI"),
         .abacus: DisplayRepresentation(title: "Abacus AI"),
         .mistral: DisplayRepresentation(title: "Mistral"),
@@ -182,8 +182,8 @@ enum BurnProviderChoice: String, AppEnum {
         .replicate: DisplayRepresentation(title: "Replicate"),
         .huggingface: DisplayRepresentation(title: "Hugging Face"),
         .raycast: DisplayRepresentation(title: "Raycast"),
-        .pi: DisplayRepresentation(title: "Pi"),
         // Provider-specific by design: AppIntents requires literal catalog titles; snapshot data gates eligibility.
+        .pi: DisplayRepresentation(title: "Pi"),
         .v0: DisplayRepresentation(title: "v0"),
         .typesafe: DisplayRepresentation(title: "TypeSafe"),
         .hyper: DisplayRepresentation(title: "Charm Hyper"),
