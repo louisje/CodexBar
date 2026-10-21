@@ -156,7 +156,8 @@ struct ProviderArchitectureGatekeeperTests {
             Self.hash(descriptor.branding.burnDownWidgetColor, into: &burnDownFingerprint)
         }
 
-        // Fork-specific providers and Langdock extend the registered palette. Review changes to\n        // these fingerprints alongside intentional provider additions or color changes.
+        // Fork-specific providers and Langdock extend the registered palette.
+        // Review these fingerprints alongside intentional provider additions or color changes.
         #expect(widgetFingerprint == 243_820_956_319_557_706)
         #expect(burnDownFingerprint == 11_695_066_858_134_880_002)
     }
