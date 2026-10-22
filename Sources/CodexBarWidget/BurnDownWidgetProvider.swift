@@ -28,6 +28,8 @@ enum BurnProviderChoice: String, AppEnum {
     case kimi
     case kilo
     case kiro
+    case langdock
+    case mycoder
     case vertexai
     case augment
     case jetbrains
@@ -123,6 +125,8 @@ enum BurnProviderChoice: String, AppEnum {
         .kimi: DisplayRepresentation(title: "Kimi Code"),
         .kilo: DisplayRepresentation(title: "Kilo"),
         .kiro: DisplayRepresentation(title: "Kiro"),
+        .langdock: DisplayRepresentation(title: "Langdock"),
+        .mycoder: DisplayRepresentation(title: "MyCoder"),
         .vertexai: DisplayRepresentation(title: "Vertex AI"),
         .augment: DisplayRepresentation(title: "Augment"),
         .jetbrains: DisplayRepresentation(title: "JetBrains AI"),
@@ -138,9 +142,9 @@ enum BurnProviderChoice: String, AppEnum {
         .zed: DisplayRepresentation(title: "Zed"),
         .perplexity: DisplayRepresentation(title: "Perplexity"),
         .mimo: DisplayRepresentation(title: "Xiaomi MiMo"),
+        // Provider-specific by design: AppIntents requires literal catalog titles; snapshot data gates eligibility.
         .doubao: DisplayRepresentation(title: "Doubao"),
         .sakana: DisplayRepresentation(title: "Sakana AI"),
-        // Provider-specific by design: AppIntents requires literal catalog titles; snapshot data gates eligibility.
         .abacus: DisplayRepresentation(title: "Abacus AI"),
         .mistral: DisplayRepresentation(title: "Mistral"),
         .deepseek: DisplayRepresentation(title: "DeepSeek"),
@@ -178,10 +182,10 @@ enum BurnProviderChoice: String, AppEnum {
         .replicate: DisplayRepresentation(title: "Replicate"),
         .huggingface: DisplayRepresentation(title: "Hugging Face"),
         .raycast: DisplayRepresentation(title: "Raycast"),
+        // Provider-specific by design: AppIntents requires literal catalog titles; snapshot data gates eligibility.
         .pi: DisplayRepresentation(title: "Pi"),
         .v0: DisplayRepresentation(title: "v0"),
         .typesafe: DisplayRepresentation(title: "TypeSafe"),
-        // Provider-specific by design: AppIntents requires literal catalog titles; snapshot data gates eligibility.
         .hyper: DisplayRepresentation(title: "Charm Hyper"),
         .gitkraken: DisplayRepresentation(title: "GitKraken AI"),
         .devpass: DisplayRepresentation(title: "DevPass"),
@@ -270,7 +274,8 @@ struct BurnProviderOptions: DynamicOptionsProvider {
     static func choices(in snapshot: WidgetSnapshot?, combined: Bool = false) -> [BurnProviderChoice] {
         guard let snapshot else { return [] }
         return BurnProviderChoice.allCases.filter { choice in
-            guard snapshot.enabledProviders.contains(choice.provider.instanceID),
+            guard ProviderDescriptorRegistry.descriptor(for: choice.provider).metadata.burnDownWidgetSelectable,
+                  snapshot.enabledProviders.contains(choice.provider.instanceID),
                   let state = BurnDownState(snapshot: snapshot, provider: choice.provider, selection: .primary)
             else { return false }
             let selections = combined ? state.combinedSelections : state.availableSelections
@@ -305,7 +310,8 @@ struct BurnDownState {
         selection: BurnWindowChoice,
         now: Date = Date())
     {
-        guard let entry = snapshot.entries.first(where: { $0.provider == provider.instanceID }) else { return nil }
+        guard ProviderDescriptorRegistry.descriptor(for: provider).metadata.burnDownWidgetSelectable,
+              let entry = snapshot.entries.first(where: { $0.provider == provider.instanceID }) else { return nil }
         self.entry = entry
         self.selection = selection
         self.now = now

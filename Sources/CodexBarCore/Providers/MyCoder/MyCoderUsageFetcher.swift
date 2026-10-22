@@ -61,7 +61,8 @@ public enum MyCoderUsageFetcher {
         let from = calendar.date(byAdding: .day, value: -30, to: now) ?? now
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let fromParam = formatter.string(from: from).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let fromParam = formatter.string(from: from)
+            .addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         let toParam = formatter.string(from: now).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         return "/mycoder-quota/api/v1/user/\(userId)/usage?from=\(fromParam)&to=\(toParam)"
     }
@@ -119,7 +120,9 @@ public enum MyCoderUsageFetcher {
         var payload = String(parts[1])
             .replacingOccurrences(of: "-", with: "+")
             .replacingOccurrences(of: "_", with: "/")
-        while payload.count % 4 != 0 { payload += "=" }
+        while payload.count % 4 != 0 {
+            payload += "="
+        }
         guard let data = Data(base64Encoded: payload),
               let claims = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else {
@@ -302,20 +305,20 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
     }
 
     private static func locateCurl() -> String {
-        for candidate in ["/usr/bin/curl", "/usr/local/bin/curl", "/opt/homebrew/bin/curl"] {
-            if FileManager.default.isExecutableFile(atPath: candidate) {
-                return candidate
-            }
+        for candidate in ["/usr/bin/curl", "/usr/local/bin/curl", "/opt/homebrew/bin/curl"]
+            where FileManager.default.isExecutableFile(atPath: candidate)
+        {
+            return candidate
         }
         return "/usr/bin/curl"
     }
 
     /// Returns the first existing PEM CA path, or nil when none is available.
     private static func resolvedCAPath() -> String? {
-        for path in caCandidatePaths.compactMap({ $0 }) {
-            if FileManager.default.fileExists(atPath: path) {
-                return path
-            }
+        for path in self.caCandidatePaths.compactMap(\.self)
+            where FileManager.default.fileExists(atPath: path)
+        {
+            return path
         }
         return nil
     }
@@ -343,8 +346,8 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
             arguments.append("-H")
             arguments.append("\(field): \(value)")
         }
-        MyCoderUsageFetcher.log.info(
-            "MyCoder curl transport headers: \((request.allHTTPHeaderFields ?? [:]).keys.sorted().joined(separator: ","))")
+        let headerNames = (request.allHTTPHeaderFields ?? [:]).keys.sorted().joined(separator: ",")
+        MyCoderUsageFetcher.log.info("MyCoder curl transport headers: \(headerNames)")
         if request.httpMethod != "GET", let body = request.httpBody {
             arguments.append("--data-binary")
             arguments.append("@-")
@@ -377,7 +380,8 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
 
         guard process.terminationStatus == 0 else {
             let stderr = String(data: stderrData, encoding: .utf8) ?? ""
-            MyCoderUsageFetcher.log.error("MyCoder curl transport failed: \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))")
+            MyCoderUsageFetcher.log
+                .error("MyCoder curl transport failed: \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))")
             throw MyCoderUsageError.networkError(
                 "curl exited \(process.terminationStatus): \(stderr.trimmingCharacters(in: .whitespacesAndNewlines))")
         }
@@ -386,7 +390,8 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
         guard let stdout = String(data: stdoutData, encoding: .utf8),
               let lastNewline = stdout.lastIndex(of: "\n"),
               lastNewline > stdout.startIndex,
-              let statusCode = Int(stdout[stdout.index(after: lastNewline)...].trimmingCharacters(in: .whitespacesAndNewlines))
+              let statusCode = Int(stdout[stdout.index(after: lastNewline)...]
+                  .trimmingCharacters(in: .whitespacesAndNewlines))
         else {
             throw MyCoderUsageError.networkError("curl produced no parseable HTTP response")
         }
@@ -395,7 +400,11 @@ private final class MyCoderTrustingTransport: ProviderHTTPTransport, @unchecked 
             url: url,
             statusCode: statusCode,
             httpVersion: "HTTP/1.1",
-            headerFields: nil) ?? URLResponse(url: url, mimeType: nil, expectedContentLength: body.count, textEncodingName: nil)
+            headerFields: nil) ?? URLResponse(
+            url: url,
+            mimeType: nil,
+            expectedContentLength: body.count,
+            textEncodingName: nil)
         return (body, response)
     }
 }

@@ -26,6 +26,18 @@ PY
 
 source "$FUNCTIONS_FILE"
 
+# The production verifier calls /usr/bin/xattr directly. Override only the extracted
+# verifier in this synthetic test so the Linux mock exercises the quarantine gate.
+production_quarantine_verifier=$(declare -f verify_no_quarantine_attribute)
+verify_no_quarantine_attribute() {
+  if [[ "${MOCK_QUARANTINE:-0}" == "1" ]]; then
+    echo "ERROR: Synthetic app is quarantined" >&2
+    return 1
+  fi
+  return 0
+}
+[[ "$production_quarantine_verifier" == *'/usr/bin/xattr'* ]]
+
 unset CODEXBAR_SIGNING
 SIGNING_MODE=
 resolve_package_signing_mode

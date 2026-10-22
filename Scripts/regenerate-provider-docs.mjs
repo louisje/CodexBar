@@ -49,7 +49,7 @@ for (const entry of entries) {
   const descriptor = descriptors.find((source) => source.includes(`id: .${entry.id},`));
   entry.color = descriptor?.match(/color: (?:ProviderColor|\.init)\(hex: 0x([A-Fa-f0-9]{6})\)/u)?.[1];
   assert(entry.color, `Missing hex branding for ${entry.id}`);
-  entry.auth = descriptor.includes("webSource:") ? "cookies" : "apiKey";
+  entry.auth = entry.id === "mycoder" || descriptor.includes("webSource:") ? "cookies" : "apiKey";
   update(`docs/logos/${entry.id}.svg`, () => read(`Sources/CodexBar/Resources/ProviderIcon-${entry.id}.svg`));
 }
 const html = (value) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
@@ -83,7 +83,7 @@ update("docs/index.html", (text) =>
     text.replace(/\d+(?= (?:AI coding )?providers)/gu, String(count)),
     entries.map(
       (entry) =>
-        `          <li class="provider-card" data-provider="${entry.id}"><a class="provider-card-link" href="https://github.com/steipete/CodexBar/blob/main/docs/${entry.file}"><span class="provider-logo" style="--brand:#${entry.color};--icon:url('./logos/${entry.id}.svg')"><img src="./logos/${entry.id}.svg" alt="" loading="lazy" onerror="this.remove()" /></span><p><strong>${html(entry.name)}</strong><span data-i18n="auth.${entry.auth}">${entry.auth === "cookies" ? "Cookies" : "API key"}</span></p></a></li>`,
+        `          <li class="provider-card" data-provider="${entry.id}"><a class="provider-card-link" href="https://github.com/${entry.id === "mycoder" ? "louisje" : "steipete"}/CodexBar/blob/main/docs/${entry.file}"><span class="provider-logo" style="--brand:#${entry.color};--icon:url('./logos/${entry.id}.svg')"><img src="./logos/${entry.id}.svg" alt="" loading="lazy" onerror="this.remove()" /></span><p><strong>${html(entry.name)}</strong><span data-i18n="auth.${entry.auth}">${entry.auth === "cookies" ? "Cookies" : "API key"}</span></p></a></li>`,
     ),
   ),
 );

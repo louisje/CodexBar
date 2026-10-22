@@ -209,6 +209,17 @@ enum AgentProcessPath {
             ? expandTilde(path) : path
         let basename = (path as NSString).lastPathComponent
         if path.hasPrefix("/") { return basename }
+        // Foundation's file URL parser treats doubled separators before trailing
+        // dot-dot differently from NSString's path components on macOS.
+        if path.hasSuffix("//..") {
+            let prefix = String(path.dropLast(4))
+            if prefix == ".." {
+                return (currentDirectory() as NSString).lastPathComponent
+            }
+            if !prefix.isEmpty, prefix != "." {
+                return (prefix as NSString).lastPathComponent
+            }
+        }
         guard basename.isEmpty || basename == "." || basename == ".." else { return basename }
         // File URLs resolve relative dot components against CWD, but leave absolute ones alone.
         var components = currentDirectory().components(separatedBy: "/")
